@@ -1626,7 +1626,7 @@ const DATA_STORE_URL = 'https://vgdatastorage-production.up.railway.app';
 const GIFT_RELAYER_URL = 'https://vgrelayer-production.up.railway.app';
 
 const STATUS_CONFIG = {
-  URL: 'https://raw.githubusercontent.com/sn0wydev/ProtV4/main/status.json',
+  URL: 'https://raw.githubusercontent.com/sn0wydev/VGDevBranch/main/status.json',
   TIMEOUT_MS: 4000
 };
 
