@@ -61,22 +61,17 @@ const CONFIG = {
   // ── Furry Spin (third wheel) ──
   // Same engine and same knobs as Void Spin, tunable on their own. The 120px
   // cube + 48px gap must stay in step with the .cube CSS, same as above.
-  FURRY_SPIN_COST: 50,         // Stars deducted the moment Spin is pressed
+  FURRY_SPIN_COST: 150,         // Stars deducted the moment Spin is pressed
   FURRY_SPIN_DURATION: 4500,
   FURRY_SPIN_MAX_SPEED: 25,
   FURRY_CUBE_WIDTH: 120,
   FURRY_GAP_WIDTH: 48,
 
   // ── Telegram channel subscription gate ──
-  // Both wheels require this before they'll spin. CHANNEL_USERNAME is the
-  // @handle (without the @ in the chat_id your backend sends to Telegram's
-  // getChatMember — see the /check-subscription snippet notes). CHANNEL_URL
-  // is what actually opens when the user taps the "join" button in the popup.
   SUBSCRIPTION_REQUIRED: true,
-  SUBSCRIPTION_CHANNEL_USERNAME: '@telegramchannelname',
-  SUBSCRIPTION_CHANNEL_URL: 'https://t.me/telegramchannelname',
-  // Your backend endpoint that checks membership server-side (bot token
-  // never touches the frontend). Expected response: { "subscribed": true|false }.
+  SUBSCRIPTION_CHANNEL_USERNAME: '@VoidGiftsOfficial',
+  SUBSCRIPTION_CHANNEL_URL: 'https://t.me/VoidGiftsOfficial',
+  // Expected response: { "subscribed": true|false }.
   // This route is served by the main bot (bot.js / messageHandlers.js), the same
   // service as /create-invoice, NOT by the data store, which has no such route.
   SUBSCRIPTION_CHECK_URL: 'https://vgservers-production.up.railway.app/check-subscription'
