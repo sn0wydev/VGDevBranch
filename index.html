@@ -175,14 +175,48 @@
             <div class="hero-copy">
               <span class="eyebrow" data-i18n="newSpinEyebrow">new spin</span>
               <div class="hero-title"><span class="hl" data-i18n="furrySpinTitle">FURRY</span> <span data-i18n="voidSpinTitleSuffix">Spin</span></div>
-              <p class="hero-sub" data-i18n="furrySpinSub">NFT Socks and Lollipop, Star prizes and rare gifts. Get fluffy.</p>
+              <p class="hero-sub" data-i18n="furrySpinSub">Instant Ramen, Star Notepad, Calendar and more NFTs, Star prizes and rare gifts. Get fluffy.</p>
               <div class="hero-actions">
                 <button class="hero-cta furry-spin-cta" data-i18n="spinNow">Spin Now</button>
-                <div class="spin-cost-badge"><img src="assets/TStars.svg" alt="">50 <span data-i18n="starsWord">Stars</span></div>
+                <div class="spin-cost-badge"><img src="assets/TStars.svg" alt="">150 <span data-i18n="starsWord">Stars</span></div>
               </div>
             </div>
             <div class="furry-asset-badge hero-asset">
               <img src="assets/Paw.svg" alt="">
+            </div>
+          </div>
+
+          <!-- Hex Spin -->
+          <div class="hero hero--hex content-box-hex">
+            <div class="hero-glow" aria-hidden="true"></div>
+            <div class="hero-copy">
+              <span class="eyebrow" data-i18n="newSpinEyebrow">new spin</span>
+              <div class="hero-title"><span class="hl" data-i18n="hexSpinTitle">STARRY</span> <span data-i18n="voidSpinTitleSuffix">Spin</span></div>
+              <p class="hero-sub" data-i18n="hexSpinSub"></p>
+              <div class="hero-actions">
+                <button class="hero-cta hex-spin-cta" data-i18n="spinNow">Spin Now</button>
+                <div class="spin-cost-badge"><img src="assets/TStars.svg" alt="">500 <span data-i18n="starsWord">Stars</span></div>
+              </div>
+            </div>
+            <div class="hex-asset-badge hero-asset">
+              <img src="assets/Starry.svg" alt="">
+            </div>
+          </div>
+
+          <!-- Astral Spin -->
+          <div class="hero hero--astral content-box-astral">
+            <div class="hero-glow" aria-hidden="true"></div>
+            <div class="hero-copy">
+              <span class="eyebrow" data-i18n="premiumSpinEyebrow">new spin</span>
+              <div class="hero-title"><span class="hl" data-i18n="astralSpinTitle">ASTRAL</span> <span data-i18n="voidSpinTitleSuffix">Spin</span></div>
+              <p class="hero-sub" data-i18n="astralSpinSub"></p>
+              <div class="hero-actions">
+                <button class="hero-cta astral-spin-cta" data-i18n="spinNow">Spin Now</button>
+                <div class="spin-cost-badge"><img src="assets/TStars.svg" alt="">1000 <span data-i18n="starsWord">Stars</span></div>
+              </div>
+            </div>
+            <div class="astral-asset-badge hero-asset">
+              <img src="assets/Astral.svg" alt="">
             </div>
           </div>
 
@@ -259,7 +293,7 @@
               <span class="gift-tab-icon" id="giftTabIcon"></span><span class="tab-label" data-i18n="tabGifts">Gifts</span>
             </button>
             <button class="leaderboard-tab" data-tab="stars">
-              <img src="assets/TStars.svg" alt="Stars"><span class="tab-label" data-i18n="tabStars">Stars</span>
+              <img src="assets/TStars.svg" alt="Stars"><span class="tab-label" data-i18n="tabSpent">Spent</span>
             </button>
           </div>
           <div class="leaderboard-content">
@@ -323,6 +357,9 @@
             <button class="deposit-tab" data-tab="ton">
               <img src="assets/TON.svg" alt="TON" class="tab-icon-img"><span class="tab-label" data-i18n="tabTonCoin">TON Coin</span>
             </button>
+            <button class="deposit-tab" data-tab="sell">
+              <img src="assets/TStars.svg" alt="" class="tab-icon-img"><span class="tab-label" data-i18n="tabSell">Sell Gifts</span>
+            </button>
           </div>
           <div class="deposit-content">
             <div class="deposit-list active" id="deposit-stars"><div class="packages-grid"></div></div>
@@ -334,6 +371,18 @@
                 </button>
               </div>
               <div class="packages-grid"></div>
+            </div>
+            <div class="deposit-list" id="deposit-sell">
+              <div class="sell-intro">
+                <h3 class="sell-title" data-i18n="sellTitle">Sell your NFT gifts for Stars</h3>
+                <p class="sell-how" data-sell-relayer="sellHowTo">Send a collectible to @VoidGift_Relayer in Telegram. The Stars below are added to your balance automatically.</p>
+                <button type="button" class="spin-button sell-open" id="sellOpenRelayer" data-sell-relayer="sellOpenRelayer">Open @VoidGift_Relayer</button>
+              </div>
+              <div class="sell-tools">
+                <input type="search" id="sellSearch" class="sell-search" data-i18n="sellSearch" placeholder="Search gifts…" autocomplete="off">
+                <span class="sell-count" id="sellCount"></span>
+              </div>
+              <div class="sell-list" id="sellList"></div>
             </div>
             <div class="deposit-info-card">
               <div class="info-icon" role="img" aria-label="Info"></div>
@@ -497,9 +546,9 @@
             </div>
 
             <div class="gift-grid">
-              <div class="gift-item gift-legendary"><div class="gift-icon" id="giftCalendar"></div><div class="gift-label">Calendar</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-epic"><div class="gift-icon" id="giftTrophy"></div><div class="gift-label">Trophy</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-rare"><div class="gift-icon" id="giftDiamond"></div><div class="gift-label">Diamond</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="giftCalendar"></div><div class="gift-label">Calendar</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-rare"><div class="gift-icon" id="giftRing"></div><div class="gift-label">Ring</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-uncommon"><div class="gift-icon" id="giftRoseBouquet"></div><div class="gift-label">Rose Bouquet</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-uncommon"><div class="gift-icon" id="giftCake"></div><div class="gift-label">Cake</div><i class="pips" aria-hidden="true"></i></div>
@@ -559,16 +608,19 @@
             </div>
 
             <div class="gift-grid">
-              <div class="gift-item gift-legendary"><div class="gift-icon" id="voidGiftNotepad"></div><div class="gift-label">Star Notepad</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-legendary"><div class="gift-icon" id="voidGiftRamen"></div><div class="gift-label">Instant Ramen</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="voidGiftSocks"></div><div class="gift-label">Socks</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="voidGiftLollipop"></div><div class="gift-label">Lollipop</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-epic"><div class="gift-icon" id="voidGiftRocket"></div><div class="gift-label">Rocket</div><i class="pips" aria-hidden="true"></i></div>
-              <div class="gift-item gift-rare"><div class="gift-icon" id="voidGiftBear"></div><div class="gift-label">Bear</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-rare"><div class="gift-icon" id="voidGiftCake"></div><div class="gift-label">Cake</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-rare"><div class="gift-icon" id="voidGiftBear"></div><div class="gift-label">Bear</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-common"><div class="gift-icon" id="voidGiftHeart"></div><div class="gift-label">Heart</div></div>
             </div>
 
             <div class="rewards-divider"><span data-i18n="starPrizes">Star Prizes</span></div>
             <div class="reward-grid reward-grid--stars">
+              <div class="reward-item"><div class="reward-amount">100</div><div class="reward-icon" id="voidStars100"></div></div>
+              <div class="reward-item"><div class="reward-amount">50</div><div class="reward-icon" id="voidStars50"></div></div>
               <div class="reward-item"><div class="reward-amount">25</div><div class="reward-icon" id="voidStars25"></div></div>
               <div class="reward-item"><div class="reward-amount">10</div><div class="reward-icon" id="voidStars10"></div></div>
               <div class="reward-item"><div class="reward-amount">5</div><div class="reward-icon" id="voidStars5"></div></div>
@@ -597,7 +649,7 @@
             </div>
             <button class="spin-button furry-spin-button" id="furrySpinButton">
               <img src="assets/TStars.svg" alt="Stars" class="spin-btn-star-icon">
-              <span class="spin-btn-cost">50</span>
+              <span class="spin-btn-cost">150</span>
               <span class="spin-btn-divider"></span>
               <span data-i18n="spinButton">SPIN!</span>
             </button>
@@ -610,21 +662,137 @@
             </div>
 
             <div class="gift-grid">
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="furryGiftRamen"></div><div class="gift-label">Instant Ramen</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="furryGiftNotepad"></div><div class="gift-label">Star Notepad</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="furryGiftCalendar"></div><div class="gift-label">Calendar</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-legendary"><div class="gift-icon" id="furryGiftSocks"></div><div class="gift-label">Socks</div><i class="pips" aria-hidden="true"></i></div>
-              <div class="gift-item gift-legendary"><div class="gift-icon" id="furryGiftLollipop"></div><div class="gift-label">Lollipop</div><i class="pips" aria-hidden="true"></i></div>
-              <div class="gift-item gift-rare"><div class="gift-icon" id="furryGiftChampagne"></div><div class="gift-label">Champagne</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-epic"><div class="gift-icon" id="furryGiftTrophy"></div><div class="gift-label">Trophy</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-epic"><div class="gift-icon" id="furryGiftDiamond"></div><div class="gift-label">Diamond</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-rare"><div class="gift-icon" id="furryGiftChampagne"></div><div class="gift-label">Champagne</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-uncommon"><div class="gift-icon" id="furryGiftCake"></div><div class="gift-label">Cake</div><i class="pips" aria-hidden="true"></i></div>
               <div class="gift-item gift-common"><div class="gift-icon" id="furryGiftRose"></div><div class="gift-label">Rose</div></div>
             </div>
 
             <div class="rewards-divider"><span data-i18n="starPrizes">Star Prizes</span></div>
             <div class="reward-grid">
+              <div class="reward-item"><div class="reward-amount">300</div><div class="reward-icon" id="furryStars300"></div></div>
+              <div class="reward-item"><div class="reward-amount">150</div><div class="reward-icon" id="furryStars150"></div></div>
               <div class="reward-item"><div class="reward-amount">100</div><div class="reward-icon" id="furryStars100"></div></div>
               <div class="reward-item"><div class="reward-amount">50</div><div class="reward-icon" id="furryStars50"></div></div>
               <div class="reward-item"><div class="reward-amount">25</div><div class="reward-icon" id="furryStars25"></div></div>
               <div class="reward-item"><div class="reward-amount">10</div><div class="reward-icon" id="furryStars10"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-content" id="page-hexspin">
+        <div class="daily-spin-container">
+          <button class="spin-back-btn" onclick="TelegramGame.Navigation.navigateTo('home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span data-i18n="backToHome">Home</span>
+          </button>
+          <div class="spin-section">
+            <div class="wheel-container hex-wheel-container">
+              <div class="wheel-pointer"></div>
+              <div class="wheel" id="hexWheel">
+                <div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div>
+                <div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div>
+                <div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div>
+                <div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div><div class="cube hex-cube"></div>
+              </div>
+            </div>
+            <button class="spin-button hex-spin-button" id="hexSpinButton">
+              <img src="assets/TStars.svg" alt="Stars" class="spin-btn-star-icon">
+              <span class="spin-btn-cost">500</span>
+              <span class="spin-btn-divider"></span>
+              <span data-i18n="spinButton">SPIN!</span>
+            </button>
+          </div>
+
+          <div class="rewards-section">
+            <div class="rewards-header">
+              <div class="rewards-header-icon"><div class="rewards-icon-mask"></div></div>
+              <h2 class="rewards-title"><span data-i18n="whatCanIGet">What can I</span> <span class="get-text" data-i18n="getWord">get?</span></h2>
+            </div>
+
+            <div class="gift-grid">
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="hexGiftKissedFrog"></div><div class="gift-label">Kissed Frog</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="hexGiftVoodooDoll"></div><div class="gift-label">Voodoo Doll</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="hexGiftVintageCigar"></div><div class="gift-label">Vintage Cigar</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="hexGiftWitchHat"></div><div class="gift-label">Witch Hat</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="hexGiftLightSword"></div><div class="gift-label">Light Sword</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-rare"><div class="gift-icon" id="hexGiftChampagne"></div><div class="gift-label">Champagne</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-epic"><div class="gift-icon" id="hexGiftRing"></div><div class="gift-label">Ring</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-epic"><div class="gift-icon" id="hexGiftTrophy"></div><div class="gift-label">Trophy</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-epic"><div class="gift-icon" id="hexGiftDiamond"></div><div class="gift-label">Diamond</div><i class="pips" aria-hidden="true"></i></div>
+            </div>
+
+            <div class="rewards-divider"><span data-i18n="starPrizes">Star Prizes</span></div>
+            <div class="reward-grid">
+              <div class="reward-item"><div class="reward-amount">1,000</div><div class="reward-icon" id="hexStars1000"></div></div>
+              <div class="reward-item"><div class="reward-amount">500</div><div class="reward-icon" id="hexStars500"></div></div>
+              <div class="reward-item"><div class="reward-amount">250</div><div class="reward-icon" id="hexStars250"></div></div>
+              <div class="reward-item"><div class="reward-amount">100</div><div class="reward-icon" id="hexStars100"></div></div>
+              <div class="reward-item"><div class="reward-amount">50</div><div class="reward-icon" id="hexStars50"></div></div>
+              <div class="reward-item"><div class="reward-amount">25</div><div class="reward-icon" id="hexStars25"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-content" id="page-astralspin">
+        <div class="daily-spin-container">
+          <button class="spin-back-btn" onclick="TelegramGame.Navigation.navigateTo('home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span data-i18n="backToHome">Home</span>
+          </button>
+          <div class="spin-section">
+            <div class="wheel-container astral-wheel-container">
+              <div class="wheel-pointer"></div>
+              <div class="wheel" id="astralWheel">
+                <div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div>
+                <div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div>
+                <div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div>
+                <div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div><div class="cube astral-cube"></div>
+              </div>
+            </div>
+            <button class="spin-button astral-spin-button" id="astralSpinButton">
+              <img src="assets/TStars.svg" alt="Stars" class="spin-btn-star-icon">
+              <span class="spin-btn-cost">1000</span>
+              <span class="spin-btn-divider"></span>
+              <span data-i18n="spinButton">SPIN!</span>
+            </button>
+          </div>
+
+          <div class="rewards-section">
+            <div class="rewards-header">
+              <div class="rewards-header-icon"><div class="rewards-icon-mask"></div></div>
+              <h2 class="rewards-title"><span data-i18n="whatCanIGet">What can I</span> <span class="get-text" data-i18n="getWord">get?</span></h2>
+            </div>
+
+            <div class="gift-grid">
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="astralGiftAstralShard"></div><div class="gift-label">Astral Shard</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="astralGiftVoodooDoll"></div><div class="gift-label">Voodoo Doll</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="astralGiftLuckyLocket"></div><div class="gift-label">Lucky Locket</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-legendary"><div class="gift-icon" id="astralGiftInputKey"></div><div class="gift-label">Input Key</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-epic"><div class="gift-icon" id="astralGiftTrophy"></div><div class="gift-label">Trophy</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-epic"><div class="gift-icon" id="astralGiftDiamond"></div><div class="gift-label">Diamond</div><i class="pips" aria-hidden="true"></i></div>
+              <div class="gift-item gift-epic"><div class="gift-icon" id="astralGiftRing"></div><div class="gift-label">Ring</div><i class="pips" aria-hidden="true"></i></div>
+            </div>
+
+            <div class="rewards-divider"><span data-i18n="starPrizes">Star Prizes</span></div>
+            <div class="reward-grid">
+              <div class="reward-item"><div class="reward-amount">2,500</div><div class="reward-icon" id="astralStars2500"></div></div>
+              <div class="reward-item"><div class="reward-amount">1,000</div><div class="reward-icon" id="astralStars1000"></div></div>
+              <div class="reward-item"><div class="reward-amount">500</div><div class="reward-icon" id="astralStars500"></div></div>
+              <div class="reward-item"><div class="reward-amount">250</div><div class="reward-icon" id="astralStars250"></div></div>
+              <div class="reward-item"><div class="reward-amount">100</div><div class="reward-icon" id="astralStars100"></div></div>
+              <div class="reward-item"><div class="reward-amount">50</div><div class="reward-icon" id="astralStars50"></div></div>
             </div>
           </div>
         </div>
@@ -665,6 +833,28 @@
         <div class="win-modal-value-row" id="furryModalValueRow"></div>
         <div class="win-modal-divider"></div>
         <button class="claim-button" id="furryClaimButton" data-i18n="claim">Claim!</button>
+      </div>
+    </div>
+
+    <div class="win-modal-overlay" id="hexWinModal">
+      <div class="win-modal" role="dialog" aria-modal="true">
+        <span class="win-modal-eyebrow" data-i18n="youWon">you won</span>
+        <div class="win-modal-prize-wrap"><div class="win-modal-icon" id="hexModalPrizeIcon"></div></div>
+        <div class="win-modal-prize-name" id="hexModalPrizeName">Prize</div>
+        <div class="win-modal-value-row" id="hexModalValueRow"></div>
+        <div class="win-modal-divider"></div>
+        <button class="claim-button" id="hexClaimButton" data-i18n="claim">Claim!</button>
+      </div>
+    </div>
+
+    <div class="win-modal-overlay" id="astralWinModal">
+      <div class="win-modal" role="dialog" aria-modal="true">
+        <span class="win-modal-eyebrow" data-i18n="youWon">you won</span>
+        <div class="win-modal-prize-wrap"><div class="win-modal-icon" id="astralModalPrizeIcon"></div></div>
+        <div class="win-modal-prize-name" id="astralModalPrizeName">Prize</div>
+        <div class="win-modal-value-row" id="astralModalValueRow"></div>
+        <div class="win-modal-divider"></div>
+        <button class="claim-button" id="astralClaimButton" data-i18n="claim">Claim!</button>
       </div>
     </div>
 
