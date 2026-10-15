@@ -88,7 +88,7 @@ const CONFIG = {
   // Expected response: { "subscribed": true|false }.
   // This route is served by the main bot (bot.js / messageHandlers.js), the same
   // service as /create-invoice, NOT by the data store, which has no such route.
-  SUBSCRIPTION_CHECK_URL: 'https://vgservers-production.up.railway.app/check-subscription'
+  SUBSCRIPTION_CHECK_URL: 'https://vgservers-dev-85d2.up.railway.app/check-subscription'
 };
 
 const PRIZE_COIN_VALUES = {};   // filled from the game server (GameAPI.loadConfig)
@@ -1732,19 +1732,19 @@ const Utils = {
 // Standalone TON on-chain payment backend (ton-payments.js). Fully
 // independent of vgtserver (gift transactor) and vgservers (Stars invoices).
 const TON_API_BASE = 'https://ton-backend347-production.up.railway.app';
-const INVOICE_API_BASE = 'https://vgservers-production.up.railway.app'; // main bot: /create-invoice, /stars/claim-credits, /check-subscription
+const INVOICE_API_BASE = 'https://vgservers-dev-85d2.up.railway.app'; // main bot: /create-invoice, /stars/claim-credits, /check-subscription
 
 // VGDataStorage — Postgres-backed service that also holds the shared
 // users table (profile + coins/stars) the global leaderboard reads from.
-const DATA_STORE_URL = 'https://vgdatastorage-production.up.railway.app';
+const DATA_STORE_URL = 'https://vgdatastorage-dev-98a3.up.railway.app';
 // The authoritative game server (VGGameServer). Set this to your Railway URL.
-const GAME_API_BASE = 'https://vggameserver-production.up.railway.app';
+const GAME_API_BASE = 'https://vggameserver-dev-fb67.up.railway.app';
 
 // Gift Relayer (V2) — replaces the deprecated vgtserver /claim-gift.
 // Verifies Telegram initData itself and sends/transfers gifts from the
 // @VoidGift_Relayer user account. Point this at wherever gift-relayer.js
 // is deployed.
-const GIFT_RELAYER_URL = 'https://vgrelayer-production.up.railway.app';
+const GIFT_RELAYER_URL = 'https://voidgiftsrelayer-arr-dev-a64a.up.railway.app';
 
 const STATUS_CONFIG = {
   URL: 'https://raw.githubusercontent.com/sn0wydev/VGDevBranch/main/status.json',
