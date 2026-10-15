@@ -67,6 +67,20 @@ const CONFIG = {
   FURRY_CUBE_WIDTH: 120,
   FURRY_GAP_WIDTH: 48,
 
+  // ── Hex Spin (500 Stars) ──
+  HEX_SPIN_COST: 500,
+  HEX_SPIN_DURATION: 4500,
+  HEX_SPIN_MAX_SPEED: 25,
+  HEX_CUBE_WIDTH: 120,
+  HEX_GAP_WIDTH: 48,
+
+  // ── Astral Spin (1000 Stars) ──
+  ASTRAL_SPIN_COST: 1000,
+  ASTRAL_SPIN_DURATION: 4500,
+  ASTRAL_SPIN_MAX_SPEED: 25,
+  ASTRAL_CUBE_WIDTH: 120,
+  ASTRAL_GAP_WIDTH: 48,
+
   // ── Telegram channel subscription gate ──
   SUBSCRIPTION_REQUIRED: true,
   SUBSCRIPTION_CHANNEL_USERNAME: '@VoidGiftsOfficial',
@@ -77,33 +91,10 @@ const CONFIG = {
   SUBSCRIPTION_CHECK_URL: 'https://vgservers-production.up.railway.app/check-subscription'
 };
 
-const PRIZE_COIN_VALUES = {
-  'Heart': 15,
-  'Bear': 75,
-  'Rose': 100,
-  'Gift': 125,
-  'Cake': 150,
-  'Rose Bouquet': 200,
-  'Ring': 300,
-  'Trophy': 500,
-  'Diamond': 750,
-  'Calendar': 1000,
+const PRIZE_COIN_VALUES = {};   // filled from the game server (GameAPI.loadConfig)
 
-  // ── Void Spin exclusives — needed so "Convert to Coins" has a price
-  // for these once they land in the inventory. Real Telegram gift IDs
-  // for these three are still placeholders, see TELEGRAM_GIFT_IDS below. ──
-  'Rocket': 400,
-  'Star Notepad': 1250,
-  'Instant Ramen': 1100,
-
-  // ── Furry Spin ──
-  'Champagne': 150,
-  'Socks': 900,
-  'Lollipop': 800
-};
-
-const RARE_GIFTS  = ['Ring', 'Trophy', 'Diamond', 'Calendar', 'Rocket', 'Star Notepad', 'Instant Ramen', 'Socks', 'Lollipop'];
-const NFT_GIFTS   = ['Calendar', 'Star Notepad', 'Instant Ramen', 'Socks', 'Lollipop'];
+const RARE_GIFTS  = ['Ring', 'Trophy', 'Diamond', 'Calendar', 'Rocket', 'Star Notepad', 'Instant Ramen', 'Socks', 'Lollipop', 'Input Key', 'Astral Shard', 'Kissed Frog', 'Voodoo Doll', 'Vintage Cigar', 'Witch Hat', 'Light Sword', 'Lucky Locket'];
+const NFT_GIFTS   = ['Calendar', 'Star Notepad', 'Instant Ramen', 'Socks', 'Lollipop', 'Input Key', 'Astral Shard', 'Kissed Frog', 'Voodoo Doll', 'Vintage Cigar', 'Witch Hat', 'Light Sword', 'Lucky Locket'];
 
 // Static SVG icons used everywhere EXCEPT the spin wheel cubes/win-reveal
 // wheel animation, which keep the Lottie JSON (that's the one place the
@@ -133,56 +124,30 @@ const GIFT_SVG_ICONS = {
   // ── Furry Spin ──
   'Champagne':     'assets/Champagne.svg',
   'Socks':         'assets/Socks.svg',
-  'Lollipop':      'assets/Lollipop.svg'
+  'Lollipop':      'assets/Lollipop.svg',
+
+  // ── Added with the case rebalance ──
+  'Input Key':     'assets/InputKey.svg',
+  'Astral Shard':  'assets/AstralShard.svg',
+
+  // ── Hex / Astral Spin NFTs (drop these SVGs into /assets) ──
+  'Kissed Frog':  'assets/KissedFrog.svg',
+  'Voodoo Doll':  'assets/VoodooDoll.svg',
+  'Vintage Cigar': 'assets/VintageCigar.svg',
+  'Witch Hat':    'assets/WitchHat.svg',
+  'Light Sword':  'assets/LightSword.svg',
+  'Lucky Locket': 'assets/LuckyLocket.svg'
 };
 
 // ── REAL odds. These decide what the player actually wins. ──
-const SPIN_PRIZES = [
-  { id: 'coin1',           type: 'coin', value: 1,             chance: 75.00, icon: 'coin' },
-  { id: 'coin5',           type: 'coin', value: 5,             chance: 6.79,  icon: 'coin' },
-  { id: 'coin10',          type: 'coin', value: 10,            chance: 4.53,  icon: 'coin' },
-  { id: 'coin25',          type: 'coin', value: 25,            chance: 3.61,  icon: 'coin' },
-  { id: 'coin50',          type: 'coin', value: 50,            chance: 2.25,  icon: 'coin' },
-  { id: 'coin100',         type: 'coin', value: 100,           chance: 1.81,  icon: 'coin' },
-  { id: 'coin250',         type: 'coin', value: 250,           chance: 0.92,  icon: 'coin' },
-  { id: 'coin500',         type: 'coin', value: 500,           chance: 0.44,  icon: 'coin' },
-  { id: 'giftHeart',       type: 'gift', value: 'Heart',       chance: 0.92,  lottie: 'assets/giftHeart.json' },
-  { id: 'giftBear',        type: 'gift', value: 'Bear',        chance: 0.92,  lottie: 'assets/giftBear.json' },
-  { id: 'giftRose',        type: 'gift', value: 'Rose',        chance: 0.66,  lottie: 'assets/giftRose.json' },
-  { id: 'giftGift',        type: 'gift', value: 'Gift',        chance: 0.66,  lottie: 'assets/giftGift.json' },
-  { id: 'giftCake',        type: 'gift', value: 'Cake',        chance: 0.44,  lottie: 'assets/giftCake.json' },
-  { id: 'giftRoseBouquet', type: 'gift', value: 'Rose Bouquet',chance: 0.44,  lottie: 'assets/giftRoseBouquet.json' },
-  { id: 'giftRing',        type: 'gift', value: 'Ring',        chance: 0.22,  lottie: 'assets/giftRing.json' },
-  { id: 'giftTrophy',      type: 'gift', value: 'Trophy',      chance: 0.15,  lottie: 'assets/giftTrophy.json' },
-  { id: 'giftDiamond',     type: 'gift', value: 'Diamond',     chance: 0.22,  lottie: 'assets/giftDiamond.json' },
-  { id: 'giftCalendar',    type: 'gift', value: 'Calendar',    chance: 0.02,  lottie: 'assets/giftCalendar.json' }
-];
+const SPIN_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
 
 // ── DISPLAY-ONLY odds. Used for idle wheel + pre-reveal repaint so the
 // reel *looks* more generous than it actually is. Never touches the
 // real outcome — selectPrize() (using SPIN_PRIZES) still decides what
 // the player wins. Same ids/values/lottie paths as SPIN_PRIZES, just
 // different `chance` weighting. ──
-const PREVIEW_PRIZES = [
-  { id: 'coin1',           type: 'coin', value: 1,             chance: 20.00, icon: 'coin' },
-  { id: 'coin5',           type: 'coin', value: 5,             chance: 12.00, icon: 'coin' },
-  { id: 'coin10',          type: 'coin', value: 10,            chance: 10.00, icon: 'coin' },
-  { id: 'coin25',          type: 'coin', value: 25,            chance: 8.00,  icon: 'coin' },
-  { id: 'coin50',          type: 'coin', value: 50,            chance: 6.00,  icon: 'coin' },
-  { id: 'coin100',         type: 'coin', value: 100,           chance: 5.00,  icon: 'coin' },
-  { id: 'coin250',         type: 'coin', value: 250,           chance: 4.00,  icon: 'coin' },
-  { id: 'coin500',         type: 'coin', value: 500,           chance: 3.50,  icon: 'coin' },
-  { id: 'giftHeart',       type: 'gift', value: 'Heart',       chance: 6.00,  lottie: 'assets/giftHeart.json' },
-  { id: 'giftBear',        type: 'gift', value: 'Bear',        chance: 6.00,  lottie: 'assets/giftBear.json' },
-  { id: 'giftRose',        type: 'gift', value: 'Rose',        chance: 5.00,  lottie: 'assets/giftRose.json' },
-  { id: 'giftGift',        type: 'gift', value: 'Gift',        chance: 5.00,  lottie: 'assets/giftGift.json' },
-  { id: 'giftCake',        type: 'gift', value: 'Cake',        chance: 3.50,  lottie: 'assets/giftCake.json' },
-  { id: 'giftRoseBouquet', type: 'gift', value: 'Rose Bouquet',chance: 3.00,  lottie: 'assets/giftRoseBouquet.json' },
-  { id: 'giftRing',        type: 'gift', value: 'Ring',        chance: 1.50,  lottie: 'assets/giftRing.json' },
-  { id: 'giftTrophy',      type: 'gift', value: 'Trophy',      chance: 0.80,  lottie: 'assets/giftTrophy.json' },
-  { id: 'giftDiamond',     type: 'gift', value: 'Diamond',     chance: 0.60,  lottie: 'assets/giftDiamond.json' },
-  { id: 'giftCalendar',    type: 'gift', value: 'Calendar',    chance: 0.10,  lottie: 'assets/giftCalendar.json' }
-];
+const PREVIEW_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
 
 // ============================================
 // VOID SPIN — second wheel, home-page banner.
@@ -195,64 +160,14 @@ const PREVIEW_PRIZES = [
 // ============================================
 
 // ── REAL odds for Void Spin. Decides what the player actually wins. ──
-const VOID_SPIN_PRIZES = [
-  { id: 'voidStars5', type: 'stars', value: 5, chance: 50.0001, icon: 'stars' },
-  { id: 'voidStars10', type: 'stars', value: 10, chance: 27.2727, icon: 'stars' },
-  { id: 'voidStars25', type: 'stars', value: 25, chance: 9.0909, icon: 'stars' },
-  { id: 'voidGiftHeart', type: 'gift', value: 'Heart', chance: 9.0909, lottie: 'assets/giftHeart.json' },
-  { id: 'voidGiftBear', type: 'gift', value: 'Bear', chance: 2.7273, lottie: 'assets/giftBear.json' },
-  { id: 'voidGiftCake', type: 'gift', value: 'Cake', chance: 1.3636, lottie: 'assets/giftCake.json' },
-  { id: 'voidGiftRocket', type: 'gift', value: 'Rocket', chance: 0.3636, lottie: 'assets/giftRocket.json' },
-  { id: 'voidGiftStarNotepad', type: 'gift', value: 'Star Notepad', chance: 0.0636, lottie: 'assets/giftStarNotepad.json' },
-  { id: 'voidGiftInstantRamen', type: 'gift', value: 'Instant Ramen', chance: 0.0273, lottie: 'assets/giftInstantRamen.json' }
-];
+const VOID_SPIN_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
 
 // ── DISPLAY-ONLY odds for Void Spin idle wheel + pre-reveal repaint. ──
-const VOID_PREVIEW_PRIZES = [
-  { id: 'voidStars5', type: 'stars', value: 5, chance: 27.7778, icon: 'stars' },
-  { id: 'voidStars10', type: 'stars', value: 10, chance: 22.2222, icon: 'stars' },
-  { id: 'voidStars25', type: 'stars', value: 25, chance: 13.8889, icon: 'stars' },
-  { id: 'voidGiftHeart', type: 'gift', value: 'Heart', chance: 13.8889, lottie: 'assets/giftHeart.json' },
-  { id: 'voidGiftBear', type: 'gift', value: 'Bear', chance: 8.3333, lottie: 'assets/giftBear.json' },
-  { id: 'voidGiftCake', type: 'gift', value: 'Cake', chance: 6.9444, lottie: 'assets/giftCake.json' },
-  { id: 'voidGiftRocket', type: 'gift', value: 'Rocket', chance: 4.1667, lottie: 'assets/giftRocket.json' },
-  { id: 'voidGiftStarNotepad', type: 'gift', value: 'Star Notepad', chance: 1.6667, lottie: 'assets/giftStarNotepad.json' },
-  { id: 'voidGiftInstantRamen', type: 'gift', value: 'Instant Ramen', chance: 1.1111, lottie: 'assets/giftInstantRamen.json' }
-];
+const VOID_PREVIEW_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
 
-const VALID_PROMOCODES = {
-  'WELCOME100': { coins: 100, messageKey: 'promoWelcome' },
-  'LUCKY777':   { coins: 777, messageKey: 'promoLucky' },
-  'FREECOINS':  { coins: 50,  messageKey: 'promoFree' },
-  'VOIDGIFT':   { coins: 200, messageKey: 'promoVoidGift' },
-  'SPIN2WIN':   { coins: 150, messageKey: 'promoSpin2Win' }
-};
+// Promocodes now live on the game server (managed from its /admin/panel).
 
-const TELEGRAM_GIFT_IDS = {
-  'Heart':       'd01a849b9ef17642d8f4',
-  'Bear':        'd01a849bfc7f7938aa86',
-  'Rose':        'd01a849b9e2c54fb0cf1',
-  'Gift':        'd01a849ba490ee9e6308',
-  'Cake':        'd01a849bb0e2c9f42a0a',
-  'Rose Bouquet':'d01a849b8c2f0cd6de99',
-  'Ring':        'd01a849b9c4de7d48c4e',
-  'Trophy':      'd01a849b8de88d0e703d',
-  'Diamond':     'd01a849b92670e79adce',
-  'Calendar':    'd01a849b95b3da4d0acb',
-
-  // ── PLACEHOLDERS — not real Telegram gift ids. "Convert to Coins"
-  // works fine on these immediately (doesn't touch this map at all),
-  // but "Claim Prize" will hit the backend with a bogus id and fail
-  // until you swap these for the real ones. ──
-  'Rocket':        'PLACEHOLDER_ROCKET_ID',
-  'Star Notepad':  'PLACEHOLDER_STARNOTEPAD_ID',
-  'Instant Ramen': 'PLACEHOLDER_INSTANTRAMEN_ID',
-
-  // Furry Spin: also placeholders until you have the real Telegram gift ids.
-  'Champagne':     'PLACEHOLDER_CHAMPAGNE_ID',
-  'Socks':         'PLACEHOLDER_SOCKS_ID',
-  'Lollipop':      'PLACEHOLDER_LOLLIPOP_ID'
-};
+// Prizes are created by the game server at win time; the browser never registers them.
 
 // ============================================
 // DEPOSIT CONFIGURATION
@@ -307,7 +222,7 @@ const STATE = {
   animationFrameId: null,
   lottieInstances: new Map(),
   lastScaleUpdate: 0,
-  dailyLastSpinAt: 0,   // epoch ms of the last Daily Spin (0 = never)
+  dailyReadyAt: 0,      // epoch ms when the Daily Gift is available again (from the server)
 
   // ── Void Spin — entirely separate animation/spin state so the two
   // wheels can never stomp on each other mid-spin. ──
@@ -328,6 +243,30 @@ const STATE = {
   furryLottieInstances: new Map(),
   furryLastScaleUpdate: 0,
 
+  // Hex Spin
+  hexIsSpinning: false,
+  hexCurrentWinningPrize: null,
+  hexScrollPosition: 0,
+  hexScrollSpeed: 1,
+  hexAnimationFrameId: null,
+  hexLottieInstances: new Map(),
+  hexLastScaleUpdate: 0,
+
+  // Astral Spin
+  astralIsSpinning: false,
+  astralCurrentWinningPrize: null,
+  astralScrollPosition: 0,
+  astralScrollSpeed: 1,
+  astralAnimationFrameId: null,
+  astralLottieInstances: new Map(),
+  astralLastScaleUpdate: 0,
+
+  starsSpentTotal: 0,
+  voidMultResults: null,
+  furryMultResults: null,
+  hexMultResults: null,
+  astralMultResults: null,
+
   currentLeaderboardTab: 'coins',
   // Populated from the real /leaderboard endpoint (see Leaderboard.fetchData).
   // Empty until that call resolves — no more placeholder names.
@@ -346,7 +285,6 @@ const STATE = {
   currentModalPrize: null,
   isClaimingPrize: false,
   currentFilter: 'all',
-  redeemedCodes: [],
   isSyncing: false,
   lastBalanceSync: null,
   syncIntervalId: null,
@@ -404,7 +342,11 @@ const TRANSLATIONS = {
     voidSpinTitleSuffix: 'Spin',
     voidSpinSub: 'Higher stakes — NFTs, Stars, and rare gifts up for grabs.',
     furrySpinTitle: 'FURRY',
-    furrySpinSub: 'NFT Socks and Lollipop, Star prizes and rare gifts. Get fluffy.',
+    furrySpinSub: 'Instant Ramen, Star Notepad, Calendar and more NFTs, Star prizes and rare gifts. Get fluffy.',
+    hexSpinTitle: 'STARRY',
+    hexSpinSub: 'Kissed Frog, Voodoo Doll, Vintage Cigar and more NFTs. Big Star prizes under a starry sky.',
+    astralSpinTitle: 'ASTRAL',
+    astralSpinSub: 'Astral Shard, Lucky Locket, Voodoo Doll and Input Key. The biggest Star prizes. Reach for the stars.',
     newSpinEyebrow: 'new spin',
     eventBadgeAnniversary: '🎉 Anniversary',
     eventBirthdayTitleSm: 'App',
@@ -417,14 +359,14 @@ const TRANSLATIONS = {
     spinNow: 'Spin Now',
 
     freeDropsEyebrow: 'free drops every day',
-    freeHighlight: 'FREE',
+    freeHighlight: 'Telegram',
     channelSuffix: 'Channel',
     channelSub: 'Join to never miss a giveaway or secret code.',
     joinChannel: 'Join Channel',
 
     exclusiveRewardsEyebrow: 'exclusive rewards',
-    enterCodesFor: 'Enter codes for',
-    prizesHighlight: 'prizes!',
+    enterCodesFor: 'Prizes for',
+    prizesHighlight: 'Codes',
     findCodes: 'Find codes in our',
     telegramWord: 'telegram',
     channelWord: 'channel.',
@@ -444,6 +386,14 @@ const TRANSLATIONS = {
     depositSubtitle: 'purchase coins with Telegram Stars',
     tabTelegramStars: 'Telegram Stars',
     tabTonCoin: 'TON Coin',
+    tabSell: 'Sell Gifts',
+    sellTitle: 'Sell your NFT gifts for Stars',
+    sellHowTo: 'Send a collectible to @{relayer} in Telegram. The Stars below are added to your balance automatically.',
+    sellOpenRelayer: 'Open @{relayer}',
+    sellSearch: 'Search gifts…',
+    sellNoResults: 'No gift found',
+    sellCount: 'gifts priced',
+    sellWord: 'Sell',
     securePayment: 'Secure Payment',
     securePaymentDesc: 'All transactions are processed securely through Telegram. Coins are delivered instantly.',
     purchase: 'Purchase',
@@ -509,6 +459,14 @@ const TRANSLATIONS = {
     paymentSuccessAdding: 'Payment successful! Adding {n} stars…',
     starsAdded: '{n} stars added!',
     notEnoughStars: 'Not enough Stars — need {n} ⭐',
+    tabSpent: 'Spent',
+    multiResultsTitle: '×{n} spin results',
+    multiChanceNft: 'Chance of at least one NFT: {p}%',
+    multiChanceGift: 'Chance of at least one gift: {p}%',
+    multiCollect: 'Collect',
+    multiTotalStars: 'Total Stars won',
+    multiSpinsWord: 'Spins',
+    spentWord: 'Stars spent',
     creatingInvoice: 'Creating invoice…',
     paymentCancelled: 'Payment cancelled',
     paymentFailed: 'Payment failed. Please try again.',
@@ -532,6 +490,11 @@ const TRANSLATIONS = {
     giftSentPopupTitle: 'Gift Sent!',
     giftSentPopupMessage: 'Your {name} gift has been sent to your Telegram account!',
     claimFailedPopupTitle: 'Claim Failed',
+    topupRequiredTitle: 'Top-up required',
+    topupRequiredPopup: 'To claim an NFT gift you need a fresh top-up of at least {n} Stars each time. Top up, then come back and tap Claim again.',
+    topupBtn: 'Top up Stars',
+    peerNotFoundPopup: "The gift account doesn't know you yet. Open {relayer}, press Start, then come back and tap Claim again.",
+    openRelayerBtn: 'Open {relayer}',
     basicClaimSent: '{name}: will be sent eventually…',
     basicClaimSentPopup: 'Your {name} gift is on its way from @VoidGift_Relayer — it\u2019ll land in your Telegram account shortly.',
     nftClaimQueued: '{name}: will be transferred in the next 48 hours…',
@@ -566,6 +529,12 @@ const TRANSLATIONS = {
     promoEnterCode: 'Please enter a promocode',
     promoAlreadyRedeemed: 'Code already redeemed',
     promoInvalid: 'Invalid promocode',
+    promoExpired: 'This promocode has expired',
+    promoUsedUp: 'This promocode has run out',
+    promoRedeemedShort: 'Promocode redeemed!',
+    serverUnreachable: 'Can\'t reach the game server — try again',
+    promoPaymentRequired: 'Promocodes unlock after you pay {n} TON in the app',
+    promoBlocked: 'Promocodes are not available for this account',
     promoRedeemed: '✓ {message} +{coins} coins!',
     promoWelcome: 'Welcome bonus claimed!',
     promoLucky: 'Lucky bonus activated!',
@@ -622,7 +591,11 @@ const TRANSLATIONS = {
     voidSpinTitleSuffix: 'Spin',
     voidSpinSub: 'Выше ставки — NFT, звёзды и редкие подарки.',
     furrySpinTitle: 'FURRY',
-    furrySpinSub: 'NFT-носки и леденец, призы в звёздах и редкие подарки. Пушистая удача.',
+    furrySpinSub: 'Instant Ramen, Star Notepad, Calendar и другие NFT, призы в звёздах и редкие подарки. Пушистая удача.',
+    hexSpinTitle: 'STARRY',
+    hexSpinSub: 'Kissed Frog, Voodoo Doll, Vintage Cigar и другие NFT. Крупные призы в звёздах. Звёздное небо удачи.',
+    astralSpinTitle: 'ASTRAL',
+    astralSpinSub: 'Astral Shard, Lucky Locket, Voodoo Doll и Input Key. Самые крупные призы в звёздах. Тянись к звёздам.',
     newSpinEyebrow: 'новый спин',
     eventBadgeAnniversary: '🎉 Годовщина',
     eventBirthdayTitleSm: 'Прил.',
@@ -641,8 +614,8 @@ const TRANSLATIONS = {
     joinChannel: 'Подписаться',
 
     exclusiveRewardsEyebrow: 'эксклюзивные награды',
-    enterCodesFor: 'Введите коды на',
-    prizesHighlight: 'призы!',
+    enterCodesFor: 'Призы за',
+    prizesHighlight: 'коды!',
     findCodes: 'Ищите коды в нашем',
     telegramWord: 'телеграм',
     channelWord: 'канале.',
@@ -662,6 +635,14 @@ const TRANSLATIONS = {
     depositSubtitle: 'покупайте монеты за Telegram Stars',
     tabTelegramStars: 'Telegram Stars',
     tabTonCoin: 'TON Coin',
+    tabSell: 'Продать',
+    sellTitle: 'Продайте NFT-подарки за звёзды',
+    sellHowTo: 'Отправьте коллекционный подарок аккаунту @{relayer} в Telegram. Звёзды из списка автоматически зачислятся на баланс.',
+    sellOpenRelayer: 'Открыть @{relayer}',
+    sellSearch: 'Поиск подарков…',
+    sellNoResults: 'Подарок не найден',
+    sellCount: 'подарков в списке',
+    sellWord: 'Продать',
     securePayment: 'Безопасная оплата',
     securePaymentDesc: 'Все транзакции обрабатываются безопасно через Telegram. Монеты зачисляются мгновенно.',
     purchase: 'Купить',
@@ -727,6 +708,14 @@ const TRANSLATIONS = {
     paymentSuccessAdding: 'Оплата прошла успешно! Начисляем {n} звёзд…',
     starsAdded: 'Начислено {n} звёзд!',
     notEnoughStars: 'Недостаточно звёзд — нужно {n} ⭐',
+    tabSpent: 'Потрачено',
+    multiResultsTitle: 'Результаты ×{n}',
+    multiChanceNft: 'Шанс хотя бы одного NFT: {p}%',
+    multiChanceGift: 'Шанс хотя бы одного подарка: {p}%',
+    multiCollect: 'Забрать',
+    multiTotalStars: 'Всего звёзд выиграно',
+    multiSpinsWord: 'Спинов',
+    spentWord: 'Потрачено звёзд',
     creatingInvoice: 'Создаём счёт…',
     paymentCancelled: 'Оплата отменена',
     paymentFailed: 'Оплата не удалась. Попробуйте снова.',
@@ -750,10 +739,21 @@ const TRANSLATIONS = {
     giftSentPopupTitle: 'Подарок отправлен!',
     giftSentPopupMessage: 'Ваш подарок «{name}» отправлен в ваш аккаунт Telegram!',
     claimFailedPopupTitle: 'Не удалось забрать',
+    topupRequiredTitle: 'Нужно пополнение',
+    topupRequiredPopup: 'Чтобы забрать NFT-подарок, нужно каждый раз пополнить баланс минимум на {n} Stars. Пополните и вернитесь, затем снова нажмите «Забрать».',
+    topupBtn: 'Пополнить Stars',
+    peerNotFoundPopup: 'Аккаунт-отправитель пока не знает вас. Откройте {relayer}, нажмите Start, затем вернитесь и снова нажмите «Забрать».',
+    openRelayerBtn: 'Открыть {relayer}',
 
     promoEnterCode: 'Пожалуйста, введите промокод',
     promoAlreadyRedeemed: 'Код уже использован',
     promoInvalid: 'Неверный промокод',
+    promoExpired: 'Срок действия промокода истёк',
+    promoUsedUp: 'Промокод закончился',
+    promoRedeemedShort: 'Промокод активирован!',
+    serverUnreachable: 'Нет связи с игровым сервером — попробуйте ещё раз',
+    promoPaymentRequired: 'Промокоды открываются после оплаты {n} TON в приложении',
+    promoBlocked: 'Промокоды недоступны для этого аккаунта',
     promoRedeemed: '✓ {message} +{coins} монет!',
     promoWelcome: 'Приветственный бонус получен!',
     promoLucky: 'Счастливый бонус активирован!',
@@ -810,7 +810,11 @@ const TRANSLATIONS = {
     voidSpinTitleSuffix: 'Spin',
     voidSpinSub: 'Apuestas más altas — NFTs, Stars y regalos raros en juego.',
     furrySpinTitle: 'FURRY',
-    furrySpinSub: 'Calcetines y Piruleta NFT, premios en Estrellas y regalos raros. ¡A peludear!',
+    furrySpinSub: 'Instant Ramen, Star Notepad, Calendar y más NFTs, premios en Estrellas y regalos raros. ¡A peludear!',
+    hexSpinTitle: 'STARRY',
+    hexSpinSub: 'Kissed Frog, Voodoo Doll, Vintage Cigar y más NFTs. Grandes premios en Estrellas. Bajo un cielo estrellado.',
+    astralSpinTitle: 'ASTRAL',
+    astralSpinSub: 'Astral Shard, Lucky Locket, Voodoo Doll e Input Key. Los mayores premios en Estrellas. Alcanza las estrellas.',
     newSpinEyebrow: 'nuevo giro',
     eventBadgeAnniversary: '🎉 Aniversario',
     eventBirthdayTitleSm: 'App',
@@ -829,8 +833,8 @@ const TRANSLATIONS = {
     joinChannel: 'Unirse al canal',
 
     exclusiveRewardsEyebrow: 'recompensas exclusivas',
-    enterCodesFor: 'Introduce códigos para',
-    prizesHighlight: 'premios!',
+    enterCodesFor: 'Premios por',
+    prizesHighlight: 'códigos!',
     findCodes: 'Encuentra códigos en nuestro',
     telegramWord: 'telegram',
     channelWord: 'canal.',
@@ -850,6 +854,14 @@ const TRANSLATIONS = {
     depositSubtitle: 'compra monedas con Telegram Stars',
     tabTelegramStars: 'Telegram Stars',
     tabTonCoin: 'TON Coin',
+    tabSell: 'Vender',
+    sellTitle: 'Vende tus regalos NFT por Stars',
+    sellHowTo: 'Envía un coleccionable a @{relayer} en Telegram. Las Stars de abajo se añaden a tu saldo automáticamente.',
+    sellOpenRelayer: 'Abrir @{relayer}',
+    sellSearch: 'Buscar regalos…',
+    sellNoResults: 'No se encontró ningún regalo',
+    sellCount: 'regalos con precio',
+    sellWord: 'Vender',
     securePayment: 'Pago seguro',
     securePaymentDesc: 'Todas las transacciones se procesan de forma segura a través de Telegram. Las monedas se entregan al instante.',
     purchase: 'Comprar',
@@ -915,6 +927,14 @@ const TRANSLATIONS = {
     paymentSuccessAdding: '¡Pago exitoso! Añadiendo {n} stars…',
     starsAdded: '¡{n} stars añadidas!',
     notEnoughStars: 'No tienes suficientes Stars — necesitas {n} ⭐',
+    tabSpent: 'Gastado',
+    multiResultsTitle: 'Resultados ×{n}',
+    multiChanceNft: 'Probabilidad de al menos un NFT: {p}%',
+    multiChanceGift: 'Probabilidad de al menos un regalo: {p}%',
+    multiCollect: 'Recoger',
+    multiTotalStars: 'Total de Stars ganadas',
+    multiSpinsWord: 'Giros',
+    spentWord: 'Stars gastadas',
     creatingInvoice: 'Creando factura…',
     paymentCancelled: 'Pago cancelado',
     paymentFailed: 'El pago falló. Inténtalo de nuevo.',
@@ -938,10 +958,21 @@ const TRANSLATIONS = {
     giftSentPopupTitle: '¡Regalo enviado!',
     giftSentPopupMessage: '¡Tu regalo {name} ha sido enviado a tu cuenta de Telegram!',
     claimFailedPopupTitle: 'Error al reclamar',
+    topupRequiredTitle: 'Recarga necesaria',
+    topupRequiredPopup: 'Para reclamar un regalo NFT necesitas una recarga nueva de al menos {n} Stars cada vez. Recarga y vuelve a pulsar Reclamar.',
+    topupBtn: 'Recargar Stars',
+    peerNotFoundPopup: 'La cuenta de regalos aún no te conoce. Abre {relayer}, pulsa Start y vuelve para reclamar de nuevo.',
+    openRelayerBtn: 'Abrir {relayer}',
 
     promoEnterCode: 'Introduce un código promocional',
     promoAlreadyRedeemed: 'Código ya canjeado',
     promoInvalid: 'Código promocional inválido',
+    promoExpired: 'Este código ha caducado',
+    promoUsedUp: 'Este código se ha agotado',
+    promoRedeemedShort: '¡Código canjeado!',
+    serverUnreachable: 'No se puede conectar con el servidor — inténtalo de nuevo',
+    promoPaymentRequired: 'Los códigos se desbloquean tras pagar {n} TON en la app',
+    promoBlocked: 'Los códigos no están disponibles para esta cuenta',
     promoRedeemed: '✓ {message} +{coins} monedas!',
     promoWelcome: '¡Bono de bienvenida reclamado!',
     promoLucky: '¡Bono de la suerte activado!',
@@ -998,7 +1029,11 @@ const TRANSLATIONS = {
     voidSpinTitleSuffix: 'Spin',
     voidSpinSub: 'Enjeux plus élevés — NFT, Stars et cadeaux rares à gagner.',
     furrySpinTitle: 'FURRY',
-    furrySpinSub: 'Chaussettes et Sucette en NFT, prix en Étoiles et cadeaux rares. Version peluche.',
+    furrySpinSub: 'Instant Ramen, Star Notepad, Calendar et d\'autres NFT, prix en Étoiles et cadeaux rares. Version peluche.',
+    hexSpinTitle: 'STARRY',
+    hexSpinSub: 'Kissed Frog, Voodoo Doll, Vintage Cigar et d\'autres NFT. Gros prix en Étoiles. Sous un ciel étoilé.',
+    astralSpinTitle: 'ASTRAL',
+    astralSpinSub: 'Astral Shard, Lucky Locket, Voodoo Doll et Input Key. Les plus gros prix en Étoiles. Visez les étoiles.',
     newSpinEyebrow: 'nouveau spin',
     eventBadgeAnniversary: '🎉 Anniversaire',
     eventBirthdayTitleSm: 'App',
@@ -1017,8 +1052,8 @@ const TRANSLATIONS = {
     joinChannel: 'Rejoindre la chaîne',
 
     exclusiveRewardsEyebrow: 'récompenses exclusives',
-    enterCodesFor: 'Entrez des codes pour',
-    prizesHighlight: 'des prix!',
+    enterCodesFor: 'Des prix avec des',
+    prizesHighlight: 'codes!',
     findCodes: 'Trouvez des codes sur notre',
     telegramWord: 'telegram',
     channelWord: 'chaîne.',
@@ -1038,6 +1073,14 @@ const TRANSLATIONS = {
     depositSubtitle: 'achetez des pièces avec des Telegram Stars',
     tabTelegramStars: 'Telegram Stars',
     tabTonCoin: 'TON Coin',
+    tabSell: 'Vendre',
+    sellTitle: 'Vendez vos cadeaux NFT contre des Étoiles',
+    sellHowTo: 'Envoyez un objet de collection à @{relayer} sur Telegram. Les Étoiles ci-dessous sont ajoutées automatiquement à votre solde.',
+    sellOpenRelayer: 'Ouvrir @{relayer}',
+    sellSearch: 'Rechercher un cadeau…',
+    sellNoResults: 'Aucun cadeau trouvé',
+    sellCount: 'cadeaux listés',
+    sellWord: 'Vendre',
     securePayment: 'Paiement sécurisé',
     securePaymentDesc: 'Toutes les transactions sont traitées en toute sécurité via Telegram. Les pièces sont livrées instantanément.',
     purchase: 'Acheter',
@@ -1103,6 +1146,14 @@ const TRANSLATIONS = {
     paymentSuccessAdding: 'Paiement réussi ! Ajout de {n} stars…',
     starsAdded: '{n} stars ajoutées !',
     notEnoughStars: 'Pas assez de Stars — {n} nécessaires ⭐',
+    tabSpent: 'Dépensé',
+    multiResultsTitle: 'Résultats ×{n}',
+    multiChanceNft: 'Chance d\'obtenir au moins un NFT : {p} %',
+    multiChanceGift: 'Chance d\'obtenir au moins un cadeau : {p} %',
+    multiCollect: 'Récupérer',
+    multiTotalStars: 'Total d\'Étoiles gagnées',
+    multiSpinsWord: 'Tours',
+    spentWord: 'Étoiles dépensées',
     creatingInvoice: 'Création de la facture…',
     paymentCancelled: 'Paiement annulé',
     paymentFailed: 'Le paiement a échoué. Veuillez réessayer.',
@@ -1126,10 +1177,21 @@ const TRANSLATIONS = {
     giftSentPopupTitle: 'Cadeau envoyé !',
     giftSentPopupMessage: 'Votre cadeau {name} a été envoyé sur votre compte Telegram !',
     claimFailedPopupTitle: 'Échec de la réclamation',
+    topupRequiredTitle: 'Recharge requise',
+    topupRequiredPopup: "Pour réclamer un cadeau NFT, il faut une nouvelle recharge d'au moins {n} Stars à chaque fois. Rechargez puis réessayez.",
+    topupBtn: 'Recharger des Stars',
+    peerNotFoundPopup: "Le compte d'envoi ne vous connaît pas encore. Ouvrez {relayer}, appuyez sur Start, puis revenez réclamer à nouveau.",
+    openRelayerBtn: 'Ouvrir {relayer}',
 
     promoEnterCode: 'Veuillez entrer un code promo',
     promoAlreadyRedeemed: 'Code déjà utilisé',
     promoInvalid: 'Code promo invalide',
+    promoExpired: 'Ce code promo a expiré',
+    promoUsedUp: 'Ce code promo est épuisé',
+    promoRedeemedShort: 'Code promo utilisé !',
+    serverUnreachable: 'Serveur injoignable — réessayez',
+    promoPaymentRequired: 'Les codes promo se débloquent après un paiement de {n} TON dans l\'app',
+    promoBlocked: 'Les codes promo ne sont pas disponibles pour ce compte',
     promoRedeemed: '✓ {message} +{coins} pièces !',
     promoWelcome: 'Bonus de bienvenue réclamé !',
     promoLucky: 'Bonus chanceux activé !',
@@ -1186,7 +1248,11 @@ const TRANSLATIONS = {
     voidSpinTitleSuffix: 'Spin',
     voidSpinSub: 'Höhere Einsätze — NFTs, Stars und seltene Geschenke zu gewinnen.',
     furrySpinTitle: 'FURRY',
-    furrySpinSub: 'NFT-Socken und Lutscher, Stern-Preise und seltene Geschenke. Flauschig!',
+    furrySpinSub: 'Instant Ramen, Star Notepad, Calendar und weitere NFTs, Stern-Preise und seltene Geschenke. Flauschig!',
+    hexSpinTitle: 'STARRY',
+    hexSpinSub: 'Kissed Frog, Voodoo Doll, Vintage Cigar und weitere NFTs. Große Stern-Preise. Unter dem Sternenhimmel.',
+    astralSpinTitle: 'ASTRAL',
+    astralSpinSub: 'Astral Shard, Lucky Locket, Voodoo Doll und Input Key. Die größten Stern-Preise. Greif nach den Sternen.',
     newSpinEyebrow: 'neuer Spin',
     eventBadgeAnniversary: '🎉 Jubiläum',
     eventBirthdayTitleSm: 'App',
@@ -1205,8 +1271,8 @@ const TRANSLATIONS = {
     joinChannel: 'Kanal beitreten',
 
     exclusiveRewardsEyebrow: 'exklusive Belohnungen',
-    enterCodesFor: 'Codes eingeben für',
-    prizesHighlight: 'Preise!',
+    enterCodesFor: 'Preise für',
+    prizesHighlight: 'Codes!',
     findCodes: 'Codes findest du in unserem',
     telegramWord: 'telegram',
     channelWord: 'Kanal.',
@@ -1226,6 +1292,14 @@ const TRANSLATIONS = {
     depositSubtitle: 'kaufe Münzen mit Telegram Stars',
     tabTelegramStars: 'Telegram Stars',
     tabTonCoin: 'TON Coin',
+    tabSell: 'Verkaufen',
+    sellTitle: 'Verkaufe deine NFT-Geschenke für Stars',
+    sellHowTo: 'Sende ein Sammlerstück an @{relayer} in Telegram. Die Stars unten werden automatisch deinem Guthaben gutgeschrieben.',
+    sellOpenRelayer: '@{relayer} öffnen',
+    sellSearch: 'Geschenke suchen…',
+    sellNoResults: 'Kein Geschenk gefunden',
+    sellCount: 'Geschenke gelistet',
+    sellWord: 'Verkaufen',
     securePayment: 'Sichere Zahlung',
     securePaymentDesc: 'Alle Transaktionen werden sicher über Telegram abgewickelt. Münzen werden sofort gutgeschrieben.',
     purchase: 'Kaufen',
@@ -1291,6 +1365,14 @@ const TRANSLATIONS = {
     paymentSuccessAdding: 'Zahlung erfolgreich! {n} Stars werden hinzugefügt…',
     starsAdded: '{n} Stars hinzugefügt!',
     notEnoughStars: 'Nicht genug Stars — {n} benötigt ⭐',
+    tabSpent: 'Ausgegeben',
+    multiResultsTitle: 'Ergebnisse ×{n}',
+    multiChanceNft: 'Chance auf mindestens ein NFT: {p} %',
+    multiChanceGift: 'Chance auf mindestens ein Geschenk: {p} %',
+    multiCollect: 'Einsammeln',
+    multiTotalStars: 'Gewonnene Stars gesamt',
+    multiSpinsWord: 'Drehs',
+    spentWord: 'Ausgegebene Stars',
     creatingInvoice: 'Rechnung wird erstellt…',
     paymentCancelled: 'Zahlung abgebrochen',
     paymentFailed: 'Zahlung fehlgeschlagen. Bitte erneut versuchen.',
@@ -1314,10 +1396,21 @@ const TRANSLATIONS = {
     giftSentPopupTitle: 'Geschenk gesendet!',
     giftSentPopupMessage: 'Dein {name}-Geschenk wurde an dein Telegram-Konto gesendet!',
     claimFailedPopupTitle: 'Abholen fehlgeschlagen',
+    topupRequiredTitle: 'Aufladung nötig',
+    topupRequiredPopup: 'Für ein NFT-Geschenk brauchst du jedes Mal eine neue Aufladung von mindestens {n} Stars. Lade auf und tippe danach erneut auf Abholen.',
+    topupBtn: 'Stars aufladen',
+    peerNotFoundPopup: 'Das Geschenk-Konto kennt dich noch nicht. Öffne {relayer}, tippe auf Start und versuche das Abholen danach erneut.',
+    openRelayerBtn: '{relayer} öffnen',
 
     promoEnterCode: 'Bitte gib einen Gutscheincode ein',
     promoAlreadyRedeemed: 'Code bereits eingelöst',
     promoInvalid: 'Ungültiger Gutscheincode',
+    promoExpired: 'Dieser Promocode ist abgelaufen',
+    promoUsedUp: 'Dieser Promocode ist aufgebraucht',
+    promoRedeemedShort: 'Promocode eingelöst!',
+    serverUnreachable: 'Spielserver nicht erreichbar — bitte erneut versuchen',
+    promoPaymentRequired: 'Promocodes werden nach einer Zahlung von {n} TON in der App freigeschaltet',
+    promoBlocked: 'Promocodes sind für dieses Konto nicht verfügbar',
     promoRedeemed: '✓ {message} +{coins} Münzen!',
     promoWelcome: 'Willkommensbonus erhalten!',
     promoLucky: 'Glücksbonus aktiviert!',
@@ -1374,7 +1467,11 @@ const TRANSLATIONS = {
     voidSpinTitleSuffix: 'Spin',
     voidSpinSub: '更高赌注 — NFT、星星和稀有礼物等你来拿。',
     furrySpinTitle: 'FURRY',
-    furrySpinSub: 'NFT袜子和棒棒糖、星星奖励和稀有礼物。毛茸茸的好运。',
+    furrySpinSub: 'Instant Ramen、Star Notepad、Calendar 等 NFT、星星奖励和稀有礼物。毛茸茸的好运。',
+    hexSpinTitle: 'STARRY',
+    hexSpinSub: 'Kissed Frog、Voodoo Doll、Vintage Cigar 等 NFT 和高额星星奖励。星空下的好运。',
+    astralSpinTitle: 'ASTRAL',
+    astralSpinSub: 'Astral Shard、Lucky Locket、Voodoo Doll 和 Input Key，最高额的星星奖励。摘星而去。',
     newSpinEyebrow: '新转盘',
     eventBadgeAnniversary: '🎉 周年纪念',
     eventBirthdayTitleSm: '应用',
@@ -1393,7 +1490,7 @@ const TRANSLATIONS = {
     joinChannel: '加入频道',
 
     exclusiveRewardsEyebrow: '专属奖励',
-    enterCodesFor: '输入兑换码获取',
+    enterCodesFor: '兑换码赢',
     prizesHighlight: '奖品！',
     findCodes: '在我们的',
     telegramWord: 'telegram',
@@ -1414,6 +1511,14 @@ const TRANSLATIONS = {
     depositSubtitle: '使用 Telegram Stars 购买金币',
     tabTelegramStars: 'Telegram Stars',
     tabTonCoin: 'TON Coin',
+    tabSell: '出售礼物',
+    sellTitle: '出售 NFT 礼物换取星星',
+    sellHowTo: '在 Telegram 中将收藏品发送给 @{relayer}，下方列出的星星会自动充值到你的余额。',
+    sellOpenRelayer: '打开 @{relayer}',
+    sellSearch: '搜索礼物…',
+    sellNoResults: '未找到礼物',
+    sellCount: '件礼物已定价',
+    sellWord: '出售',
     securePayment: '安全支付',
     securePaymentDesc: '所有交易均通过 Telegram 安全处理。金币即时到账。',
     purchase: '购买',
@@ -1479,6 +1584,14 @@ const TRANSLATIONS = {
     paymentSuccessAdding: '支付成功！正在添加 {n} 星星…',
     starsAdded: '已添加 {n} 星星！',
     notEnoughStars: '星星不足 — 需要 {n} ⭐',
+    tabSpent: '已花费',
+    multiResultsTitle: '×{n} 次结果',
+    multiChanceNft: '至少获得一个 NFT 的概率：{p}%',
+    multiChanceGift: '至少获得一个礼物的概率：{p}%',
+    multiCollect: '领取',
+    multiTotalStars: '赢得星星总数',
+    multiSpinsWord: '次数',
+    spentWord: '已花费星星',
     creatingInvoice: '正在创建发票…',
     paymentCancelled: '支付已取消',
     paymentFailed: '支付失败，请重试。',
@@ -1502,10 +1615,21 @@ const TRANSLATIONS = {
     giftSentPopupTitle: '礼物已发送！',
     giftSentPopupMessage: '您的 {name} 礼物已发送到您的 Telegram 账户！',
     claimFailedPopupTitle: '领取失败',
+    topupRequiredTitle: '需要充值',
+    topupRequiredPopup: '领取 NFT 礼物每次都需要至少充值 {n} Stars。请充值后返回再次领取。',
+    topupBtn: '充值 Stars',
+    peerNotFoundPopup: '礼物账号还不认识你。请打开 {relayer}，点击 Start，然后返回再次领取。',
+    openRelayerBtn: '打开 {relayer}',
 
     promoEnterCode: '请输入兑换码',
     promoAlreadyRedeemed: '兑换码已使用',
     promoInvalid: '无效的兑换码',
+    promoExpired: '该优惠码已过期',
+    promoUsedUp: '该优惠码已用完',
+    promoRedeemedShort: '优惠码已兑换！',
+    serverUnreachable: '无法连接游戏服务器，请重试',
+    promoPaymentRequired: '在应用内支付 {n} TON 后即可使用优惠码',
+    promoBlocked: '此账号无法使用优惠码',
     promoRedeemed: '✓ {message} +{coins} 金币！',
     promoWelcome: '欢迎奖励已领取！',
     promoLucky: '幸运奖励已激活！',
@@ -1613,6 +1737,8 @@ const INVOICE_API_BASE = 'https://vgservers-production.up.railway.app'; // main 
 // VGDataStorage — Postgres-backed service that also holds the shared
 // users table (profile + coins/stars) the global leaderboard reads from.
 const DATA_STORE_URL = 'https://vgdatastorage-production.up.railway.app';
+// The authoritative game server (VGGameServer). Set this to your Railway URL.
+const GAME_API_BASE = 'https://vggameserver-production.up.railway.app';
 
 // Gift Relayer (V2) — replaces the deprecated vgtserver /claim-gift.
 // Verifies Telegram initData itself and sends/transfers gifts from the
@@ -1650,13 +1776,152 @@ const StatusCheck = {
 // BACKEND / CLOUD STORAGE
 // ============================================
 
-const BackendAPI = {
-  isCloudStorageAvailable() {
-    return !!(STATE.tg?.CloudStorage?.getItem);
+// ============================================
+// GAME API — the browser only ASKS; the game server decides.
+// Spins, daily gift, promocodes, balances and prize creation all happen on
+// the server (VGGameServer). Nothing here can change what a player owns:
+// every request carries Telegram's signed initData and the server takes the
+// user id from that signature.
+// ============================================
+const GameAPI = {
+  cfg: null,
+  pending: null,          // last spin's final balance + results, applied when the reel stops
+  _firstRefresh: null,
+
+  async req(method, path, body) {
+    const res = await fetch(GAME_API_BASE + path, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': STATE.tg?.initData || '' },
+      body: body ? JSON.stringify(body) : undefined,
+      cache: 'no-store'
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const e = new Error(data.error || `HTTP ${res.status}`);
+      e.code = data.code; e.status = res.status; e.data = data;
+      throw e;
+    }
+    return data;
   },
 
-  // ── Generic helpers ──
+  // Prices, display-only reel rows, coin values: filled into the (empty) tables above.
+  async loadConfig() {
+    const res = await fetch(GAME_API_BASE + '/api/config', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`config HTTP ${res.status}`);
+    const cfg = await res.json();
+    this.cfg = cfg;
+    Object.assign(PRIZE_COIN_VALUES, cfg.coinValues);
+    const T = { daily: [SPIN_PRIZES, PREVIEW_PRIZES], void: [VOID_SPIN_PRIZES, VOID_PREVIEW_PRIZES], furry: [FURRY_SPIN_PRIZES, FURRY_PREVIEW_PRIZES],
+                hex: [HEX_SPIN_PRIZES, HEX_PREVIEW_PRIZES], astral: [ASTRAL_SPIN_PRIZES, ASTRAL_PREVIEW_PRIZES] };
+    for (const [name, w] of Object.entries(cfg.wheels)) {
+      if (!T[name]) continue;
+      const rows = w.preview.map(r => r.type === 'gift' ? { ...r, lottie: `assets/gift${String(r.value).replace(/[^A-Za-z0-9]/g, '')}.json` } : { ...r, icon: r.type === 'coin' ? 'coin' : 'stars' });
+      T[name][0].splice(0, T[name][0].length, ...rows);   // lookup + reel filler
+      T[name][1].splice(0, T[name][1].length, ...rows);   // idle reel
+      if (name !== 'daily') CONFIG[`${name.toUpperCase()}_SPIN_COST`] = w.price;
+    }
+    if (cfg.dailyCooldownMs) CONFIG.DAILY_COOLDOWN_MS = cfg.dailyCooldownMs;
+  },
 
+  tableFor(w) {
+    return { daily: SPIN_PRIZES, void: VOID_SPIN_PRIZES, furry: FURRY_SPIN_PRIZES, hex: HEX_SPIN_PRIZES, astral: ASTRAL_SPIN_PRIZES }[w] || [];
+  },
+
+  // Server result row -> the prize object the wheel/modal code already understands.
+  toPrize(w, r) {
+    const row = this.tableFor(w).find(p => p.id === r.id);
+    return { ...(row || { id: r.id, type: r.type, value: r.value }), type: r.type, value: r.value, prizeId: r.prize_id };
+  },
+
+  applyBalance(b, animate = true) {
+    if (!b) return;
+    const oldCoins = STATE.userCoins;
+    STATE.userStars = Number(b.stars);
+    STATE.starsSpentTotal = Number(b.stars_spent ?? STATE.starsSpentTotal ?? 0);
+    if (animate && Number(b.coins) !== oldCoins) Currency.animateChange(oldCoins, Number(b.coins));
+    else { STATE.userCoins = Number(b.coins); }
+    Currency.update();
+  },
+
+  setInventory(list) {
+    STATE.inventoryItems = (list || [])
+      .filter(r => r.status !== 'claimed' && r.status !== 'converted')
+      .map(r => ({
+        value: r.gift_name, type: 'gift', lottie: true, prizeId: r.prize_id,
+        claimedAt: new Date(r.created_at).getTime(),
+        pendingTransfer: r.status === 'queued_nft',
+        availableAt: r.scheduled_for ? new Date(r.scheduled_for).getTime() : undefined
+      }));
+  },
+
+  // Pulls balances, inventory and the daily-gift timer. Also makes the server
+  // collect any Stars/TON purchase that has been confirmed.
+  async refresh() {
+    if (!STATE.tg?.initData) return null;
+    try {
+      const d = await this.req('GET', '/api/me');
+      this.applyBalance(d.balance, false);
+      if (d.credited > 0) Utils.showToast(Utils.t('starsAdded', { n: d.credited }), 'success');
+      this.setInventory(d.inventory);
+      if (!STATE.isSpinning) STATE.dailyReadyAt = Date.now() + (d.daily?.remaining_ms || 0);
+      if (typeof Inventory !== 'undefined' && Inventory.updateDisplay) Inventory.updateDisplay();
+      STATE.lastBalanceSync = Date.now();
+      return d;
+    } catch (err) {
+      console.error('❌ refresh failed:', err);
+      return null;
+    }
+  },
+
+  async claimCredits() {
+    if (!STATE.tg?.initData) return 0;
+    try {
+      const d = await this.req('POST', '/api/credits/claim');
+      this.applyBalance(d.balance, false);
+      return d.credited || 0;
+    } catch { return 0; }
+  },
+
+  async spin(wheel, mult) { return this.req('POST', '/api/spin', { wheel, mult }); },
+  async daily()           { return this.req('POST', '/api/daily'); },
+  async promo(code)       { return this.req('POST', '/api/promo', { code }); },
+  async convert(prizeId)  { return this.req('POST', `/api/prizes/${encodeURIComponent(prizeId)}/convert`); },
+
+  // Shared error UI for spin/daily requests.
+  handleError(e, { btn, need } = {}) {
+    if (e.code === 'INSUFFICIENT_STARS') {
+      Utils.showToast(Utils.t('notEnoughStars', { n: need ?? e.data?.need ?? '' }), 'error');
+      if (btn) { btn.classList.remove('shake-error'); void btn.offsetWidth; btn.classList.add('shake-error'); setTimeout(() => btn.classList.remove('shake-error'), 400); }
+      this.refresh();
+    } else if (e.code === 'SUBSCRIPTION_REQUIRED') {
+      Utils.showToast(e.message, 'error');
+    } else if (e.code === 'DAILY_COOLDOWN') {
+      STATE.dailyReadyAt = Date.now() + (e.data?.remaining_ms || 0);
+      SpinWheel.updateCooldownUI?.();
+      SpinWheel.notifyIfCooldown?.();
+    } else {
+      Utils.showToast(e.message || 'Connection problem', 'error');
+    }
+  },
+
+  // Called the moment the reel stops: shows the server's final balance and puts won gifts in the inventory.
+  settle(list) {
+    const p = this.pending;
+    if (!p) return;
+    this.pending = null;
+    this.applyBalance(p.balance);
+    const rare = [];
+    for (const prize of list) {
+      if (prize.type !== 'gift' || !prize.prizeId) continue;
+      const item = Inventory.add(prize);
+      if (RARE_GIFTS.includes(item.value)) rare.push(item);
+    }
+    rare.forEach(i => LiveGiftNotifications.add(i));
+  }
+};
+
+const BackendAPI = {
+  isCloudStorageAvailable() { return !!(STATE.tg?.CloudStorage?.getItem); },
   async _cloudGet(key, fallback) {
     if (this.isCloudStorageAvailable()) {
       return new Promise((resolve) => {
@@ -1670,132 +1935,30 @@ const BackendAPI = {
     return saved ? parseInt(saved, 10) : fallback;
   },
 
-  async _cloudSet(key, value) {
-    let ok = false;
-    if (this.isCloudStorageAvailable()) {
-      ok = await new Promise((resolve) => {
-        STATE.tg.CloudStorage.setItem(key, String(value), (err, success) => resolve(!err && success));
-      });
-    }
-    try { localStorage.setItem(key, String(value)); return true; } catch { return ok; }
-  },
+  // Balances, inventory and the daily timer come from the game server only.
+  async syncBalance() { await GameAPI.refresh(); Currency.update(); },
 
-  // ── Coins ──
-
-  async getUserCoins()   { return this._cloudGet('userCoins', STATE.userCoins); },
-  async saveUserCoins(v) { const ok = await this._cloudSet('userCoins', v); this.syncUserProfile({ coins: v }); return ok; },
-
-  // ── Stars ──
-
-  async getUserStars()   { return this._cloudGet('userStars', STATE.userStars); },
-  async saveUserStars(v) { const ok = await this._cloudSet('userStars', v); this.syncUserProfile({ stars: v }); return ok; },
-
-  // ── Leaderboard profile sync ──
-  // Fire-and-forget push to VGDataStorage's users table. Never blocks the
-  // caller and never surfaces errors to the user — worst case the
-  // leaderboard is a little stale, which isn't worth interrupting anyone
-  // over. Accepts a partial payload; omitted fields are left untouched
-  // server-side (see PUT /users/:id).
-  async syncUserProfile(partial = {}) {
-    const userId = STATE.tg?.initDataUnsafe?.user?.id;
-    if (!userId) return;
-
-    const user = STATE.userData || {};
-    const payload = {
-      username: user.username ?? undefined,
-      first_name: user.first_name ?? undefined,
-      last_name: user.last_name ?? undefined,
-      avatar_url: user.photo_url ?? undefined,
-      show_in_leaderboard: STATE.settings?.showInLeaderboard,
-      ...partial
-    };
-
-    try {
-      await fetch(`${DATA_STORE_URL}/users/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    } catch (err) {
-      console.error('❌ syncUserProfile failed:', err);
+  // Only the leaderboard-visibility switch is a player setting; everything else
+  // about a profile the server reads from Telegram's signed data.
+  syncUserProfile(partial = {}) {
+    if (typeof partial.show_in_leaderboard === 'boolean') {
+      GameAPI.req('POST', '/api/profile', { show_in_leaderboard: partial.show_in_leaderboard }).catch(() => {});
     }
   },
 
-  // ── TON payments (ton-payments.js confirms on-chain transfers async via
-  // polling, then holds an unclaimed credit — nothing is pushed to the
-  // client, so this has to be pulled explicitly) ──
+  // Purchases (Stars / TON) are collected by the server.
+  async claimTonCredits()  { return GameAPI.claimCredits(); },
+  async claimStarCredits() { return GameAPI.claimCredits(); },
 
-  async claimTonCredits() {
-    const userId = STATE.tg?.initDataUnsafe?.user?.id;
-    if (!userId) return 0;
-    try {
-      const res = await fetch(`${TON_API_BASE}/ton/claim-credits/${userId}`);
-      if (!res.ok) return 0;
-      const data = await res.json();
-      if (data.stars > 0) Currency.addStars(data.stars);
-      return data.stars || 0;
-    } catch (err) {
-      console.error('❌ claimTonCredits failed:', err);
-      return 0;
-    }
-  },
-
-  // ── Telegram Stars purchases ──
-  // After a successful invoice the bot records an unclaimed credit
-  // (GET /stars/claim-credits, authenticated with Telegram initData). Nothing
-  // is pushed to the app, so it has to be collected here, same idea as TON.
-  async claimStarCredits() {
-    const initData = STATE.tg?.initData;
-    if (!initData) return 0;
-    try {
-      const res = await fetch(`${INVOICE_API_BASE}/stars/claim-credits`, {
-        headers: { 'X-Telegram-Init-Data': initData }
-      });
-      if (!res.ok) return 0;
-      const data = await res.json();
-      if (data.stars > 0) Currency.addStars(data.stars);
-      return data.stars || 0;
-    } catch (err) {
-      console.error('❌ claimStarCredits failed:', err);
-      return 0;
-    }
-  },
-
-  // The payment update reaches the bot a moment after the popup reports
-  // "paid", so keep asking for a short while before giving up (the safety
-  // net in syncBalance() picks it up later if it is slower than this).
+  // The payment update reaches the bot a moment after the popup reports "paid",
+  // so keep asking for a short while before giving up.
   async waitForStarCredits(expected) {
     for (let i = 0; i < 12; i++) {
       await new Promise(r => setTimeout(r, i === 0 ? 800 : 1500));
-      const got = await this.claimStarCredits();
-      if (got > 0) {
-        Utils.showToast(Utils.t('starsAdded', { n: got }), 'success');
-        return got;
-      }
+      const got = await GameAPI.claimCredits();
+      if (got > 0) { Utils.showToast(Utils.t('starsAdded', { n: got }), 'success'); return got; }
     }
     return 0;
-  },
-
-  // ── Sync both ──
-
-  async syncBalance() {
-    if (STATE.isSyncing) return;
-    STATE.isSyncing = true;
-
-    const [coins, stars] = await Promise.all([this.getUserCoins(), this.getUserStars()]);
-
-    let changed = false;
-    if (coins !== STATE.userCoins) { STATE.userCoins = coins; changed = true; }
-    if (stars !== STATE.userStars) { STATE.userStars = stars; changed = true; }
-    if (changed) Currency.update();
-
-    STATE.lastBalanceSync = Date.now();
-    STATE.isSyncing = false;
-
-    // Safety net: picks up any TON credit that got confirmed after the
-    // purchase flow stopped waiting (app closed, tab backgrounded, etc).
-    this.claimTonCredits();
-    this.claimStarCredits();
   },
 
   startPeriodicSync() {
@@ -1987,24 +2150,8 @@ const LoadingScreen = {
 // CURRENCY
 // ============================================
 
+// Balances are owned by the game server. This object only DRAWS them (see GameAPI.applyBalance).
 const Currency = {
-  add(amount) {
-    const oldValue = STATE.userCoins;
-    const newValue = oldValue + amount;
-    this.animateChange(oldValue, newValue);
-    BackendAPI.saveUserCoins(newValue);
-  },
-
-  // Also used to *deduct* Stars (e.g. Void Spin's cost) — just call with
-  // a negative amount. Same single code path either direction.
-  addStars(amount) {
-    const oldValue = STATE.userStars;
-    const newValue = oldValue + amount;
-    STATE.userStars = newValue;
-    BackendAPI.saveUserStars(newValue);
-    this.update();
-  },
-
   animateChange(oldValue, newValue, duration = 1000) {
     const el = document.getElementById('currencyAmount');
     if (!el) return;
@@ -2096,33 +2243,10 @@ const Countdown = {
 // ============================================
 
 const Inventory = {
-  async loadFromServer() {
-    const userId = STATE.tg?.initDataUnsafe?.user?.id;
-    if (!userId) return;
-
-    try {
-      const res = await fetch(`${DATA_STORE_URL}/prizes?user_id=${userId}`);
-      if (!res.ok) return;
-      const rows = await res.json();
-      
-      STATE.inventoryItems = rows
-        .filter(r => r.status !== 'claimed' && r.status !== 'converted')
-        .map(r => ({
-          value: r.gift_name,
-          type: 'gift',
-          lottie: true, // just a truthy flag — render path looks up the icon via GIFT_SVG_ICONS[value]
-          prizeId: r.prize_id,
-          claimedAt: new Date(r.created_at).getTime(),
-          pendingTransfer: r.status === 'queued_nft',
-          availableAt: r.scheduled_for ? new Date(r.scheduled_for).getTime() : undefined
-        }));
-    } catch (err) {
-      console.error('❌ Inventory.loadFromServer failed:', err);
-    }
-  },
+  async loadFromServer() { await GameAPI.refresh(); },
   
   add(prize) {
-    const item = { ...prize, prizeId: Utils.generatePrizeId(), claimedAt: Date.now() };
+    const item = { ...prize, prizeId: prize.prizeId || Utils.generatePrizeId(), claimedAt: Date.now() };
     STATE.inventoryItems.push(item);
     this.updateDisplay();
     const modal = document.getElementById('fullInventoryModal');
@@ -2261,23 +2385,20 @@ const PrizeModal = {
     }, 300);
   },
 
-  convert() {
-    if (!STATE.currentModalPrize) return;
+  async convert() {
+    if (!STATE.currentModalPrize || STATE.isConverting) return;
     const prize = STATE.currentModalPrize;
-    STATE.currentModalPrize = null;
-    const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
-    Currency.add(val);
-    Inventory.remove(prize.prizeId);
-    this.close();
-
-    // Tell prize-store this row is resolved — otherwise it still looks
-    // "unclaimed" and Inventory.loadFromServer() would bring it back
-    // on the next app open.
-    fetch(`${DATA_STORE_URL}/prizes/${prize.prizeId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'converted' })
-    }).catch(err => console.error('❌ Failed to mark prize converted:', err));
+    STATE.isConverting = true;
+    try {
+      const r = await GameAPI.convert(prize.prizeId);
+      STATE.currentModalPrize = null;
+      Inventory.remove(prize.prizeId);
+      GameAPI.applyBalance(r.balance);
+      this.close();
+    } catch (e) {
+      Utils.showToast(e.code === 'NOT_CONVERTIBLE' ? e.message : (e.message || 'Connection problem'), 'error');
+      GameAPI.refresh();
+    } finally { STATE.isConverting = false; }
   },
 
   async claim() {
@@ -2306,8 +2427,14 @@ const PrizeModal = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData, prizeId, giftName })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to claim gift');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = new Error(data.error || 'Failed to claim gift');
+        err.code = data.code;                       // e.g. 'PEER_NOT_FOUND', 'TOPUP_REQUIRED'
+        err.relayerUsername = data.relayer_username;
+        err.requiredStars = data.required_stars;
+        throw err;
+      }
 
       this.close();
 
@@ -2333,11 +2460,53 @@ const PrizeModal = {
       }
     } catch (error) {
       Utils.showToast(Utils.t('failedToClaim', { msg: error.message }), 'error');
-      STATE.tg?.showPopup?.({
-        title: Utils.t('claimFailedPopupTitle'),
-        message: `${error.message}\n\nPrize ID: ${prizeId}`,
-        buttons: [{ type: 'close' }]
-      });
+
+      if (error.code === 'TOPUP_REQUIRED') {
+        // NFT gifts need a fresh Stars top-up each time. Say so clearly and
+        // offer a one-tap route to the Deposit page.
+        const n = error.requiredStars || 25;
+        const goTopUp = () => {
+          this.close();
+          Navigation.navigateTo('deposit');
+        };
+        if (STATE.tg?.showPopup) {
+          STATE.tg.showPopup({
+            title: Utils.t('topupRequiredTitle'),
+            message: Utils.t('topupRequiredPopup', { n }),
+            buttons: [
+              { id: 'topup', type: 'default', text: Utils.t('topupBtn') },
+              { type: 'close' }
+            ]
+          }, (btnId) => { if (btnId === 'topup') goTopUp(); });
+        } else if (window.confirm(Utils.t('topupRequiredPopup', { n }))) {
+          goTopUp();
+        }
+      } else if (error.code === 'PEER_NOT_FOUND') {
+        // The relayer account hasn't "met" this player yet (no public
+        // username / never opened its chat). Give them a one-tap fix.
+        const relayer = error.relayerUsername || 'VoidGift_Relayer';
+        const openRelayer = () => {
+          const link = `https://t.me/${relayer}?start=claim`;
+          if (STATE.tg?.openTelegramLink) STATE.tg.openTelegramLink(link);
+          else window.open(link, '_blank');
+        };
+        if (STATE.tg?.showPopup) {
+          STATE.tg.showPopup({
+            title: Utils.t('claimFailedPopupTitle'),
+            message: Utils.t('peerNotFoundPopup', { relayer: `@${relayer}` }),
+            buttons: [
+              { id: 'open', type: 'default', text: Utils.t('openRelayerBtn', { relayer: `@${relayer}` }) },
+              { type: 'close' }
+            ]
+          }, (btnId) => { if (btnId === 'open') openRelayer(); });
+        }
+      } else {
+        STATE.tg?.showPopup?.({
+          title: Utils.t('claimFailedPopupTitle'),
+          message: `${error.message}\n\nPrize ID: ${prizeId}`,
+          buttons: [{ type: 'close' }]
+        });
+      }
     } finally {
       STATE.isClaimingPrize = false;
       if (claimBtn) { claimBtn.disabled = false; claimBtn.textContent = Utils.t('claimPrize'); }
@@ -2736,7 +2905,8 @@ const Leaderboard = {
       username: row.username || null,
       avatar: row.avatar_url || null,
       coins: type === 'coins' ? Number(row.coins) || 0 : undefined,
-      stars: type === 'stars' ? Number(row.stars) || 0 : undefined,
+      // The "stars" tab ranks by lifetime Stars SPENT (falls back to balance for an old server).
+      stars: type === 'stars' ? Number(row.stars_spent ?? row.stars) || 0 : undefined,
       gifts: type === 'gifts' ? Number(row.gifts) || 0 : undefined
     };
   },
@@ -2861,7 +3031,7 @@ const Leaderboard = {
     // balances with no computed rank, rather than showing stale/fake data.
     rankEl.textContent = '--';
     if (type === 'coins')      scoreEl.textContent = `${STATE.userCoins.toLocaleString()} ${Utils.t('tabCoins').toLowerCase()}`;
-    else if (type === 'stars') scoreEl.textContent = `${STATE.userStars.toLocaleString()} ⭐`;
+    else if (type === 'stars') scoreEl.textContent = `${(STATE.starsSpentTotal || 0).toLocaleString()} ⭐`;
     else                        scoreEl.textContent = `${STATE.inventoryItems.length} ${Utils.t('tabGifts').toLowerCase()}`;
   },
 
@@ -3387,12 +3557,252 @@ const TonPurchaseFlow = {
 // DEPOSIT
 // ============================================
 
+
+// ============================================
+// NFT BUYBACK board  (Deposit > "Sell Gifts")
+// ============================================
+// Players send a collectible to the relayer; the relayer credits the Stars
+// listed here. The AUTHORITATIVE prices live in the relayer's
+// buyback-prices.json (served at GET {relayer}/buyback/prices); this file's
+// BUYBACK_FALLBACK is only used if that request fails. Keep them in sync
+// with tools/sync-buyback.js.
+// Icons are pulled straight from assets/<Name without spaces/punctuation>.svg
+// (e.g. "Crystal Ball" -> assets/CrystalBall.svg); if the .svg is missing it
+// tries assets/<Name>.json (Lottie), then hides the icon.
+// ============================================
+const BUYBACK_FALLBACK = [
+  ['Plush Pepe', 655799],
+  ['Heart Locket', 132277],
+  ['Durov\'s Cap', 41106],
+  ['Resistance Dog', 31620],
+  ['Precious Peach', 25049],
+  ['Scared Cat', 24992],
+  ['Heroic Helmet', 18629],
+  ['Mighty Arm', 12993],
+  ['Loot Bag', 12547],
+  ['Astral Shard', 11713],
+  ['Nail Bracelet', 11571],
+  ['Westside Sign', 10433],
+  ['Mini Oscar', 7041],
+  ['Perfume Bottle', 6942],
+  ['Ion Gem', 6724],
+  ['Artisan Brick', 6435],
+  ['Gem Signet', 6123],
+  ['Low Rider', 5839],
+  ['Swiss Watch', 5524],
+  ['Magic Potion', 5457],
+  ['Sharp Tongue', 4530],
+  ['Bonded Ring', 4230],
+  ['Kissed Frog', 3958],
+  ['Vintage Cigar', 3773],
+  ['Voodoo Doll', 3770],
+  ['Neko Helmet', 3737],
+  ['Genie Lamp', 3540],
+  ['Toy Bear', 3419],
+  ['Signet Ring', 3268],
+  ['Diamond Ring', 3103],
+  ['Rare Bird', 2795],
+  ['Electric Skull', 2688],
+  ['Bling Binky', 2541],
+  ['Eternal Rose', 2508],
+  ['Khabib\'s Papakha', 2409],
+  ['Cupid Charm', 2235],
+  ['Lucky Locket', 1935],
+  ['Sky Stilettos', 1908],
+  ['UFC Strike', 1693],
+  ['Trapped Heart', 1598],
+  ['Snoop Cigar', 1528],
+  ['Love Potion', 1493],
+  ['Ionic Dryer', 1462],
+  ['Mad Pumpkin', 1397],
+  ['Crystal Ball', 1299],
+  ['Flying Broom', 1265],
+  ['Record Player', 1254],
+  ['Skull Flower', 1237],
+  ['Valentine Box', 1129],
+  ['Love Candle', 1075],
+  ['Top Hat', 1068],
+  ['Sakura Flower', 1053],
+  ['Jingle Bells', 969],
+  ['Hanging Star', 954],
+  ['Fine Pen', 894],
+  ['Berry Box', 870],
+  ['Bunny Muffin', 852],
+  ['Joyful Bundle', 800],
+  ['Jelly Bunny', 777],
+  ['Evil Eye', 764],
+  ['Jolly Chimp', 736],
+  ['Sleigh Bell', 735],
+  ['Surge Board', 700],
+  ['Witch Hat', 671],
+  ['Light Sword', 663],
+  ['Input Key', 645],
+  ['Lush Bouquet', 625],
+  ['Moon Pendant', 615],
+  ['Bow Tie', 596],
+  ['Eternal Candle', 596],
+  ['Snoop Dogg', 589],
+  ['Spy Agaric', 587],
+  ['Spring Basket', 584],
+  ['Faith Amulet', 544],
+  ['Santa Hat', 541],
+  ['Snow Globe', 541],
+  ['Restless Jar', 539],
+  ['Pretty Posy', 537],
+  ['Swag Bag', 532],
+  ['Snow Mittens', 526],
+  ['Desk Calendar', 522],
+  ['Stellar Rocket', 516],
+  ['Money Pot', 514],
+  ['Homemade Cake', 513],
+  ['Clover Pin', 501],
+  ['Cookie Heart', 492],
+  ['Liberty Figure', 492],
+  ['B-Day Candle', 488],
+  ['Mirage Lamp', 487],
+  ['Mousse Cake', 485],
+  ['Hex Pot', 484],
+  ['Jack-in-the-Box', 482],
+  ['Star Notepad', 468],
+  ['Victory Medal', 452],
+  ['Timeless Book', 450],
+  ['Spiced Wine', 439],
+  ['Fresh Socks', 439],
+  ['Party Sparkler', 438],
+  ['Ginger Cookie', 438],
+  ['Mood Pack', 429],
+  ['Winter Wreath', 421],
+  ['Holiday Drink', 417],
+  ['Hypno Lollipop', 414],
+  ['Easter Egg', 409],
+  ['Tama Gadget', 405],
+  ['Happy Brownie', 404],
+  ['Jester Hat', 403],
+  ['Lol Pop', 397],
+  ['Pet Snake', 395],
+  ['Whip Cupcake', 387],
+  ['Ice Cream', 385],
+  ['Big Year', 384],
+  ['Lunar Snake', 383],
+  ['Candy Cane', 383],
+  ['Pool Float', 383],
+  ['Vice Cream', 382],
+  ['Instant Ramen', 381],
+  ['Chill Flame', 379],
+  ['Snake Box', 379],
+  ['Xmas Stocking', 378]
+];
+
+const Buyback = {
+  items: BUYBACK_FALLBACK.map(([title, stars]) => ({ title, stars })),
+  relayer: 'VoidGift_Relayer',
+  query: '',
+  _timer: null,
+
+  // Older file names for icons that already exist in /assets.
+  ICON_ALIASES: { DeskCalendar: 'Calender', LolPop: 'Lollipop', FreshSocks: 'Socks' },
+
+  iconName(title) { return String(title).replace(/[^A-Za-z0-9]/g, ''); },
+
+  async init() {
+    if (this._inited) return;
+    this._inited = true;
+    const search = document.getElementById('sellSearch');
+    search?.addEventListener('input', () => { this.query = search.value.trim().toLowerCase(); this.render(); });
+    document.getElementById('sellOpenRelayer')?.addEventListener('click', () => {
+      const url = `https://t.me/${this.relayer}`;
+      if (STATE.tg?.openTelegramLink) STATE.tg.openTelegramLink(url); else window.open(url, '_blank');
+    });
+    this.render();
+    this.fetchPrices();
+  },
+
+  async fetchPrices() {
+    try {
+      const res = await fetch(`${GIFT_RELAYER_URL}/buyback/prices`, { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.items) && data.items.length) this.items = data.items.map(i => ({ title: i.title, stars: Number(i.stars) || 0 }));
+      if (data.relayer_username) this.relayer = data.relayer_username;
+      this.render();
+    } catch { /* keep fallback */ }
+  },
+
+  _icon(title) {
+    const wrap = document.createElement('div');
+    wrap.className = 'sell-icon';
+    const base = `assets/${this.iconName(title)}`;
+    const img = Object.assign(document.createElement('img'), { src: `${base}.svg`, alt: '', loading: 'lazy' });
+    img.addEventListener('error', function onErr() {
+      // Reuse the three icons that already exist under their older file names.
+      const alias = this.ICON_ALIASES?.[this.iconName(title)];
+      if (alias && !img.dataset.triedAlias) {
+        img.dataset.triedAlias = '1';
+        img.addEventListener('error', onErr, { once: true });
+        img.src = `assets/${alias}.svg`;
+        return;
+      }
+      if (!img.dataset.triedJson && typeof lottie !== 'undefined') {
+        img.dataset.triedJson = '1';
+        img.remove();
+        try { lottie.loadAnimation({ container: wrap, renderer: 'svg', loop: true, autoplay: true, path: `${base}.json` }); } catch { /* no icon */ }
+      } else { img.remove(); }
+    }.bind(this), { once: true });
+    wrap.appendChild(img);
+    return wrap;
+  },
+
+  render() {
+    const list = document.getElementById('sellList');
+    if (!list) return;
+    const q = this.query;
+    const rows = this.items
+      .filter(i => !q || i.title.toLowerCase().includes(q))
+      .sort((a, b) => b.stars - a.stars);
+    list.innerHTML = '';
+    const count = document.getElementById('sellCount');
+    if (count) count.textContent = `${this.items.length} ${Utils.t('sellCount')}`;
+    if (!rows.length) {
+      list.innerHTML = `<div class="leaderboard-empty">${Utils.t('sellNoResults')}</div>`;
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    rows.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'sell-row';
+      const name = Object.assign(document.createElement('div'), { className: 'sell-name', textContent: item.title });
+      const pill = document.createElement('div');
+      pill.className = 'sell-pill';
+      pill.innerHTML = `<span>+${item.stars.toLocaleString()}</span><img src="assets/TStars.svg" alt="Stars">`;
+      row.append(this._icon(item.title), name, pill);
+      frag.appendChild(row);
+    });
+    list.appendChild(frag);
+  },
+
+  relabel() {
+    document.querySelectorAll('[data-sell-relayer]').forEach(el => { el.textContent = Utils.t(el.dataset.sellRelayer, { relayer: this.relayer }); });
+    this.render();
+  },
+
+  // While the sell tab is open, poll the balance so Stars credited by the
+  // relayer show up without reopening the app.
+  onShow() {
+    this.relabel();
+    BackendAPI.syncBalance();
+    clearInterval(this._timer);
+    this._timer = setInterval(() => { if (STATE.currentPage === 'deposit' && STATE.currentDepositTab === 'sell') BackendAPI.syncBalance(); else this.onHide(); }, 6000);
+  },
+  onHide() { clearInterval(this._timer); this._timer = null; }
+};
+
 const Deposit = {
   init() {
     this.initTabs();
     this.renderPackages('stars');
     this.renderPackages('ton');
     this.initIcons();
+    Buyback.init();
   },
 
   initTabs() {
@@ -3411,6 +3821,9 @@ const Deposit = {
       const type = tab.dataset.tab;
       STATE.currentDepositTab = type;
       document.getElementById(`deposit-${type}`)?.classList.add('active');
+      // The "Spent ... deposit info" card is about buying; hide it on the sell tab.
+      document.querySelector('.deposit-info-card')?.classList.toggle('hidden', type === 'sell');
+      if (type === 'sell') Buyback.onShow(); else Buyback.onHide();
     });
   },
 
@@ -3532,7 +3945,8 @@ const Deposit = {
 
   // Re-render currently visible packages so "Popular"/"Purchase"/"Stars" pick up the new language.
   refreshLabels() {
-    if (STATE.currentPage === 'deposit') this.renderPackages(STATE.currentDepositTab);
+    if (STATE.currentPage === 'deposit' && STATE.currentDepositTab !== 'sell') this.renderPackages(STATE.currentDepositTab);
+    Buyback.relabel();
   }
 };
 
@@ -3554,19 +3968,13 @@ const SpinWheel = {
   // when the spin is accepted, not at claim, so reloading mid-spin can't be
   // used to re-roll the prize.
   initCooldown() {
-    this.cooldownReady = BackendAPI._cloudGet('dailySpinLastAt', 0).then(v => {
-      STATE.dailyLastSpinAt = v || 0;
-      this.updateCooldownUI();
-    });
+    this.cooldownReady = (GameAPI._firstRefresh || Promise.resolve()).then(() => this.updateCooldownUI());
     setInterval(() => this.updateCooldownUI(), 1000);
   },
 
   cooldownRemaining() {
-    if (!STATE.dailyLastSpinAt) return 0;
-    const left = STATE.dailyLastSpinAt + CONFIG.DAILY_COOLDOWN_MS - Date.now();
-    // Clamp: a last-spin time in the future (device clock moved back) can't
-    // lock the gift for longer than one full cooldown.
-    return Math.max(0, Math.min(left, CONFIG.DAILY_COOLDOWN_MS));
+    // Server-driven: dailyReadyAt = (our clock) + remaining_ms reported by the server.
+    return Math.max(0, Math.min((STATE.dailyReadyAt || 0) - Date.now(), CONFIG.DAILY_COOLDOWN_MS));
   },
 
   formatRemaining(ms) {
@@ -3600,8 +4008,7 @@ const SpinWheel = {
   },
 
   startCooldown() {
-    STATE.dailyLastSpinAt = Date.now();
-    BackendAPI._cloudSet('dailySpinLastAt', STATE.dailyLastSpinAt);
+    STATE.dailyReadyAt = Date.now() + CONFIG.DAILY_COOLDOWN_MS;
   },
 
   // Picks the REAL outcome. Only ever called from spin() to determine
@@ -3717,25 +4124,31 @@ const SpinWheel = {
   STATE.animationFrameId = requestAnimationFrame(animate);
 },
 
-  spin() {
+  async spin() {
     if (STATE.isSpinning) return;
     if (this.notifyIfCooldown()) return;
     STATE.isSpinning = true;
     const btn = document.getElementById('spinButton');
     if (btn) btn.disabled = true;
 
-    // Real outcome — decided here, from SPIN_PRIZES only.
-    const winning = this.selectPrize();
+    // The server enforces the cooldown, rolls the prize and grants it.
+    let res;
+    try {
+      res = await GameAPI.daily();
+    } catch (e) {
+      STATE.isSpinning = false;
+      if (btn) btn.disabled = false;
+      GameAPI.handleError(e, { btn });
+      return;
+    }
+    GameAPI.pending = { balance: res.balance };
+    const winning = GameAPI.toPrize('daily', res.results[0]);
     const cubes   = Array.from(document.querySelectorAll('#wheel .cube'));
     if (!cubes.length) { STATE.isSpinning = false; if (btn) btn.disabled = false; return; }
 
     this.startCooldown();
     this.updateCooldownUI();
 
-    // Repaint every cube for the spin visual — uses REAL odds so the
-    // reel you watch scroll actually reflects what you can win. Only
-    // the idle/resting wheel (populateCubes + the recycle branch below,
-    // gated by !isSpinning) uses the inflated preview odds.
     cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
 
     const stride   = CONFIG.CUBE_WIDTH + CONFIG.GAP_WIDTH;
@@ -3789,6 +4202,7 @@ const SpinWheel = {
 
   showWin(prize) {
     STATE.currentWinningPrize = prize;
+    GameAPI.settle([prize]);
     const modal    = document.getElementById('winModal');
     const iconEl   = document.getElementById('modalPrizeIcon');
     const nameEl   = document.getElementById('modalPrizeName');
@@ -3844,31 +4258,7 @@ const SpinWheel = {
     const claimBtn = document.getElementById('claimButton');
     if (claimBtn) claimBtn.disabled = true;
 
-    if (prize.type === 'coin') {
-      Currency.add(parseInt(prize.value, 10));
-    } else {
-      const added = Inventory.add(prize);
-      const telegramGiftId = TELEGRAM_GIFT_IDS[prize.value];
-      if (telegramGiftId) {
-        const STORE_URL = 'https://vgdatastorage-production.up.railway.app';
-        const userId    = STATE.tg?.initDataUnsafe?.user?.id ?? 'unknown';
-        const username  = STATE.tg?.initDataUnsafe?.user?.username ?? null;
-        try {
-          await fetch(`${STORE_URL}/prizes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prize_id: added.prizeId,
-              gift_name: prize.value,
-              telegram_gift_id: telegramGiftId,
-              user_id: userId,
-              username
-            })
-          });
-        } catch { /* non-fatal */ }
-      }
-      LiveGiftNotifications.add(added);
-    }
+    // Already granted by the server when the reel stopped — Claim just closes the card.
 
     this.hideWin();
 
@@ -4047,29 +4437,43 @@ const VoidSpinWheel = {
     STATE.voidAnimationFrameId = requestAnimationFrame(animate);
   },
 
-  spin() {
+  async spin() {
     if (STATE.voidIsSpinning) return;
 
     const btn = document.getElementById('voidSpinButton');
+    const total = MultiSpin.total('void');
 
-    // Cost check — happens before anything else moves. Deduct-on-press,
-    // not on claim, per spec.
-    if (STATE.userStars < CONFIG.VOID_SPIN_COST) {
-      Utils.showToast(Utils.t('notEnoughStars', { n: CONFIG.VOID_SPIN_COST }), 'error');
-      if (btn) {
-        btn.classList.remove('shake-error');
-        void btn.offsetWidth; // restart the animation if it's already mid-shake
-        btn.classList.add('shake-error');
-        setTimeout(() => btn.classList.remove('shake-error'), 400);
-      }
+    // Quick local check so a broke player gets instant feedback; the server re-checks everything.
+    if (STATE.userStars < total) {
+      GameAPI.handleError({ code: 'INSUFFICIENT_STARS', data: { need: total } }, { btn, need: total });
       return;
     }
 
     STATE.voidIsSpinning = true;
     if (btn) btn.disabled = true;
-    Currency.addStars(-CONFIG.VOID_SPIN_COST);
 
-    const winning = this.selectPrize();
+    // The SERVER takes the Stars, rolls the prizes and grants them. We only animate what it returns.
+    const _mult = MultiSpin.get('void');
+    STATE.voidMultResults = null;
+    let res;
+    try {
+      res = await GameAPI.spin('void', _mult);
+    } catch (e) {
+      STATE.voidIsSpinning = false;
+      if (btn) btn.disabled = false;
+      GameAPI.handleError(e, { btn, need: total });
+      return;
+    }
+    GameAPI.applyBalance(res.after_spend, false);        // Stars leave the balance now ...
+    GameAPI.pending = { balance: res.balance };          // ... winnings show when the reel stops
+    const _list = res.results.map(r => GameAPI.toPrize('void', r));
+    let winning;
+    if (_mult > 1) {
+      STATE.voidMultResults = _list;
+      winning = MultiSpin.best(_list);
+    } else {
+      winning = _list[0];
+    }
     const cubes   = Array.from(document.querySelectorAll('.void-cube'));
     if (!cubes.length) { STATE.voidIsSpinning = false; if (btn) btn.disabled = false; return; }
 
@@ -4118,14 +4522,30 @@ const VoidSpinWheel = {
         bestCube.style.boxShadow   = '0 0 40px rgba(255,95,168,.75)';
         setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
         const final = VOID_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
-        if (final) setTimeout(() => this.showWin(final), 200);
+        if (final) setTimeout(() => (STATE.voidMultResults ? this.showMulti() : this.showWin(final)), 200);
       }
     };
     snap();
   },
 
+  // Results sheet for x10 / x100. Prizes are granted when the player collects.
+  showMulti() {
+    const list = STATE.voidMultResults || [];
+    STATE.voidMultResults = null;
+    MultiSpin.present('void', list, () => {
+      document.querySelectorAll('.void-cube').forEach(c => this._cleanupLottie(c));
+      this.populateCubes();
+      STATE.voidScrollSpeed = 1;
+      STATE.voidIsSpinning  = false;
+      const sb = document.getElementById('voidSpinButton');
+      if (sb) sb.disabled = false;
+      MultiSpin.refresh('void');
+    });
+  },
+
   showWin(prize) {
     STATE.voidCurrentWinningPrize = prize;
+    GameAPI.settle([prize]);
     const modal    = document.getElementById('voidWinModal');
     const iconEl   = document.getElementById('voidModalPrizeIcon');
     const nameEl   = document.getElementById('voidModalPrizeName');
@@ -4187,33 +4607,7 @@ const VoidSpinWheel = {
     const claimBtn = document.getElementById('voidClaimButton');
     if (claimBtn) claimBtn.disabled = true;
 
-    if (prize.type === 'coin') {
-      Currency.add(parseInt(prize.value, 10));
-    } else if (prize.type === 'stars') {
-      Currency.addStars(parseInt(prize.value, 10));
-    } else {
-      const added = Inventory.add(prize);
-      const telegramGiftId = TELEGRAM_GIFT_IDS[prize.value];
-      if (telegramGiftId) {
-        const STORE_URL = 'https://vgdatastorage-production.up.railway.app';
-        const userId    = STATE.tg?.initDataUnsafe?.user?.id ?? 'unknown';
-        const username  = STATE.tg?.initDataUnsafe?.user?.username ?? null;
-        try {
-          await fetch(`${STORE_URL}/prizes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prize_id: added.prizeId,
-              gift_name: prize.value,
-              telegram_gift_id: telegramGiftId,
-              user_id: userId,
-              username
-            })
-          });
-        } catch { /* non-fatal */ }
-      }
-      LiveGiftNotifications.add(added);
-    }
+    // Already granted by the server when the reel stopped — Claim just closes the card.
 
     this.hideWin();
 
@@ -4227,7 +4621,7 @@ const VoidSpinWheel = {
   },
 
   loadIcons() {
-    ['voidStars5','voidStars10','voidStars25'].forEach(id => {
+    ['voidStars5','voidStars10','voidStars25','voidStars50','voidStars100'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       const img = Object.assign(document.createElement('img'), { src: 'assets/TStars.svg', alt: 'Stars' });
@@ -4238,7 +4632,8 @@ const VoidSpinWheel = {
     [
       ['voidGiftHeart','Heart'], ['voidGiftBear','Bear'],
       ['voidGiftCake','Cake'],   ['voidGiftRocket','Rocket'],
-      ['voidGiftNotepad','Star Notepad'], ['voidGiftRamen','Instant Ramen']
+      ['voidGiftRamen','Instant Ramen'], ['voidGiftSocks','Socks'],
+      ['voidGiftLollipop','Lollipop']
     ].forEach(([id, giftName]) => {
       const el = document.getElementById(id);
       if (el) {
@@ -4253,6 +4648,127 @@ const VoidSpinWheel = {
   }
 };
 
+
+
+// ============================================
+// MULTI SPIN  (x1 / x10 / x100 on the Void and Furry wheels)
+// ============================================
+// A multiplier of N means N independent spins in ONE tap, paid up front at
+// N x the case price. Every spin uses the exact same odds as a normal spin,
+// so the maths stays fair: the chance of getting a prize at least once is
+// 1 - (1 - p)^N, and the expected payout is exactly N x a single spin's.
+// The reel lands on the best prize of the batch, then a results sheet lists
+// everything and grants it on "Collect".
+// ============================================
+const MultiSpin = {
+  OPTIONS: [10, 1, 100],            // on-screen order: 10x | 1x | 100x
+  mult: { void: 1, furry: 1, hex: 1, astral: 1 },
+  // Optional bulk discount per multiplier (0 = none). e.g. { 10: 0.05 } = x10 costs 5% less.
+  DISCOUNT: { 1: 0, 10: 0, 100: 0 },
+
+  table(w)  { return { void: VOID_SPIN_PRIZES, furry: FURRY_SPIN_PRIZES, hex: HEX_SPIN_PRIZES, astral: ASTRAL_SPIN_PRIZES }[w]; },
+  price(w)  { return CONFIG[`${w.toUpperCase()}_SPIN_COST`]; },
+  get(w)    { return this.mult[w] || 1; },
+  total(w, m = this.get(w)) { return Math.round(this.price(w) * m * (1 - (this.DISCOUNT[m] || 0))); },
+
+  // Higher = better. NFTs > other gifts > Stars > coins.
+  rank(p) {
+    if (p.type === 'gift') return (NFT_GIFTS.includes(p.value) ? 1e6 : 1e3) + (PRIZE_COIN_VALUES[p.value] || 0);
+    if (p.type === 'stars') return Number(p.value) || 0;
+    return (Number(p.value) || 0) / 100;
+  },
+  best(list) { return list.reduce((b, p) => (this.rank(p) > this.rank(b) ? p : b), list[0]); },
+
+  // Chance (0-1) of at least one NFT / gift in N spins.
+  chance(w, m, kind) {
+    const c = GameAPI.cfg?.wheels?.[w];          // honest per-spin odds, published by the server
+    const p = c ? (kind === 'nft' ? c.nftChance : c.giftChance) : 0;
+    return 1 - Math.pow(1 - p, m);
+  },
+  fmtPct(x) {
+    const v = x * 100;
+    return v >= 99.95 ? '99.9+' : v >= 10 ? v.toFixed(0) : v >= 1 ? v.toFixed(1) : v.toFixed(2);
+  },
+
+  init() {
+    ['void', 'furry', 'hex', 'astral'].forEach(w => {
+      const btn = document.getElementById(`${w}SpinButton`);
+      if (!btn || document.getElementById(`${w}MultRow`)) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'mult-wrap';
+      wrap.innerHTML =
+        `<div class="mult-row" id="${w}MultRow" role="group" aria-label="Spin multiplier">` +
+        this.OPTIONS.map(m => `<button type="button" class="mult-btn${m === 1 ? ' active' : ''}" data-mult="${m}">${m}x</button>`).join('') +
+        `</div><div class="mult-info" id="${w}MultInfo"></div>`;
+      btn.parentNode.insertBefore(wrap, btn);
+      wrap.querySelectorAll('.mult-btn').forEach(b => b.addEventListener('click', () => this.set(w, Number(b.dataset.mult))));
+      this.refresh(w);
+    });
+  },
+
+  set(w, m) {
+    if (STATE[`${w}IsSpinning`]) return;
+    this.mult[w] = this.OPTIONS.includes(m) ? m : 1;
+    this.refresh(w);
+  },
+
+  refresh(w) {
+    const m = this.get(w);
+    document.querySelectorAll(`#${w}MultRow .mult-btn`).forEach(b => b.classList.toggle('active', Number(b.dataset.mult) === m));
+    const cost = document.querySelector(`#${w}SpinButton .spin-btn-cost`);
+    if (cost) cost.textContent = this.total(w).toLocaleString();
+    const info = document.getElementById(`${w}MultInfo`);
+    if (info) {
+      info.textContent = m === 1 ? '' :
+        `${m} ${Utils.t('multiSpinsWord')} · ` + Utils.t('multiChanceNft', { p: this.fmtPct(this.chance(w, m, 'nft')) });
+      info.style.display = m === 1 ? 'none' : '';
+    }
+  },
+
+  // Show the results sheet; grant everything when the player taps Collect.
+  present(w, list, onDone) {
+    GameAPI.settle(list);                      // balance + inventory were already decided by the server
+    const stars = list.filter(p => p.type === 'stars').reduce((a, p) => a + Number(p.value), 0);
+    const coins = list.filter(p => p.type === 'coin').reduce((a, p) => a + Number(p.value), 0);
+    const gifts = new Map();
+    list.filter(p => p.type === 'gift').forEach(p => gifts.set(p.value, (gifts.get(p.value) || 0) + 1));
+    const giftRows = [...gifts.entries()].sort((a, b) =>
+      (this.rank({ type: 'gift', value: b[0] }) - this.rank({ type: 'gift', value: a[0] })));
+
+    let ov = document.getElementById('multiWinModal');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'multiWinModal';
+      ov.className = 'win-modal-overlay';
+      document.body.appendChild(ov);
+    }
+    const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const row = (icon, label, n) =>
+      `<div class="mw-row"><img src="${icon}" alt=""><span class="mw-name">${esc(label)}</span><span class="mw-count">×${n}</span></div>`;
+    ov.innerHTML =
+      `<div class="win-modal mw-card">` +
+        `<div class="win-modal-eyebrow">${Utils.t('multiResultsTitle', { n: list.length })}</div>` +
+        `<div class="mw-list">` +
+          giftRows.map(([name, n]) => row(GIFT_SVG_ICONS[name] || '', name, n)).join('') +
+          (stars ? `<div class="mw-row mw-stars"><img src="assets/TStars.svg" alt=""><span class="mw-name">${Utils.t('multiTotalStars')}</span><span class="mw-count">+${stars.toLocaleString()}</span></div>` : '') +
+          (coins ? `<div class="mw-row"><img src="assets/Coin.svg" alt=""><span class="mw-name">${Utils.t('coinsWord')}</span><span class="mw-count">+${coins.toLocaleString()}</span></div>` : '') +
+        `</div>` +
+        `<button type="button" class="spin-button mw-collect" id="multiCollectBtn">${Utils.t('multiCollect')}</button>` +
+      `</div>`;
+    requestAnimationFrame(() => ov.classList.add('show'));
+
+    const btn = document.getElementById('multiCollectBtn');
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await this.grant(list);
+      ov.classList.remove('show');
+      onDone && onDone();
+    }, { once: true });
+  },
+
+  // Everything was granted by the server at spin time; Collect just closes the sheet.
+  async grant() {}
+};
 
 // ============================================
 // EVENTS CAROUSEL
@@ -4325,44 +4841,29 @@ const EventsCarousel = {
   }
 };
 
+
+const HEX_SPIN_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
+
+const HEX_PREVIEW_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
+
+const ASTRAL_SPIN_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
+
+const ASTRAL_PREVIEW_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
+
 // ============================================
 // FURRY SPIN: third wheel, home-page banner.
 // Same engine as Void Spin (own ids, own knobs). Prizes are Stars and gifts
-// only: NO coin prizes. Socks and Lollipop are NFTs.
+// only: NO coin prizes. Socks, Star Notepad, Calendar and Instant Ramen are NFTs.
 // `lottie` on a gift only marks it as a gift; there is no animation file for
-// Champagne / Socks / Lollipop and none is loaded (icons come from
+// Champagne / the NFTs and none is loaded (icons come from
 // GIFT_SVG_ICONS). Both tables must total exactly 100: selectPrize() rolls
 // 0-100 and falls back to the FIRST entry if the total is short.
 // ============================================
 // REAL odds. Decides what the player actually wins.
-const FURRY_SPIN_PRIZES = [
-  { id: 'furryStars10', type: 'stars', value: 10, chance: 40.0000, icon: 'stars' },
-  { id: 'furryStars25', type: 'stars', value: 25, chance: 30.0000, icon: 'stars' },
-  { id: 'furryStars50', type: 'stars', value: 50, chance: 12.0000, icon: 'stars' },
-  { id: 'furryStars100', type: 'stars', value: 100, chance: 2.6000, icon: 'stars' },
-  { id: 'furryGiftRose', type: 'gift', value: 'Rose', chance: 6.0000, lottie: 'assets/giftRose.json' },
-  { id: 'furryGiftCake', type: 'gift', value: 'Cake', chance: 4.5000, lottie: 'assets/giftCake.json' },
-  { id: 'furryGiftChampagne', type: 'gift', value: 'Champagne', chance: 3.0000, lottie: 'assets/giftChampagne.json' },
-  { id: 'furryGiftTrophy', type: 'gift', value: 'Trophy', chance: 0.8000, lottie: 'assets/giftTrophy.json' },
-  { id: 'furryGiftDiamond', type: 'gift', value: 'Diamond', chance: 0.8000, lottie: 'assets/giftDiamond.json' },
-  { id: 'furryGiftSocks', type: 'gift', value: 'Socks', chance: 0.1500, lottie: 'assets/giftSocks.json' },
-  { id: 'furryGiftLollipop', type: 'gift', value: 'Lollipop', chance: 0.1500, lottie: 'assets/giftLollipop.json' }
-];
+const FURRY_SPIN_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
 
 // DISPLAY-ONLY odds for the idle reel and pre-reveal repaint.
-const FURRY_PREVIEW_PRIZES = [
-  { id: 'furryStars10', type: 'stars', value: 10, chance: 12.0000, icon: 'stars' },
-  { id: 'furryStars25', type: 'stars', value: 25, chance: 12.0000, icon: 'stars' },
-  { id: 'furryStars50', type: 'stars', value: 50, chance: 10.0000, icon: 'stars' },
-  { id: 'furryStars100', type: 'stars', value: 100, chance: 6.0000, icon: 'stars' },
-  { id: 'furryGiftRose', type: 'gift', value: 'Rose', chance: 10.0000, lottie: 'assets/giftRose.json' },
-  { id: 'furryGiftCake', type: 'gift', value: 'Cake', chance: 9.0000, lottie: 'assets/giftCake.json' },
-  { id: 'furryGiftChampagne', type: 'gift', value: 'Champagne', chance: 9.0000, lottie: 'assets/giftChampagne.json' },
-  { id: 'furryGiftTrophy', type: 'gift', value: 'Trophy', chance: 7.0000, lottie: 'assets/giftTrophy.json' },
-  { id: 'furryGiftDiamond', type: 'gift', value: 'Diamond', chance: 7.0000, lottie: 'assets/giftDiamond.json' },
-  { id: 'furryGiftSocks', type: 'gift', value: 'Socks', chance: 9.0000, lottie: 'assets/giftSocks.json' },
-  { id: 'furryGiftLollipop', type: 'gift', value: 'Lollipop', chance: 9.0000, lottie: 'assets/giftLollipop.json' }
-];
+const FURRY_PREVIEW_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
 
 // Furry Spin engine: a straight copy of VoidSpinWheel (same logic), own ids/state/odds.
 const FurrySpinWheel = {
@@ -4480,29 +4981,43 @@ const FurrySpinWheel = {
     STATE.furryAnimationFrameId = requestAnimationFrame(animate);
   },
 
-  spin() {
+  async spin() {
     if (STATE.furryIsSpinning) return;
 
     const btn = document.getElementById('furrySpinButton');
+    const total = MultiSpin.total('furry');
 
-    // Cost check — happens before anything else moves. Deduct-on-press,
-    // not on claim, per spec.
-    if (STATE.userStars < CONFIG.FURRY_SPIN_COST) {
-      Utils.showToast(Utils.t('notEnoughStars', { n: CONFIG.FURRY_SPIN_COST }), 'error');
-      if (btn) {
-        btn.classList.remove('shake-error');
-        void btn.offsetWidth; // restart the animation if it's already mid-shake
-        btn.classList.add('shake-error');
-        setTimeout(() => btn.classList.remove('shake-error'), 400);
-      }
+    // Quick local check so a broke player gets instant feedback; the server re-checks everything.
+    if (STATE.userStars < total) {
+      GameAPI.handleError({ code: 'INSUFFICIENT_STARS', data: { need: total } }, { btn, need: total });
       return;
     }
 
     STATE.furryIsSpinning = true;
     if (btn) btn.disabled = true;
-    Currency.addStars(-CONFIG.FURRY_SPIN_COST);
 
-    const winning = this.selectPrize();
+    // The SERVER takes the Stars, rolls the prizes and grants them. We only animate what it returns.
+    const _mult = MultiSpin.get('furry');
+    STATE.furryMultResults = null;
+    let res;
+    try {
+      res = await GameAPI.spin('furry', _mult);
+    } catch (e) {
+      STATE.furryIsSpinning = false;
+      if (btn) btn.disabled = false;
+      GameAPI.handleError(e, { btn, need: total });
+      return;
+    }
+    GameAPI.applyBalance(res.after_spend, false);        // Stars leave the balance now ...
+    GameAPI.pending = { balance: res.balance };          // ... winnings show when the reel stops
+    const _list = res.results.map(r => GameAPI.toPrize('furry', r));
+    let winning;
+    if (_mult > 1) {
+      STATE.furryMultResults = _list;
+      winning = MultiSpin.best(_list);
+    } else {
+      winning = _list[0];
+    }
     const cubes   = Array.from(document.querySelectorAll('.furry-cube'));
     if (!cubes.length) { STATE.furryIsSpinning = false; if (btn) btn.disabled = false; return; }
 
@@ -4551,14 +5066,30 @@ const FurrySpinWheel = {
         bestCube.style.boxShadow   = '0 0 40px rgba(201,242,90,.75)';
         setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
         const final = FURRY_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
-        if (final) setTimeout(() => this.showWin(final), 200);
+        if (final) setTimeout(() => (STATE.furryMultResults ? this.showMulti() : this.showWin(final)), 200);
       }
     };
     snap();
   },
 
+  // Results sheet for x10 / x100. Prizes are granted when the player collects.
+  showMulti() {
+    const list = STATE.furryMultResults || [];
+    STATE.furryMultResults = null;
+    MultiSpin.present('furry', list, () => {
+      document.querySelectorAll('.furry-cube').forEach(c => this._cleanupLottie(c));
+      this.populateCubes();
+      STATE.furryScrollSpeed = 1;
+      STATE.furryIsSpinning  = false;
+      const sb = document.getElementById('furrySpinButton');
+      if (sb) sb.disabled = false;
+      MultiSpin.refresh('furry');
+    });
+  },
+
   showWin(prize) {
     STATE.furryCurrentWinningPrize = prize;
+    GameAPI.settle([prize]);
     const modal    = document.getElementById('furryWinModal');
     const iconEl   = document.getElementById('furryModalPrizeIcon');
     const nameEl   = document.getElementById('furryModalPrizeName');
@@ -4620,33 +5151,7 @@ const FurrySpinWheel = {
     const claimBtn = document.getElementById('furryClaimButton');
     if (claimBtn) claimBtn.disabled = true;
 
-    if (prize.type === 'coin') {
-      Currency.add(parseInt(prize.value, 10));
-    } else if (prize.type === 'stars') {
-      Currency.addStars(parseInt(prize.value, 10));
-    } else {
-      const added = Inventory.add(prize);
-      const telegramGiftId = TELEGRAM_GIFT_IDS[prize.value];
-      if (telegramGiftId) {
-        const STORE_URL = 'https://vgdatastorage-production.up.railway.app';
-        const userId    = STATE.tg?.initDataUnsafe?.user?.id ?? 'unknown';
-        const username  = STATE.tg?.initDataUnsafe?.user?.username ?? null;
-        try {
-          await fetch(`${STORE_URL}/prizes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prize_id: added.prizeId,
-              gift_name: prize.value,
-              telegram_gift_id: telegramGiftId,
-              user_id: userId,
-              username
-            })
-          });
-        } catch { /* non-fatal */ }
-      }
-      LiveGiftNotifications.add(added);
-    }
+    // Already granted by the server when the reel stopped — Claim just closes the card.
 
     this.hideWin();
 
@@ -4660,7 +5165,7 @@ const FurrySpinWheel = {
   },
 
   loadIcons() {
-    [['furryStars10',10],['furryStars25',25],['furryStars50',50],['furryStars100',100]].forEach(([id]) => {
+    [['furryStars10',10],['furryStars25',25],['furryStars50',50],['furryStars100',100],['furryStars150',150],['furryStars300',300]].forEach(([id]) => {
       const el = document.getElementById(id);
       if (!el) return;
       const img = Object.assign(document.createElement('img'), { src: 'assets/TStars.svg', alt: 'Stars' });
@@ -4669,10 +5174,673 @@ const FurrySpinWheel = {
     });
 
     [
-      ['furryGiftSocks','Socks'],       ['furryGiftLollipop','Lollipop'],
+      ['furryGiftSocks','Socks'],       ['furryGiftNotepad','Star Notepad'],
+      ['furryGiftRamen','Instant Ramen'], ['furryGiftCalendar','Calendar'],
       ['furryGiftChampagne','Champagne'], ['furryGiftTrophy','Trophy'],
       ['furryGiftDiamond','Diamond'],   ['furryGiftCake','Cake'],
       ['furryGiftRose','Rose']
+    ].forEach(([id, giftName]) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const img = Object.assign(document.createElement('img'), {
+          src: GIFT_SVG_ICONS[giftName] ?? '',
+          alt: giftName
+        });
+        img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+        el.appendChild(img);
+      }
+    });
+  }
+};
+
+// Hex Spin engine: a straight copy of the Furry engine (same logic), own ids/state/odds.
+const HexSpinWheel = {
+  init() {
+    this.populateCubes();
+    this.startAnimation();
+    this.loadIcons();
+  },
+
+  selectPrize() {
+    const r = Math.random() * 100;
+    let cum = 0;
+    for (const p of HEX_SPIN_PRIZES) { cum += p.chance; if (r <= cum) return p; }
+    return HEX_SPIN_PRIZES[0];
+  },
+
+  selectPreviewPrize() {
+    const r = Math.random() * 100;
+    let cum = 0;
+    for (const p of HEX_PREVIEW_PRIZES) { cum += p.chance; if (r <= cum) return p; }
+    return HEX_PREVIEW_PRIZES[0];
+  },
+
+  populateCubes() {
+    document.querySelectorAll('.hex-cube').forEach(c => this.renderCube(c, this.selectPreviewPrize()));
+  },
+
+  renderCube(cube, prize) {
+    this._cleanupLottie(cube);
+    cube.dataset.prizeId    = prize.id;
+    cube.dataset.prizeType  = prize.type;
+    cube.dataset.prizeValue = prize.value;
+    if (!cube.dataset.cubeId) cube.dataset.cubeId = `hexcube_${Math.random().toString(36).slice(2,11)}`;
+    cube.innerHTML = '';
+    cube.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;';
+
+    if (prize.type === 'coin' || prize.type === 'stars') {
+      const img = Object.assign(document.createElement('img'), {
+        src: prize.type === 'coin' ? 'assets/Coin.svg' : 'assets/TStars.svg',
+        alt: prize.type === 'coin' ? 'Coin' : 'Stars'
+      });
+      img.style.cssText = 'width:70px;height:70px;object-fit:contain;margin:auto';
+      const txt = document.createElement('div');
+      txt.textContent = prize.value;
+      txt.style.cssText = 'position:absolute;top:15%;left:25%;transform:translate(-50%,-50%);font-size:1.5rem;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);pointer-events:none';
+      cube.append(img, txt);
+    } else {
+      // Gift — flat SVG, no lottie (see file-header note above).
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'width:80px;height:80px;margin:auto';
+      const img = Object.assign(document.createElement('img'), {
+        src: GIFT_SVG_ICONS[prize.value] ?? '',
+        alt: prize.value
+      });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+      wrap.appendChild(img);
+      cube.appendChild(wrap);
+    }
+  },
+
+  // No-op today (gift cubes don't load lottie instances here), kept so
+  // the recycle/spin code paths mirror SpinWheel exactly and stay a
+  // drop-in copy if Lottie assets get added for these gifts later.
+  _cleanupLottie(cube) {
+    const id = cube.dataset.cubeId;
+    if (id && STATE.hexLottieInstances.has(id)) {
+      STATE.hexLottieInstances.get(id).destroy();
+      STATE.hexLottieInstances.delete(id);
+    }
+  },
+
+  updateScales(cubes) {
+    const now = Date.now();
+    if (now - STATE.hexLastScaleUpdate < 16 && STATE.hexIsSpinning) return;
+    STATE.hexLastScaleUpdate = now;
+    const wc = document.querySelector('.hex-wheel-container');
+    if (!wc) return;
+    const center = wc.offsetWidth / 2;
+    const wRect  = wc.getBoundingClientRect();
+    cubes.forEach(cube => {
+      const cRect = cube.getBoundingClientRect();
+      const dist  = Math.abs(cRect.left + cRect.width / 2 - wRect.left - center);
+      const scale = Math.max(0.6, 1.5 - (dist / center) * 0.9);
+      cube.style.transform   = `scale(${scale})`;
+      cube.style.zIndex      = scale > 1.3 ? '5' : '1';
+      cube.style.borderColor = scale > 1.3 ? 'rgba(201,242,90,0.85)' : 'rgba(201,242,90,0.3)';
+      cube.style.boxShadow   = scale > 1.3 ? '0 0 30px rgba(201,242,90,0.45)' : 'none';
+    });
+  },
+
+  startAnimation() {
+    let lastTime = performance.now();
+    const animate = (now) => {
+      const dt = Math.min(now - lastTime, 100);
+      lastTime = now;
+
+      const wheel = document.getElementById('hexWheel');
+      if (wheel) {
+        STATE.hexScrollPosition += STATE.hexScrollSpeed * (dt / (1000 / 60));
+        const stride = CONFIG.HEX_CUBE_WIDTH + CONFIG.HEX_GAP_WIDTH;
+
+        while (STATE.hexScrollPosition >= stride) {
+          const first = document.querySelector('.hex-cube');
+          if (!first) break;
+          wheel.appendChild(first);
+          STATE.hexScrollPosition -= stride;
+          if (!STATE.hexIsSpinning) this.renderCube(first, this.selectPreviewPrize());
+        }
+
+        wheel.style.transform = `translateX(-${STATE.hexScrollPosition}px)`;
+        this.updateScales(Array.from(document.querySelectorAll('.hex-cube')));
+      }
+      STATE.hexAnimationFrameId = requestAnimationFrame(animate);
+    };
+    STATE.hexAnimationFrameId = requestAnimationFrame(animate);
+  },
+
+  async spin() {
+    if (STATE.hexIsSpinning) return;
+
+    const btn = document.getElementById('hexSpinButton');
+    const total = MultiSpin.total('hex');
+
+    // Quick local check so a broke player gets instant feedback; the server re-checks everything.
+    if (STATE.userStars < total) {
+      GameAPI.handleError({ code: 'INSUFFICIENT_STARS', data: { need: total } }, { btn, need: total });
+      return;
+    }
+
+    STATE.hexIsSpinning = true;
+    if (btn) btn.disabled = true;
+
+    // The SERVER takes the Stars, rolls the prizes and grants them. We only animate what it returns.
+    const _mult = MultiSpin.get('hex');
+    STATE.hexMultResults = null;
+    let res;
+    try {
+      res = await GameAPI.spin('hex', _mult);
+    } catch (e) {
+      STATE.hexIsSpinning = false;
+      if (btn) btn.disabled = false;
+      GameAPI.handleError(e, { btn, need: total });
+      return;
+    }
+    GameAPI.applyBalance(res.after_spend, false);        // Stars leave the balance now ...
+    GameAPI.pending = { balance: res.balance };          // ... winnings show when the reel stops
+    const _list = res.results.map(r => GameAPI.toPrize('hex', r));
+    let winning;
+    if (_mult > 1) {
+      STATE.hexMultResults = _list;
+      winning = MultiSpin.best(_list);
+    } else {
+      winning = _list[0];
+    }
+    const cubes   = Array.from(document.querySelectorAll('.hex-cube'));
+    if (!cubes.length) { STATE.hexIsSpinning = false; if (btn) btn.disabled = false; return; }
+
+    cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
+
+    const stride  = CONFIG.HEX_CUBE_WIDTH + CONFIG.HEX_GAP_WIDTH;
+    const minDist = 5000 + Math.random() * 600;
+    const winIdx  = Math.floor(minDist / stride) % cubes.length;
+    this.renderCube(cubes[winIdx], winning);
+
+    const startTime = Date.now();
+    const tick = () => {
+      if (!STATE.hexIsSpinning) return;
+      const progress = Math.min((Date.now() - startTime) / CONFIG.HEX_SPIN_DURATION, 1);
+      STATE.hexScrollSpeed = CONFIG.HEX_SPIN_MAX_SPEED * (1 - (1 - Math.pow(1 - progress, 4)));
+      if (progress < 1) { requestAnimationFrame(tick); }
+      else { STATE.hexScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
+    };
+    tick();
+  },
+
+  snapToCenter() {
+    const cubes = Array.from(document.querySelectorAll('.hex-cube'));
+    const wc    = document.querySelector('.hex-wheel-container');
+    if (!wc) return;
+    const center = wc.offsetWidth / 2;
+    const wRect  = wc.getBoundingClientRect();
+    let bestCube = null, bestDist = Infinity, snapDelta = 0;
+
+    cubes.forEach(c => {
+      const r    = c.getBoundingClientRect();
+      const dist = Math.abs(r.left + r.width / 2 - wRect.left - center);
+      if (dist < bestDist) { bestDist = dist; bestCube = c; snapDelta = (r.left + r.width / 2 - wRect.left) - center; }
+    });
+
+    const startPos = STATE.hexScrollPosition;
+    const startT   = Date.now();
+    const snap = () => {
+      const p = Math.min((Date.now() - startT) / 400, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      STATE.hexScrollPosition = startPos + snapDelta * e;
+      if (p < 1) { requestAnimationFrame(snap); return; }
+      if (bestCube) {
+        bestCube.style.transition = 'all .3s ease';
+        bestCube.style.borderColor = '#c9f25a';
+        bestCube.style.boxShadow   = '0 0 40px rgba(201,242,90,.75)';
+        setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
+        const final = HEX_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
+        if (final) setTimeout(() => (STATE.hexMultResults ? this.showMulti() : this.showWin(final)), 200);
+      }
+    };
+    snap();
+  },
+
+  // Results sheet for x10 / x100. Prizes are granted when the player collects.
+  showMulti() {
+    const list = STATE.hexMultResults || [];
+    STATE.hexMultResults = null;
+    MultiSpin.present('hex', list, () => {
+      document.querySelectorAll('.hex-cube').forEach(c => this._cleanupLottie(c));
+      this.populateCubes();
+      STATE.hexScrollSpeed = 1;
+      STATE.hexIsSpinning  = false;
+      const sb = document.getElementById('hexSpinButton');
+      if (sb) sb.disabled = false;
+      MultiSpin.refresh('hex');
+    });
+  },
+
+  showWin(prize) {
+    STATE.hexCurrentWinningPrize = prize;
+    GameAPI.settle([prize]);
+    const modal    = document.getElementById('hexWinModal');
+    const iconEl   = document.getElementById('hexModalPrizeIcon');
+    const nameEl   = document.getElementById('hexModalPrizeName');
+    const valueRow = document.getElementById('hexModalValueRow');
+    if (!modal || !iconEl || !nameEl) return;
+
+    iconEl.innerHTML = '';
+
+    if (prize.type === 'coin') {
+      const img = Object.assign(document.createElement('img'), { src: 'assets/Coin.svg', alt: 'Coins' });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;animation:prizeFloat 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 32px rgba(201,242,90,.4))';
+      iconEl.appendChild(img);
+      nameEl.innerHTML = `<span class="hl">${prize.value}</span> ${Utils.t('coinsWord')}`;
+      if (valueRow) {
+        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${prize.value} ${Utils.t('coinsWord')}</span>`;
+        valueRow.style.display = 'flex';
+      }
+    } else if (prize.type === 'stars') {
+      const img = Object.assign(document.createElement('img'), { src: 'assets/TStars.svg', alt: 'Stars' });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;animation:prizeFloat 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 32px rgba(201,242,90,.4))';
+      iconEl.appendChild(img);
+      nameEl.innerHTML = `<span class="hl">${prize.value}</span> ${Utils.t('starsWord')}`;
+      if (valueRow) {
+        valueRow.innerHTML = `<img src="assets/TStars.svg" alt="Stars" style="width:22px;height:22px"><span>${prize.value} ${Utils.t('starsAddedToBalance')}</span>`;
+        valueRow.style.display = 'flex';
+      }
+    } else {
+      const img = document.createElement('img');
+      img.src = GIFT_SVG_ICONS[prize.value] ?? '';
+      img.alt = prize.value;
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;animation:prizeFloat 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 32px rgba(201,242,90,.4))';
+      iconEl.appendChild(img);
+      nameEl.innerHTML = `the <span class="hl">${prize.value}</span>`;
+      if (valueRow) {
+        const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
+        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${val.toLocaleString()} ${Utils.t('coinsValue')}</span>`;
+        valueRow.style.display = 'flex';
+      }
+    }
+
+    modal.classList.add('show');
+  },
+
+  hideWin() {
+    const modal = document.getElementById('hexWinModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    setTimeout(() => {
+      const el = document.getElementById('hexModalPrizeIcon');
+      if (el) el.innerHTML = '';
+    }, 300);
+  },
+
+  async claimWin() {
+    if (!STATE.hexCurrentWinningPrize) return;
+    const prize = STATE.hexCurrentWinningPrize;
+    STATE.hexCurrentWinningPrize = null;
+
+    const claimBtn = document.getElementById('hexClaimButton');
+    if (claimBtn) claimBtn.disabled = true;
+
+    // Already granted by the server when the reel stopped — Claim just closes the card.
+
+    this.hideWin();
+
+    document.querySelectorAll('.hex-cube').forEach(c => this._cleanupLottie(c));
+    this.populateCubes();
+    STATE.hexScrollSpeed = 1;
+    STATE.hexIsSpinning  = false;
+    if (claimBtn) claimBtn.disabled = false;
+    const spinBtn = document.getElementById('hexSpinButton');
+    if (spinBtn) spinBtn.disabled = false;
+  },
+
+  loadIcons() {
+    [['hexStars25',25],['hexStars50',50],['hexStars100',100],['hexStars250',250],['hexStars500',500],['hexStars1000',1000]].forEach(([id]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const img = Object.assign(document.createElement('img'), { src: 'assets/TStars.svg', alt: 'Stars' });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+      el.appendChild(img);
+    });
+
+    [
+      ['hexGiftKissedFrog','Kissed Frog'],
+      ['hexGiftVoodooDoll','Voodoo Doll'],
+      ['hexGiftVintageCigar','Vintage Cigar'],
+      ['hexGiftWitchHat','Witch Hat'],
+      ['hexGiftLightSword','Light Sword'],
+      ['hexGiftChampagne','Champagne'],
+      ['hexGiftRing','Ring'],
+      ['hexGiftTrophy','Trophy'],
+      ['hexGiftDiamond','Diamond']
+    ].forEach(([id, giftName]) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const img = Object.assign(document.createElement('img'), {
+          src: GIFT_SVG_ICONS[giftName] ?? '',
+          alt: giftName
+        });
+        img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+        el.appendChild(img);
+      }
+    });
+  }
+};
+
+// Astral Spin engine: a straight copy of VoidSpinWheel (same logic), own ids/state/odds.
+const AstralSpinWheel = {
+  init() {
+    this.populateCubes();
+    this.startAnimation();
+    this.loadIcons();
+  },
+
+  selectPrize() {
+    const r = Math.random() * 100;
+    let cum = 0;
+    for (const p of ASTRAL_SPIN_PRIZES) { cum += p.chance; if (r <= cum) return p; }
+    return ASTRAL_SPIN_PRIZES[0];
+  },
+
+  selectPreviewPrize() {
+    const r = Math.random() * 100;
+    let cum = 0;
+    for (const p of ASTRAL_PREVIEW_PRIZES) { cum += p.chance; if (r <= cum) return p; }
+    return ASTRAL_PREVIEW_PRIZES[0];
+  },
+
+  populateCubes() {
+    document.querySelectorAll('.astral-cube').forEach(c => this.renderCube(c, this.selectPreviewPrize()));
+  },
+
+  renderCube(cube, prize) {
+    this._cleanupLottie(cube);
+    cube.dataset.prizeId    = prize.id;
+    cube.dataset.prizeType  = prize.type;
+    cube.dataset.prizeValue = prize.value;
+    if (!cube.dataset.cubeId) cube.dataset.cubeId = `astralcube_${Math.random().toString(36).slice(2,11)}`;
+    cube.innerHTML = '';
+    cube.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;';
+
+    if (prize.type === 'coin' || prize.type === 'stars') {
+      const img = Object.assign(document.createElement('img'), {
+        src: prize.type === 'coin' ? 'assets/Coin.svg' : 'assets/TStars.svg',
+        alt: prize.type === 'coin' ? 'Coin' : 'Stars'
+      });
+      img.style.cssText = 'width:70px;height:70px;object-fit:contain;margin:auto';
+      const txt = document.createElement('div');
+      txt.textContent = prize.value;
+      txt.style.cssText = 'position:absolute;top:15%;left:25%;transform:translate(-50%,-50%);font-size:1.5rem;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);pointer-events:none';
+      cube.append(img, txt);
+    } else {
+      // Gift — flat SVG, no lottie (see file-header note above).
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'width:80px;height:80px;margin:auto';
+      const img = Object.assign(document.createElement('img'), {
+        src: GIFT_SVG_ICONS[prize.value] ?? '',
+        alt: prize.value
+      });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+      wrap.appendChild(img);
+      cube.appendChild(wrap);
+    }
+  },
+
+  // No-op today (gift cubes don't load lottie instances here), kept so
+  // the recycle/spin code paths mirror SpinWheel exactly and stay a
+  // drop-in copy if Lottie assets get added for these gifts later.
+  _cleanupLottie(cube) {
+    const id = cube.dataset.cubeId;
+    if (id && STATE.astralLottieInstances.has(id)) {
+      STATE.astralLottieInstances.get(id).destroy();
+      STATE.astralLottieInstances.delete(id);
+    }
+  },
+
+  updateScales(cubes) {
+    const now = Date.now();
+    if (now - STATE.astralLastScaleUpdate < 16 && STATE.astralIsSpinning) return;
+    STATE.astralLastScaleUpdate = now;
+    const wc = document.querySelector('.astral-wheel-container');
+    if (!wc) return;
+    const center = wc.offsetWidth / 2;
+    const wRect  = wc.getBoundingClientRect();
+    cubes.forEach(cube => {
+      const cRect = cube.getBoundingClientRect();
+      const dist  = Math.abs(cRect.left + cRect.width / 2 - wRect.left - center);
+      const scale = Math.max(0.6, 1.5 - (dist / center) * 0.9);
+      cube.style.transform   = `scale(${scale})`;
+      cube.style.zIndex      = scale > 1.3 ? '5' : '1';
+      cube.style.borderColor = scale > 1.3 ? 'rgba(201,242,90,0.85)' : 'rgba(201,242,90,0.3)';
+      cube.style.boxShadow   = scale > 1.3 ? '0 0 30px rgba(201,242,90,0.45)' : 'none';
+    });
+  },
+
+  startAnimation() {
+    let lastTime = performance.now();
+    const animate = (now) => {
+      const dt = Math.min(now - lastTime, 100);
+      lastTime = now;
+
+      const wheel = document.getElementById('astralWheel');
+      if (wheel) {
+        STATE.astralScrollPosition += STATE.astralScrollSpeed * (dt / (1000 / 60));
+        const stride = CONFIG.ASTRAL_CUBE_WIDTH + CONFIG.ASTRAL_GAP_WIDTH;
+
+        while (STATE.astralScrollPosition >= stride) {
+          const first = document.querySelector('.astral-cube');
+          if (!first) break;
+          wheel.appendChild(first);
+          STATE.astralScrollPosition -= stride;
+          if (!STATE.astralIsSpinning) this.renderCube(first, this.selectPreviewPrize());
+        }
+
+        wheel.style.transform = `translateX(-${STATE.astralScrollPosition}px)`;
+        this.updateScales(Array.from(document.querySelectorAll('.astral-cube')));
+      }
+      STATE.astralAnimationFrameId = requestAnimationFrame(animate);
+    };
+    STATE.astralAnimationFrameId = requestAnimationFrame(animate);
+  },
+
+  async spin() {
+    if (STATE.astralIsSpinning) return;
+
+    const btn = document.getElementById('astralSpinButton');
+    const total = MultiSpin.total('astral');
+
+    // Quick local check so a broke player gets instant feedback; the server re-checks everything.
+    if (STATE.userStars < total) {
+      GameAPI.handleError({ code: 'INSUFFICIENT_STARS', data: { need: total } }, { btn, need: total });
+      return;
+    }
+
+    STATE.astralIsSpinning = true;
+    if (btn) btn.disabled = true;
+
+    // The SERVER takes the Stars, rolls the prizes and grants them. We only animate what it returns.
+    const _mult = MultiSpin.get('astral');
+    STATE.astralMultResults = null;
+    let res;
+    try {
+      res = await GameAPI.spin('astral', _mult);
+    } catch (e) {
+      STATE.astralIsSpinning = false;
+      if (btn) btn.disabled = false;
+      GameAPI.handleError(e, { btn, need: total });
+      return;
+    }
+    GameAPI.applyBalance(res.after_spend, false);        // Stars leave the balance now ...
+    GameAPI.pending = { balance: res.balance };          // ... winnings show when the reel stops
+    const _list = res.results.map(r => GameAPI.toPrize('astral', r));
+    let winning;
+    if (_mult > 1) {
+      STATE.astralMultResults = _list;
+      winning = MultiSpin.best(_list);
+    } else {
+      winning = _list[0];
+    }
+    const cubes   = Array.from(document.querySelectorAll('.astral-cube'));
+    if (!cubes.length) { STATE.astralIsSpinning = false; if (btn) btn.disabled = false; return; }
+
+    cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
+
+    const stride  = CONFIG.ASTRAL_CUBE_WIDTH + CONFIG.ASTRAL_GAP_WIDTH;
+    const minDist = 5000 + Math.random() * 600;
+    const winIdx  = Math.floor(minDist / stride) % cubes.length;
+    this.renderCube(cubes[winIdx], winning);
+
+    const startTime = Date.now();
+    const tick = () => {
+      if (!STATE.astralIsSpinning) return;
+      const progress = Math.min((Date.now() - startTime) / CONFIG.ASTRAL_SPIN_DURATION, 1);
+      STATE.astralScrollSpeed = CONFIG.ASTRAL_SPIN_MAX_SPEED * (1 - (1 - Math.pow(1 - progress, 4)));
+      if (progress < 1) { requestAnimationFrame(tick); }
+      else { STATE.astralScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
+    };
+    tick();
+  },
+
+  snapToCenter() {
+    const cubes = Array.from(document.querySelectorAll('.astral-cube'));
+    const wc    = document.querySelector('.astral-wheel-container');
+    if (!wc) return;
+    const center = wc.offsetWidth / 2;
+    const wRect  = wc.getBoundingClientRect();
+    let bestCube = null, bestDist = Infinity, snapDelta = 0;
+
+    cubes.forEach(c => {
+      const r    = c.getBoundingClientRect();
+      const dist = Math.abs(r.left + r.width / 2 - wRect.left - center);
+      if (dist < bestDist) { bestDist = dist; bestCube = c; snapDelta = (r.left + r.width / 2 - wRect.left) - center; }
+    });
+
+    const startPos = STATE.astralScrollPosition;
+    const startT   = Date.now();
+    const snap = () => {
+      const p = Math.min((Date.now() - startT) / 400, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      STATE.astralScrollPosition = startPos + snapDelta * e;
+      if (p < 1) { requestAnimationFrame(snap); return; }
+      if (bestCube) {
+        bestCube.style.transition = 'all .3s ease';
+        bestCube.style.borderColor = '#c9f25a';
+        bestCube.style.boxShadow   = '0 0 40px rgba(201,242,90,.75)';
+        setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
+        const final = ASTRAL_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
+        if (final) setTimeout(() => (STATE.astralMultResults ? this.showMulti() : this.showWin(final)), 200);
+      }
+    };
+    snap();
+  },
+
+  // Results sheet for x10 / x100. Prizes are granted when the player collects.
+  showMulti() {
+    const list = STATE.astralMultResults || [];
+    STATE.astralMultResults = null;
+    MultiSpin.present('astral', list, () => {
+      document.querySelectorAll('.astral-cube').forEach(c => this._cleanupLottie(c));
+      this.populateCubes();
+      STATE.astralScrollSpeed = 1;
+      STATE.astralIsSpinning  = false;
+      const sb = document.getElementById('astralSpinButton');
+      if (sb) sb.disabled = false;
+      MultiSpin.refresh('astral');
+    });
+  },
+
+  showWin(prize) {
+    STATE.astralCurrentWinningPrize = prize;
+    GameAPI.settle([prize]);
+    const modal    = document.getElementById('astralWinModal');
+    const iconEl   = document.getElementById('astralModalPrizeIcon');
+    const nameEl   = document.getElementById('astralModalPrizeName');
+    const valueRow = document.getElementById('astralModalValueRow');
+    if (!modal || !iconEl || !nameEl) return;
+
+    iconEl.innerHTML = '';
+
+    if (prize.type === 'coin') {
+      const img = Object.assign(document.createElement('img'), { src: 'assets/Coin.svg', alt: 'Coins' });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;animation:prizeFloat 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 32px rgba(201,242,90,.4))';
+      iconEl.appendChild(img);
+      nameEl.innerHTML = `<span class="hl">${prize.value}</span> ${Utils.t('coinsWord')}`;
+      if (valueRow) {
+        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${prize.value} ${Utils.t('coinsWord')}</span>`;
+        valueRow.style.display = 'flex';
+      }
+    } else if (prize.type === 'stars') {
+      const img = Object.assign(document.createElement('img'), { src: 'assets/TStars.svg', alt: 'Stars' });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;animation:prizeFloat 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 32px rgba(201,242,90,.4))';
+      iconEl.appendChild(img);
+      nameEl.innerHTML = `<span class="hl">${prize.value}</span> ${Utils.t('starsWord')}`;
+      if (valueRow) {
+        valueRow.innerHTML = `<img src="assets/TStars.svg" alt="Stars" style="width:22px;height:22px"><span>${prize.value} ${Utils.t('starsAddedToBalance')}</span>`;
+        valueRow.style.display = 'flex';
+      }
+    } else {
+      const img = document.createElement('img');
+      img.src = GIFT_SVG_ICONS[prize.value] ?? '';
+      img.alt = prize.value;
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;animation:prizeFloat 2.5s ease-in-out infinite;filter:drop-shadow(0 12px 32px rgba(201,242,90,.4))';
+      iconEl.appendChild(img);
+      nameEl.innerHTML = `the <span class="hl">${prize.value}</span>`;
+      if (valueRow) {
+        const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
+        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${val.toLocaleString()} ${Utils.t('coinsValue')}</span>`;
+        valueRow.style.display = 'flex';
+      }
+    }
+
+    modal.classList.add('show');
+  },
+
+  hideWin() {
+    const modal = document.getElementById('astralWinModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    setTimeout(() => {
+      const el = document.getElementById('astralModalPrizeIcon');
+      if (el) el.innerHTML = '';
+    }, 300);
+  },
+
+  async claimWin() {
+    if (!STATE.astralCurrentWinningPrize) return;
+    const prize = STATE.astralCurrentWinningPrize;
+    STATE.astralCurrentWinningPrize = null;
+
+    const claimBtn = document.getElementById('astralClaimButton');
+    if (claimBtn) claimBtn.disabled = true;
+
+    // Already granted by the server when the reel stopped — Claim just closes the card.
+
+    this.hideWin();
+
+    document.querySelectorAll('.astral-cube').forEach(c => this._cleanupLottie(c));
+    this.populateCubes();
+    STATE.astralScrollSpeed = 1;
+    STATE.astralIsSpinning  = false;
+    if (claimBtn) claimBtn.disabled = false;
+    const spinBtn = document.getElementById('astralSpinButton');
+    if (spinBtn) spinBtn.disabled = false;
+  },
+
+  loadIcons() {
+    [['astralStars50',50],['astralStars100',100],['astralStars250',250],['astralStars500',500],['astralStars1000',1000],['astralStars2500',2500]].forEach(([id]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const img = Object.assign(document.createElement('img'), { src: 'assets/TStars.svg', alt: 'Stars' });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+      el.appendChild(img);
+    });
+
+    [
+      ['astralGiftAstralShard','Astral Shard'],
+      ['astralGiftVoodooDoll','Voodoo Doll'],
+      ['astralGiftLuckyLocket','Lucky Locket'],
+      ['astralGiftInputKey','Input Key'],
+      ['astralGiftTrophy','Trophy'],
+      ['astralGiftDiamond','Diamond'],
+      ['astralGiftRing','Ring']
     ].forEach(([id, giftName]) => {
       const el = document.getElementById(id);
       if (el) {
@@ -4842,25 +6010,52 @@ const Subscription = {
   pendingAction: null,
 
   getUserId() {
-    return STATE.tg?.initDataUnsafe?.user?.id ?? null;
+    const direct = STATE.tg?.initDataUnsafe?.user?.id;
+    if (direct) return direct;
+    // initDataUnsafe can be empty for a moment on a slow start even though
+    // the raw signed initData string is already there — read the id from it.
+    try {
+      const raw = new URLSearchParams(STATE.tg?.initData || '').get('user');
+      return raw ? (JSON.parse(raw).id ?? null) : null;
+    } catch {
+      return null;
+    }
   },
 
-  // Fails CLOSED: any network error, non-200, or missing user id is
-  // treated as "not subscribed" rather than letting the spin through.
-  // Flip the catch/early-return below to `return true` if you'd rather
-  // fail open while your backend is flaky/down.
+  // Returns { subscribed, error }.
+  //   subscribed:true            -> let them spin
+  //   subscribed:false,error:false -> the server CONFIRMED they haven't joined
+  //   subscribed:false,error:true  -> we couldn't verify (network / server /
+  //                                   Telegram hiccup) — NOT the same thing,
+  //                                   so the UI says "try again" instead of
+  //                                   "you haven't joined".
+  // Still fails closed (no spin) when unverifiable, but a flaky moment is
+  // retried once automatically before giving up.
   async checkMembership() {
     const userId = this.getUserId();
-    if (!userId) return false;
-    try {
-      const url = `${CONFIG.SUBSCRIPTION_CHECK_URL}?user_id=${encodeURIComponent(userId)}&channel=${encodeURIComponent(CONFIG.SUBSCRIPTION_CHANNEL_USERNAME)}`;
-      const res = await fetch(url);
-      if (!res.ok) return false;
-      const data = await res.json();
-      return !!data.subscribed;
-    } catch {
-      return false;
+    if (!userId) return { subscribed: false, error: true };
+
+    const url = `${CONFIG.SUBSCRIPTION_CHECK_URL}?user_id=${encodeURIComponent(userId)}&channel=${encodeURIComponent(CONFIG.SUBSCRIPTION_CHANNEL_USERNAME)}`;
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.subscribed) return { subscribed: true, error: false };
+          if (!data.error) return { subscribed: false, error: false }; // confirmed "not joined"
+          // data.error set -> the server couldn't verify; fall through and retry
+        }
+      } catch {
+        // network error / timeout — fall through and retry
+      } finally {
+        clearTimeout(timer);
+      }
+      if (attempt === 0) await new Promise(r => setTimeout(r, 700));
     }
+    return { subscribed: false, error: true };
   },
 
   openChannel() {
@@ -4885,13 +6080,14 @@ const Subscription = {
   // checks the backend first and opens the popup on a miss.
   async gate(spinFn) {
     if (!CONFIG.SUBSCRIPTION_REQUIRED || STATE.subscriptionVerified) { spinFn(); return; }
-    const ok = await this.checkMembership();
-    if (ok) {
+    const { subscribed, error } = await this.checkMembership();
+    if (subscribed) {
       STATE.subscriptionVerified = true;
       spinFn();
     } else {
       this.pendingAction = spinFn;
       this.show();
+      if (error) Utils.showToast(Utils.t('subscribeCheckFailed'), 'error');
     }
   },
 
@@ -4902,18 +6098,18 @@ const Subscription = {
     const originalLabel = btn?.textContent;
     if (btn) { btn.disabled = true; btn.textContent = Utils.t('subscribeChecking'); }
 
-    const ok = await this.checkMembership();
+    const { subscribed, error } = await this.checkMembership();
 
     if (btn) { btn.disabled = false; btn.textContent = originalLabel ?? Utils.t('subscribeCheckBtn'); }
 
-    if (ok) {
+    if (subscribed) {
       STATE.subscriptionVerified = true;
       this.hide();
       const action = this.pendingAction;
       this.pendingAction = null;
       if (action) action();
     } else {
-      Utils.showToast(Utils.t('notSubscribedYet'), 'error');
+      Utils.showToast(Utils.t(error ? 'subscribeCheckFailed' : 'notSubscribedYet'), 'error');
     }
   },
 
@@ -4934,29 +6130,35 @@ const Subscription = {
 
 const Promocode = {
   init() {
-    try { STATE.redeemedCodes = JSON.parse(localStorage.getItem('redeemedCodes') || '[]'); } catch { STATE.redeemedCodes = []; }
     document.getElementById('promocodeSubmitBtn')?.addEventListener('click', () => this.submit());
     const input = document.getElementById('promocodeInput');
     input?.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.submit(); });
     input?.addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase(); });
   },
 
-  submit() {
+  async submit() {
     const input = document.getElementById('promocodeInput');
+    const btn   = document.getElementById('promocodeSubmitBtn');
     const code  = input?.value.trim().toUpperCase() ?? '';
     if (!code) { this.showStatus(Utils.t('promoEnterCode'), 'error'); return; }
-    if (STATE.redeemedCodes.includes(code)) { this.showStatus(Utils.t('promoAlreadyRedeemed'), 'error'); return; }
-    if (VALID_PROMOCODES[code]) {
-      const promo = VALID_PROMOCODES[code];
-      Currency.add(promo.coins);
-      STATE.redeemedCodes.push(code);
-      localStorage.setItem('redeemedCodes', JSON.stringify(STATE.redeemedCodes));
-      this.showStatus(Utils.t('promoRedeemed', { message: Utils.t(promo.messageKey), coins: promo.coins }), 'success');
+    if (btn) btn.disabled = true;
+    try {
+      const r = await GameAPI.promo(code);       // the server validates, limits and pays out
+      GameAPI.applyBalance(r.balance);
+      if (r.gifts?.length) await GameAPI.refresh();
+      const parts = [];
+      if (r.coins) parts.push(`${r.coins.toLocaleString()} ${Utils.t('coinsWord')}`);
+      if (r.stars) parts.push(`${r.stars.toLocaleString()} ${Utils.t('starsWord')}`);
+      (r.gifts || []).forEach(g => parts.push(g.gift));
+      const msgKey = r.message_key && TRANSLATIONS.en[r.message_key] ? r.message_key : 'promoRedeemedShort';
+      this.showStatus(`✓ ${Utils.t(msgKey)} +${parts.join(', ')}`, 'success');
       if (input) input.value = '';
-      const btn = document.getElementById('promocodeSubmitBtn');
-      if (btn) { btn.disabled = true; setTimeout(() => btn.disabled = false, 2000); }
-    } else {
-      this.showStatus(Utils.t('promoInvalid'), 'error');
+    } catch (e) {
+      const key = { PROMO_INVALID: 'promoInvalid', PROMO_ALREADY: 'promoAlreadyRedeemed', PROMO_EXPIRED: 'promoExpired', PROMO_USED_UP: 'promoUsedUp',
+                    PROMO_PAYMENT_REQUIRED: 'promoPaymentRequired', PROMO_BLOCKED: 'promoBlocked' }[e.code];
+      this.showStatus(key ? Utils.t(key, { n: e.data?.required_ton ?? 2 }) : (e.code === 'RATE_LIMITED' ? e.message : Utils.t('serverUnreachable')), 'error');
+    } finally {
+      if (btn) setTimeout(() => btn.disabled = false, 1500);
     }
   },
 
@@ -4965,7 +6167,7 @@ const Promocode = {
     if (!el) return;
     el.textContent = message;
     el.className   = `promocode-status show ${type}`;
-    setTimeout(() => el.classList.remove('show'), 3000);
+    setTimeout(() => el.classList.remove('show'), 3500);
   }
 };
 
@@ -4993,6 +6195,20 @@ const ContentBoxes = {
     document.querySelector('.furry-spin-cta')?.addEventListener('click', (e) => {
       e.stopPropagation();
       Navigation.navigateTo('furryspin');
+    });
+
+    // Hex Spin: same wiring as Furry
+    document.querySelector('.content-box-hex')?.addEventListener('click', () => Navigation.navigateTo('hexspin'));
+    document.querySelector('.hex-spin-cta')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Navigation.navigateTo('hexspin');
+    });
+
+    // Astral Spin: same wiring as Furry
+    document.querySelector('.content-box-astral')?.addEventListener('click', () => Navigation.navigateTo('astralspin'));
+    document.querySelector('.astral-spin-cta')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Navigation.navigateTo('astralspin');
     });
 
     document.querySelector('.content-box-right .card-btn')?.addEventListener('click', (e) => {
@@ -5076,6 +6292,14 @@ const EventListeners = {
     document.getElementById('furryClaimButton')?.addEventListener('click', () => FurrySpinWheel.claimWin());
     document.getElementById('furryWinModal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) FurrySpinWheel.hideWin(); });
 
+    document.getElementById('hexSpinButton')?.addEventListener('click', () => Subscription.gate(() => HexSpinWheel.spin()));
+    document.getElementById('hexClaimButton')?.addEventListener('click', () => HexSpinWheel.claimWin());
+    document.getElementById('hexWinModal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) HexSpinWheel.hideWin(); });
+
+    document.getElementById('astralSpinButton')?.addEventListener('click', () => Subscription.gate(() => AstralSpinWheel.spin()));
+    document.getElementById('astralClaimButton')?.addEventListener('click', () => AstralSpinWheel.claimWin());
+    document.getElementById('astralWinModal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) AstralSpinWheel.hideWin(); });
+
     document.getElementById('fullInventoryClose')?.addEventListener('click', () => FullInventoryModal.close());
     document.getElementById('fullInventoryModal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) FullInventoryModal.close(); });
 
@@ -5089,7 +6313,7 @@ const EventListeners = {
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { PrizeModal.close(); FullInventoryModal.close(); LanguageModal.close(); Menu.closeAll(); SpinWheel.hideWin(); VoidSpinWheel.hideWin(); FurrySpinWheel.hideWin(); }
+      if (e.key === 'Escape') { PrizeModal.close(); FullInventoryModal.close(); LanguageModal.close(); Menu.closeAll(); SpinWheel.hideWin(); VoidSpinWheel.hideWin(); FurrySpinWheel.hideWin(); HexSpinWheel.hideWin(); AstralSpinWheel.hideWin(); }
       if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); FullInventoryModal.open(); }
     });
 
@@ -5117,6 +6341,7 @@ function checkForPaymentSuccess() {
 
   Utils.showToast(Utils.t('paymentSuccessAdding', { n: amount }), 'success');
   setTimeout(async () => {
+    await GameAPI.claimCredits();
     await BackendAPI.syncBalance();
     Utils.showToast(Utils.t('starsAdded', { n: amount }), 'success');
     cleanupURLParams();
@@ -5139,6 +6364,13 @@ async function initializeApp() {
     return; 
   }
 
+  // The game server owns prices, odds, balances and promocodes — load its public config first.
+  let _cfgOk = false;
+  for (let i = 0; i < 3 && !_cfgOk; i++) {
+    try { await GameAPI.loadConfig(); _cfgOk = true; } catch (e) { console.error('config load failed', e); await new Promise(r => setTimeout(r, 1200)); }
+  }
+  if (!_cfgOk) { LoadingScreen.showMaintenance(Utils.t('serverUnreachable')); return; }
+
   checkForPaymentSuccess();
   TelegramApp.init();
   LoadingScreen.init();
@@ -5154,11 +6386,17 @@ async function initializeApp() {
   ContentBoxes.init();
   EventListeners.init();
 
-  BackendAPI.syncBalance().then(() => Currency.update());
-  await Inventory.loadFromServer();
+  GameAPI._firstRefresh = GameAPI.refresh();
+  await GameAPI._firstRefresh;
+  Currency.update();
   Inventory.updateDisplay();
   Countdown.init();
   TonWallet.init()
+
+  document.querySelectorAll('[data-cost="furry"]').forEach(el => el.textContent = CONFIG.FURRY_SPIN_COST);
+  document.querySelectorAll('[data-cost="hex"]').forEach(el => el.textContent = CONFIG.HEX_SPIN_COST);
+  document.querySelectorAll('[data-cost="astral"]').forEach(el => el.textContent = CONFIG.ASTRAL_SPIN_COST);
+  document.querySelectorAll('[data-cost="void"]').forEach(el => el.textContent = CONFIG.VOID_SPIN_COST);
 
   startWheels();
 }
@@ -5172,6 +6410,9 @@ function startWheels() {
     SpinWheel.init();
     VoidSpinWheel.init();
     FurrySpinWheel.init();
+    HexSpinWheel.init();
+    AstralSpinWheel.init();
+    MultiSpin.init();
     EventsCarousel.init();
     LottieAnimations.init();
   };
@@ -5186,7 +6427,7 @@ function startWheels() {
 window.TelegramGame = {
   state: STATE, config: CONFIG,
   Currency, Inventory, Navigation, Settings,
-  SpinWheel, VoidSpinWheel, FurrySpinWheel, EventsCarousel, Leaderboard, Notifications,
+  SpinWheel, VoidSpinWheel, FurrySpinWheel, HexSpinWheel, AstralSpinWheel, EventsCarousel, Leaderboard, Notifications,
   PrizeModal, FullInventoryModal, Deposit, BottomNav
 };
 
