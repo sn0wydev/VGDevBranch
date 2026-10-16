@@ -82,7 +82,7 @@ const CONFIG = {
   ASTRAL_GAP_WIDTH: 48,
 
   // ── Telegram channel subscription gate ──
-  SUBSCRIPTION_REQUIRED: true,
+  SUBSCRIPTION_REQUIRED: false,
   SUBSCRIPTION_CHANNEL_USERNAME: '@VoidGiftsOfficial',
   SUBSCRIPTION_CHANNEL_URL: 'https://t.me/VoidGiftsOfficial',
   // Expected response: { "subscribed": true|false }.
