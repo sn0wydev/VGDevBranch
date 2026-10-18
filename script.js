@@ -136,7 +136,7 @@ const GIFT_SVG_ICONS = {
   'Vintage Cigar': 'assets/VintageCigar.svg',
   'Witch Hat':    'assets/WitchHat.svg',
   'Light Sword':  'assets/LightSword.svg',
-  'Lucky Locket': 'assets/LuckyLocket.svg'
+  'Lucky Locket': 'assets/LuckyLocket.png'
 };
 
 // ── REAL odds. These decide what the player actually wins. ──
