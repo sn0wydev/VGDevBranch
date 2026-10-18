@@ -13,7 +13,8 @@
       if (m && opts.container && anim && anim.addEventListener) {
         anim.addEventListener('data_failed', () => {
           const img = new Image();
-          img.src = `assets/${ICON_FOR[m[1]] || m[1]}.svg`;
+          const nm = ICON_FOR[m[1]] || m[1];
+          img.src = `assets/${nm}.${(typeof PNG_ICONS !== 'undefined' && PNG_ICONS.has(nm)) ? 'png' : 'svg'}`;
           img.alt = '';
           img.style.cssText = 'width:100%;height:100%;object-fit:contain';
           img.onerror = () => img.remove();
@@ -82,7 +83,7 @@ const CONFIG = {
   ASTRAL_GAP_WIDTH: 48,
 
   // ── Telegram channel subscription gate ──
-  SUBSCRIPTION_REQUIRED: false,
+  SUBSCRIPTION_REQUIRED: false,   // DEV ONLY — never copy this to main
   SUBSCRIPTION_CHANNEL_USERNAME: '@VoidGiftsOfficial',
   SUBSCRIPTION_CHANNEL_URL: 'https://t.me/VoidGiftsOfficial',
   // Expected response: { "subscribed": true|false }.
@@ -138,6 +139,9 @@ const GIFT_SVG_ICONS = {
   'Light Sword':  'assets/LightSword.svg',
   'Lucky Locket': 'assets/LuckyLocket.png'
 };
+
+// Icons that ship as .png instead of .svg (the buyback board and the Lottie fallback look their file up by name).
+const PNG_ICONS = new Set(['LuckyLocket']);
 
 // ── REAL odds. These decide what the player actually wins. ──
 const SPIN_PRIZES = [];   // filled from the game server (GameAPI.loadConfig) — display rows only
@@ -1917,6 +1921,31 @@ const GameAPI = {
       if (RARE_GIFTS.includes(item.value)) rare.push(item);
     }
     rare.forEach(i => LiveGiftNotifications.add(i));
+  }
+};
+
+
+// ============================================================================
+// Reel landing. The server decides the prize; the reel must STOP ON it.
+// We pre-load the winning prize into a cube far ahead of the pointer, work out
+// how far the strip has to travel to put that cube under the pointer, and scale
+// the spin speed so it arrives there. (The old code guessed a distance that did
+// not match the real one, so the card under the pointer — and the win popup —
+// was usually a different, random prize than the one the server paid.)
+// ============================================================================
+const Reel = {
+  plan(cubes, container, stride) {
+    const wRect   = container.getBoundingClientRect();
+    const centerX = wRect.left + container.offsetWidth / 2;
+    const mid = (c) => { const r = c.getBoundingClientRect(); return r.left + r.width / 2; };
+    let c0 = 0, best = Infinity;
+    cubes.forEach((c, i) => { const d = Math.abs(mid(c) - centerX); if (d < best) { best = d; c0 = i; } });
+    const room = Math.max(1, cubes.length - 2 - c0);                 // cubes available ahead of the pointer
+    const K    = Math.min(room, 9 + Math.floor(Math.random() * 4)); // aim 9–12 cubes ahead for a good long run
+    const target = cubes[Math.min(cubes.length - 1, c0 + K)];
+    const distance = Math.max(stride, mid(target) - centerX);        // px the strip has to travel
+    // speed(p) = A·(1-p)^4 travels A·frames/5 px over the spin, so pick A to cover `distance` exactly
+    return { target, distance, peakSpeed: (ms) => 5 * distance / (ms / (1000 / 60)) };
   }
 };
 
@@ -3732,7 +3761,7 @@ const Buyback = {
     const wrap = document.createElement('div');
     wrap.className = 'sell-icon';
     const base = `assets/${this.iconName(title)}`;
-    const img = Object.assign(document.createElement('img'), { src: `${base}.svg`, alt: '', loading: 'lazy' });
+    const img = Object.assign(document.createElement('img'), { src: `${base}.${PNG_ICONS.has(this.iconName(title)) ? 'png' : 'svg'}`, alt: '', loading: 'lazy' });
     img.addEventListener('error', function onErr() {
       // Reuse the three icons that already exist under their older file names.
       const alias = this.ICON_ALIASES?.[this.iconName(title)];
@@ -4151,16 +4180,15 @@ const SpinWheel = {
 
     cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
 
-    const stride   = CONFIG.CUBE_WIDTH + CONFIG.GAP_WIDTH;
-    const minDist  = 5000 + Math.random() * 600;
-    const winIdx   = Math.floor(minDist / stride) % cubes.length;
-    this.renderCube(cubes[winIdx], winning);
+    const plan = Reel.plan(cubes, document.querySelector('.wheel-container:not(.void-wheel-container)'), CONFIG.CUBE_WIDTH + CONFIG.GAP_WIDTH);
+    this.renderCube(plan.target, winning);
+    this._landing = { winning };
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.isSpinning) return;
       const progress  = Math.min((Date.now() - startTime) / CONFIG.SPIN_DURATION, 1);
-      STATE.scrollSpeed = CONFIG.SPIN_MAX_SPEED * (1 - (1 - Math.pow(1 - progress, 4)));
+      STATE.scrollSpeed = plan.peakSpeed(CONFIG.SPIN_DURATION) * Math.pow(1 - progress, 4);
       if (progress < 1) { requestAnimationFrame(tick); }
       else { STATE.scrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
     };
@@ -4181,6 +4209,12 @@ const SpinWheel = {
       if (dist < bestDist) { bestDist = dist; bestCube = c; snapDelta = (r.left + r.width / 2 - wRect.left) - center; }
     });
 
+    const L = this._landing || {}; this._landing = null;
+
+    // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
+
+    if (L.winning && bestCube && bestCube.dataset.prizeId !== String(L.winning.id)) this.renderCube(bestCube, L.winning);
+
     const startPos = STATE.scrollPosition;
     const startT   = Date.now();
     const snap = () => {
@@ -4193,7 +4227,7 @@ const SpinWheel = {
         bestCube.style.borderColor = '#ffb25b';
         bestCube.style.boxShadow   = '0 0 40px rgba(255,178,91,.75)';
         setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
-        const final = SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
+        const final = L.winning || SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
         if (final) setTimeout(() => this.showWin(final), 200);
       }
     };
@@ -4479,16 +4513,15 @@ const VoidSpinWheel = {
 
     cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
 
-    const stride  = CONFIG.VOID_CUBE_WIDTH + CONFIG.VOID_GAP_WIDTH;
-    const minDist = 5000 + Math.random() * 600;
-    const winIdx  = Math.floor(minDist / stride) % cubes.length;
-    this.renderCube(cubes[winIdx], winning);
+    const plan = Reel.plan(cubes, document.querySelector('.void-wheel-container'), CONFIG.VOID_CUBE_WIDTH + CONFIG.VOID_GAP_WIDTH);
+    this.renderCube(plan.target, winning);
+    this._landing = { winning };
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.voidIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.VOID_SPIN_DURATION, 1);
-      STATE.voidScrollSpeed = CONFIG.VOID_SPIN_MAX_SPEED * (1 - (1 - Math.pow(1 - progress, 4)));
+      STATE.voidScrollSpeed = plan.peakSpeed(CONFIG.VOID_SPIN_DURATION) * Math.pow(1 - progress, 4);
       if (progress < 1) { requestAnimationFrame(tick); }
       else { STATE.voidScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
     };
@@ -4509,6 +4542,12 @@ const VoidSpinWheel = {
       if (dist < bestDist) { bestDist = dist; bestCube = c; snapDelta = (r.left + r.width / 2 - wRect.left) - center; }
     });
 
+    const L = this._landing || {}; this._landing = null;
+
+    // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
+
+    if (L.winning && bestCube && bestCube.dataset.prizeId !== String(L.winning.id)) this.renderCube(bestCube, L.winning);
+
     const startPos = STATE.voidScrollPosition;
     const startT   = Date.now();
     const snap = () => {
@@ -4521,7 +4560,7 @@ const VoidSpinWheel = {
         bestCube.style.borderColor = '#ff5fa8';
         bestCube.style.boxShadow   = '0 0 40px rgba(255,95,168,.75)';
         setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
-        const final = VOID_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
+        const final = L.winning || VOID_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
         if (final) setTimeout(() => (STATE.voidMultResults ? this.showMulti() : this.showWin(final)), 200);
       }
     };
@@ -5023,16 +5062,15 @@ const FurrySpinWheel = {
 
     cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
 
-    const stride  = CONFIG.FURRY_CUBE_WIDTH + CONFIG.FURRY_GAP_WIDTH;
-    const minDist = 5000 + Math.random() * 600;
-    const winIdx  = Math.floor(minDist / stride) % cubes.length;
-    this.renderCube(cubes[winIdx], winning);
+    const plan = Reel.plan(cubes, document.querySelector('.furry-wheel-container'), CONFIG.FURRY_CUBE_WIDTH + CONFIG.FURRY_GAP_WIDTH);
+    this.renderCube(plan.target, winning);
+    this._landing = { winning };
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.furryIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.FURRY_SPIN_DURATION, 1);
-      STATE.furryScrollSpeed = CONFIG.FURRY_SPIN_MAX_SPEED * (1 - (1 - Math.pow(1 - progress, 4)));
+      STATE.furryScrollSpeed = plan.peakSpeed(CONFIG.FURRY_SPIN_DURATION) * Math.pow(1 - progress, 4);
       if (progress < 1) { requestAnimationFrame(tick); }
       else { STATE.furryScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
     };
@@ -5053,6 +5091,12 @@ const FurrySpinWheel = {
       if (dist < bestDist) { bestDist = dist; bestCube = c; snapDelta = (r.left + r.width / 2 - wRect.left) - center; }
     });
 
+    const L = this._landing || {}; this._landing = null;
+
+    // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
+
+    if (L.winning && bestCube && bestCube.dataset.prizeId !== String(L.winning.id)) this.renderCube(bestCube, L.winning);
+
     const startPos = STATE.furryScrollPosition;
     const startT   = Date.now();
     const snap = () => {
@@ -5065,7 +5109,7 @@ const FurrySpinWheel = {
         bestCube.style.borderColor = '#c9f25a';
         bestCube.style.boxShadow   = '0 0 40px rgba(201,242,90,.75)';
         setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
-        const final = FURRY_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
+        const final = L.winning || FURRY_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
         if (final) setTimeout(() => (STATE.furryMultResults ? this.showMulti() : this.showWin(final)), 200);
       }
     };
@@ -5351,16 +5395,15 @@ const HexSpinWheel = {
 
     cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
 
-    const stride  = CONFIG.HEX_CUBE_WIDTH + CONFIG.HEX_GAP_WIDTH;
-    const minDist = 5000 + Math.random() * 600;
-    const winIdx  = Math.floor(minDist / stride) % cubes.length;
-    this.renderCube(cubes[winIdx], winning);
+    const plan = Reel.plan(cubes, document.querySelector('.hex-wheel-container'), CONFIG.HEX_CUBE_WIDTH + CONFIG.HEX_GAP_WIDTH);
+    this.renderCube(plan.target, winning);
+    this._landing = { winning };
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.hexIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.HEX_SPIN_DURATION, 1);
-      STATE.hexScrollSpeed = CONFIG.HEX_SPIN_MAX_SPEED * (1 - (1 - Math.pow(1 - progress, 4)));
+      STATE.hexScrollSpeed = plan.peakSpeed(CONFIG.HEX_SPIN_DURATION) * Math.pow(1 - progress, 4);
       if (progress < 1) { requestAnimationFrame(tick); }
       else { STATE.hexScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
     };
@@ -5381,6 +5424,12 @@ const HexSpinWheel = {
       if (dist < bestDist) { bestDist = dist; bestCube = c; snapDelta = (r.left + r.width / 2 - wRect.left) - center; }
     });
 
+    const L = this._landing || {}; this._landing = null;
+
+    // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
+
+    if (L.winning && bestCube && bestCube.dataset.prizeId !== String(L.winning.id)) this.renderCube(bestCube, L.winning);
+
     const startPos = STATE.hexScrollPosition;
     const startT   = Date.now();
     const snap = () => {
@@ -5393,7 +5442,7 @@ const HexSpinWheel = {
         bestCube.style.borderColor = '#c9f25a';
         bestCube.style.boxShadow   = '0 0 40px rgba(201,242,90,.75)';
         setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
-        const final = HEX_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
+        const final = L.winning || HEX_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
         if (final) setTimeout(() => (STATE.hexMultResults ? this.showMulti() : this.showWin(final)), 200);
       }
     };
@@ -5683,16 +5732,15 @@ const AstralSpinWheel = {
 
     cubes.forEach(c => { this._cleanupLottie(c); this.renderCube(c, this.selectPrize()); });
 
-    const stride  = CONFIG.ASTRAL_CUBE_WIDTH + CONFIG.ASTRAL_GAP_WIDTH;
-    const minDist = 5000 + Math.random() * 600;
-    const winIdx  = Math.floor(minDist / stride) % cubes.length;
-    this.renderCube(cubes[winIdx], winning);
+    const plan = Reel.plan(cubes, document.querySelector('.astral-wheel-container'), CONFIG.ASTRAL_CUBE_WIDTH + CONFIG.ASTRAL_GAP_WIDTH);
+    this.renderCube(plan.target, winning);
+    this._landing = { winning };
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.astralIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.ASTRAL_SPIN_DURATION, 1);
-      STATE.astralScrollSpeed = CONFIG.ASTRAL_SPIN_MAX_SPEED * (1 - (1 - Math.pow(1 - progress, 4)));
+      STATE.astralScrollSpeed = plan.peakSpeed(CONFIG.ASTRAL_SPIN_DURATION) * Math.pow(1 - progress, 4);
       if (progress < 1) { requestAnimationFrame(tick); }
       else { STATE.astralScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
     };
@@ -5713,6 +5761,12 @@ const AstralSpinWheel = {
       if (dist < bestDist) { bestDist = dist; bestCube = c; snapDelta = (r.left + r.width / 2 - wRect.left) - center; }
     });
 
+    const L = this._landing || {}; this._landing = null;
+
+    // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
+
+    if (L.winning && bestCube && bestCube.dataset.prizeId !== String(L.winning.id)) this.renderCube(bestCube, L.winning);
+
     const startPos = STATE.astralScrollPosition;
     const startT   = Date.now();
     const snap = () => {
@@ -5725,7 +5779,7 @@ const AstralSpinWheel = {
         bestCube.style.borderColor = '#c9f25a';
         bestCube.style.boxShadow   = '0 0 40px rgba(201,242,90,.75)';
         setTimeout(() => { if (bestCube) bestCube.style.transition = ''; }, 300);
-        const final = ASTRAL_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
+        const final = L.winning || ASTRAL_SPIN_PRIZES.find(p => p.id === bestCube.dataset.prizeId);
         if (final) setTimeout(() => (STATE.astralMultResults ? this.showMulti() : this.showWin(final)), 200);
       }
     };
