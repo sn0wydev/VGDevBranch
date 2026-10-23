@@ -93,6 +93,13 @@ const CONFIG = {
 };
 
 const PRIZE_COIN_VALUES = {};   // filled from the game server (GameAPI.loadConfig)
+const PRIZE_STAR_VALUES = {};   // NFT gifts only: what they convert into (STARS). Everyday gifts convert into coins.
+// What a prize converts into: NFT gifts -> Stars, everyday gifts -> Coins (numbers come from the game server).
+function prizeWorth(name) {
+  const s = PRIZE_STAR_VALUES[name];
+  if (s > 0) return { stars: true, value: s, icon: 'assets/TStars.svg', convertKey: 'convertToStars', wordKey: 'starsWord', valueKey: 'starsValue' };
+  return { stars: false, value: PRIZE_COIN_VALUES[name] ?? 50, icon: 'assets/Coin.svg', convertKey: 'convertToCoins', wordKey: 'coinsWord', valueKey: 'coinsValue' };
+}
 
 const RARE_GIFTS  = ['Ring', 'Trophy', 'Diamond', 'Calendar', 'Rocket', 'Star Notepad', 'Instant Ramen', 'Socks', 'Lollipop', 'Input Key', 'Astral Shard', 'Kissed Frog', 'Voodoo Doll', 'Vintage Cigar', 'Witch Hat', 'Light Sword', 'Lucky Locket'];
 const NFT_GIFTS   = ['Calendar', 'Star Notepad', 'Instant Ramen', 'Socks', 'Lollipop', 'Input Key', 'Astral Shard', 'Kissed Frog', 'Voodoo Doll', 'Vintage Cigar', 'Witch Hat', 'Light Sword', 'Lucky Locket'];
@@ -283,7 +290,9 @@ const STATE = {
   prizeAlerts: true,
   animationsEnabled: true,
   showInLeaderboard: true,
-  shareStats: true
+  botReminders: true,
+  shareStats: true,
+  demoMode: false
   },
   currentDepositTab: 'stars',
   currentModalPrize: null,
@@ -414,6 +423,8 @@ const TRANSLATIONS = {
     animationsDesc: 'Smooth animations and effects',
     showInLeaderboard: 'Show in Leaderboard',
     showInLeaderboardDesc: 'Public stats visibility',
+    botReminders: 'Bot reminders',
+    botRemindersDesc: 'Daily gift and comeback messages from the bot',
     shareStatistics: 'Share Statistics',
     shareStatisticsDesc: 'Allow sharing stats with friends',
 
@@ -440,6 +451,8 @@ const TRANSLATIONS = {
 
     yourPrize: 'your prize',
     convertToCoins: 'Convert to Coins',
+    convertToStars: 'Convert to Stars',
+    starsValue: 'Stars value',
     claimPrize: 'Claim Prize',
     coinsWord: 'Coins',
     coinsValue: 'Coins value',
@@ -663,6 +676,8 @@ const TRANSLATIONS = {
     animationsDesc: 'Плавные анимации и эффекты',
     showInLeaderboard: 'Показывать в рейтинге',
     showInLeaderboardDesc: 'Видимость публичной статистики',
+    botReminders: 'Напоминания от бота',
+    botRemindersDesc: 'Сообщения о ежедневном подарке и возвращении',
     shareStatistics: 'Делиться статистикой',
     shareStatisticsDesc: 'Разрешить делиться статистикой с друзьями',
 
@@ -689,6 +704,8 @@ const TRANSLATIONS = {
 
     yourPrize: 'ваш приз',
     convertToCoins: 'Обменять на монеты',
+    convertToStars: 'Обменять на Stars',
+    starsValue: 'Stars стоимостью',
     claimPrize: 'Забрать приз',
     coinsWord: 'Монет',
     coinsValue: 'монет стоимостью',
@@ -882,6 +899,8 @@ const TRANSLATIONS = {
     animationsDesc: 'Animaciones y efectos suaves',
     showInLeaderboard: 'Mostrar en la clasificación',
     showInLeaderboardDesc: 'Visibilidad de estadísticas públicas',
+    botReminders: 'Recordatorios del bot',
+    botRemindersDesc: 'Mensajes sobre el regalo diario y para volver',
     shareStatistics: 'Compartir estadísticas',
     shareStatisticsDesc: 'Permitir compartir estadísticas con amigos',
 
@@ -908,6 +927,8 @@ const TRANSLATIONS = {
 
     yourPrize: 'tu premio',
     convertToCoins: 'Convertir a monedas',
+    convertToStars: 'Convertir a Stars',
+    starsValue: 'Stars de valor',
     claimPrize: 'Reclamar premio',
     coinsWord: 'Monedas',
     coinsValue: 'monedas de valor',
@@ -1101,6 +1122,8 @@ const TRANSLATIONS = {
     animationsDesc: 'Animations et effets fluides',
     showInLeaderboard: 'Afficher dans le classement',
     showInLeaderboardDesc: 'Visibilité des statistiques publiques',
+    botReminders: 'Rappels du bot',
+    botRemindersDesc: 'Messages sur le cadeau quotidien et le retour',
     shareStatistics: 'Partager les statistiques',
     shareStatisticsDesc: 'Autoriser le partage des statistiques avec des amis',
 
@@ -1127,6 +1150,8 @@ const TRANSLATIONS = {
 
     yourPrize: 'votre prix',
     convertToCoins: 'Convertir en pièces',
+    convertToStars: 'Convertir en Stars',
+    starsValue: 'Stars de valeur',
     claimPrize: 'Réclamer le prix',
     coinsWord: 'Pièces',
     coinsValue: 'pièces de valeur',
@@ -1320,6 +1345,8 @@ const TRANSLATIONS = {
     animationsDesc: 'Sanfte Animationen und Effekte',
     showInLeaderboard: 'In der Bestenliste anzeigen',
     showInLeaderboardDesc: 'Sichtbarkeit öffentlicher Statistiken',
+    botReminders: 'Bot-Erinnerungen',
+    botRemindersDesc: 'Nachrichten zum Tagesgeschenk und zur Rückkehr',
     shareStatistics: 'Statistiken teilen',
     shareStatisticsDesc: 'Erlauben, Statistiken mit Freunden zu teilen',
 
@@ -1346,6 +1373,8 @@ const TRANSLATIONS = {
 
     yourPrize: 'dein Preis',
     convertToCoins: 'In Münzen umwandeln',
+    convertToStars: 'In Stars umwandeln',
+    starsValue: 'Stars Wert',
     claimPrize: 'Preis abholen',
     coinsWord: 'Münzen',
     coinsValue: 'Münzen Wert',
@@ -1539,6 +1568,8 @@ const TRANSLATIONS = {
     animationsDesc: '流畅的动画与特效',
     showInLeaderboard: '在排行榜中显示',
     showInLeaderboardDesc: '公开统计信息可见性',
+    botReminders: '机器人提醒',
+    botRemindersDesc: '每日礼物和召回消息',
     shareStatistics: '分享统计信息',
     shareStatisticsDesc: '允许与好友分享统计信息',
 
@@ -1565,6 +1596,8 @@ const TRANSLATIONS = {
 
     yourPrize: '您的奖品',
     convertToCoins: '兑换为金币',
+    convertToStars: '兑换为星星',
+    starsValue: '星星价值',
     claimPrize: '领取奖品',
     coinsWord: '金币',
     coinsValue: '金币价值',
@@ -1815,6 +1848,7 @@ const GameAPI = {
     const cfg = await res.json();
     this.cfg = cfg;
     Object.assign(PRIZE_COIN_VALUES, cfg.coinValues);
+    Object.assign(PRIZE_STAR_VALUES, cfg.starValues || {});
     const T = { daily: [SPIN_PRIZES, PREVIEW_PRIZES], void: [VOID_SPIN_PRIZES, VOID_PREVIEW_PRIZES], furry: [FURRY_SPIN_PRIZES, FURRY_PREVIEW_PRIZES],
                 hex: [HEX_SPIN_PRIZES, HEX_PREVIEW_PRIZES], astral: [ASTRAL_SPIN_PRIZES, ASTRAL_PREVIEW_PRIZES] };
     for (const [name, w] of Object.entries(cfg.wheels)) {
@@ -1825,6 +1859,7 @@ const GameAPI = {
       if (name !== 'daily') CONFIG[`${name.toUpperCase()}_SPIN_COST`] = w.price;
     }
     if (cfg.dailyCooldownMs) CONFIG.DAILY_COOLDOWN_MS = cfg.dailyCooldownMs;
+    const demoRow = document.getElementById('demoSettingRow'); if (demoRow) demoRow.hidden = !cfg.demoMode;
   },
 
   tableFor(w) {
@@ -1886,8 +1921,9 @@ const GameAPI = {
     } catch { return 0; }
   },
 
-  async spin(wheel, mult) { return this.req('POST', '/api/spin', { wheel, mult }); },
-  async daily()           { return this.req('POST', '/api/daily'); },
+  async spin(wheel, mult) { return this.req('POST', '/api/spin', { wheel, mult, ...(this.demoOn() ? { demo: true } : {}) }); },
+  demoOn() { return !!(this.cfg?.demoMode && STATE.settings.demoMode); },
+  async daily()           { return this.req('POST', '/api/daily', this.demoOn() ? { demo: true } : undefined); },
   async promo(code)       { return this.req('POST', '/api/promo', { code }); },
   async convert(prizeId)  { return this.req('POST', `/api/prizes/${encodeURIComponent(prizeId)}/convert`); },
 
@@ -1972,6 +2008,9 @@ const BackendAPI = {
   syncUserProfile(partial = {}) {
     if (typeof partial.show_in_leaderboard === 'boolean') {
       GameAPI.req('POST', '/api/profile', { show_in_leaderboard: partial.show_in_leaderboard }).catch(() => {});
+    }
+    if (typeof partial.notify_enabled === 'boolean') {
+      GameAPI.req('POST', '/api/profile', { notify_enabled: partial.notify_enabled }).catch(() => {});
     }
   },
 
@@ -2394,11 +2433,18 @@ const PrizeModal = {
     nameEl.textContent = prize.value;
     idEl.textContent   = `ID: ${prize.prizeId}`;
 
-    const coinsVal = PRIZE_COIN_VALUES[prize.value] ?? 50;
+    const worth = prizeWorth(prize.value);
     valueEl.innerHTML = `
-      <img src="assets/Coin.svg" alt="Coins">
-      <span>${coinsVal.toLocaleString()} ${Utils.t('coinsWord')}</span>
+      <img src="${worth.icon}" alt="">
+      <span>${worth.value.toLocaleString()} ${Utils.t(worth.wordKey)}</span>
     `;
+    // The convert button says what this prize turns into (Stars for NFT gifts, Coins for the rest).
+    const convBtn = document.getElementById('convertBtn');
+    if (convBtn) {
+      const ci = convBtn.querySelector('img'), cs = convBtn.querySelector('span');
+      if (ci) ci.src = worth.icon;
+      if (cs) { cs.setAttribute('data-i18n', worth.convertKey); cs.textContent = Utils.t(worth.convertKey); }
+    }
 
     modal.classList.add('show');
   },
@@ -2587,6 +2633,7 @@ const Navigation = {
 
     if (pageName === 'leaderboard') Leaderboard.init();
     if (pageName === 'deposit')     Deposit.init();
+    if (pageName === 'rocket') Rocket.enter(); else if (Rocket.active) Rocket.leave();
 
   }
 };
@@ -4083,11 +4130,11 @@ const SpinWheel = {
       const wrap = document.createElement('div');
       wrap.style.cssText = 'width:80px;height:80px;margin:auto';
       cube.appendChild(wrap);
-      const inst = lottie.loadAnimation({
-        container: wrap, renderer: 'svg', loop: true, autoplay: true, path: prize.lottie,
-        rendererSettings: { preserveAspectRatio: 'xMidYMid slice', clearCanvas: true, progressiveLoad: true }
-      });
-      STATE.lottieInstances.set(cube.dataset.cubeId, inst);
+      // Flat SVG instead of a live looping Lottie per cube: ~20 SVG-Lottie
+      // instances (60fps, 50-96 layers each) were the main source of lag.
+      const img = Object.assign(document.createElement('img'), { src: GIFT_SVG_ICONS[prize.value] ?? '', alt: prize.value });
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+      wrap.appendChild(img);
     }
   },
 
@@ -4262,8 +4309,8 @@ const SpinWheel = {
       iconEl.appendChild(img);
       nameEl.innerHTML = `the <span class="hl">${prize.value}</span>`;
       if (valueRow) {
-        const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
-        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${val.toLocaleString()} ${Utils.t('coinsValue')}</span>`;
+        const worth = prizeWorth(prize.value);
+        valueRow.innerHTML = `<img src="${worth.icon}" alt="" style="width:22px;height:22px"><span>${worth.value.toLocaleString()} ${Utils.t(worth.valueKey)}</span>`;
         valueRow.style.display = 'flex';
       }
     }
@@ -4619,8 +4666,8 @@ const VoidSpinWheel = {
       iconEl.appendChild(img);
       nameEl.innerHTML = `the <span class="hl">${prize.value}</span>`;
       if (valueRow) {
-        const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
-        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${val.toLocaleString()} ${Utils.t('coinsValue')}</span>`;
+        const worth = prizeWorth(prize.value);
+        valueRow.innerHTML = `<img src="${worth.icon}" alt="" style="width:22px;height:22px"><span>${worth.value.toLocaleString()} ${Utils.t(worth.valueKey)}</span>`;
         valueRow.style.display = 'flex';
       }
     }
@@ -5168,8 +5215,8 @@ const FurrySpinWheel = {
       iconEl.appendChild(img);
       nameEl.innerHTML = `the <span class="hl">${prize.value}</span>`;
       if (valueRow) {
-        const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
-        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${val.toLocaleString()} ${Utils.t('coinsValue')}</span>`;
+        const worth = prizeWorth(prize.value);
+        valueRow.innerHTML = `<img src="${worth.icon}" alt="" style="width:22px;height:22px"><span>${worth.value.toLocaleString()} ${Utils.t(worth.valueKey)}</span>`;
         valueRow.style.display = 'flex';
       }
     }
@@ -5501,8 +5548,8 @@ const HexSpinWheel = {
       iconEl.appendChild(img);
       nameEl.innerHTML = `the <span class="hl">${prize.value}</span>`;
       if (valueRow) {
-        const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
-        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${val.toLocaleString()} ${Utils.t('coinsValue')}</span>`;
+        const worth = prizeWorth(prize.value);
+        valueRow.innerHTML = `<img src="${worth.icon}" alt="" style="width:22px;height:22px"><span>${worth.value.toLocaleString()} ${Utils.t(worth.valueKey)}</span>`;
         valueRow.style.display = 'flex';
       }
     }
@@ -5838,8 +5885,8 @@ const AstralSpinWheel = {
       iconEl.appendChild(img);
       nameEl.innerHTML = `the <span class="hl">${prize.value}</span>`;
       if (valueRow) {
-        const val = PRIZE_COIN_VALUES[prize.value] ?? 50;
-        valueRow.innerHTML = `<img src="assets/Coin.svg" alt="Coins" style="width:22px;height:22px"><span>${val.toLocaleString()} ${Utils.t('coinsValue')}</span>`;
+        const worth = prizeWorth(prize.value);
+        valueRow.innerHTML = `<img src="${worth.icon}" alt="" style="width:22px;height:22px"><span>${worth.value.toLocaleString()} ${Utils.t(worth.valueKey)}</span>`;
         valueRow.style.display = 'flex';
       }
     }
@@ -5929,7 +5976,7 @@ const Settings = {
   },
 
   apply() {
-    ['soundEffects','prizeAlerts','animationsEnabled','showInLeaderboard','shareStats'].forEach(id => {
+    ['soundEffects','prizeAlerts','animationsEnabled','showInLeaderboard','botReminders','shareStats','demoMode'].forEach(id => {
      const el = document.getElementById(id);
      if (el) el.checked = STATE.settings[id];
     });
@@ -5982,11 +6029,12 @@ const Settings = {
 
   init() {
     this.load();
-    ['soundEffects','prizeAlerts','animationsEnabled','showInLeaderboard','shareStats'].forEach(id => {
+    ['soundEffects','prizeAlerts','animationsEnabled','showInLeaderboard','botReminders','shareStats','demoMode'].forEach(id => {
       document.getElementById(id)?.addEventListener('change', (e) => {
         STATE.settings[id] = e.target.checked;
         this.save(); this.applyEffects();
         if (id === 'showInLeaderboard') BackendAPI.syncUserProfile({ show_in_leaderboard: e.target.checked });
+        if (id === 'botReminders') BackendAPI.syncUserProfile({ notify_enabled: e.target.checked });
         Utils.showToast(Utils.t('settingSaved'));
       });
     });
@@ -6221,7 +6269,183 @@ const Promocode = {
     if (!el) return;
     el.textContent = message;
     el.className   = `promocode-status show ${type}`;
-    setTimeout(() => el.classList.remove('show'), 3500);
+    clearTimeout(this._statusTimer);
+    this._statusTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  }
+};
+
+// ============================================
+// ROCKET (crash game) — the server decides everything, this only draws.
+// ============================================
+
+const Rocket = {
+  K: 0.11, snap: null, off: 0, kind: 'stars', sel: null, abort: null, poll: null, raf: 0, active: false, busy: false,
+  $: (id) => document.getElementById(id),
+
+  init() {
+    const card = this.$('rocketCard');
+    if (!card) return;
+    const open = () => Navigation.navigateTo('rocket');
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') open(); });
+    document.querySelectorAll('.rk-tab').forEach(t => t.addEventListener('click', () => this.setKind(t.dataset.k)));
+    document.querySelectorAll('.rk-quick button').forEach(b => b.addEventListener('click', () => {
+      const a = b.dataset.a; this.$('rkAmount').value = a === 'max' ? Math.min(STATE.userStars, this.cfg().maxBet || 20000) : a;
+    }));
+    this.$('rkGo').addEventListener('click', () => this.go());
+  },
+  cfg() { return GameAPI.cfg?.rocket || { minBet: 50, maxBet: 20000, growth: 0.11 }; },
+
+  enter() {
+    this.active = true; this.K = this.cfg().growth || 0.11;
+    this.renderItems(); this.connect(); this.frame();
+  },
+  leave() {
+    this.active = false;
+    try { this.abort?.abort(); } catch {}
+    clearInterval(this.poll); this.poll = null; cancelAnimationFrame(this.raf);
+  },
+
+  // --- connection: SSE through fetch (so the auth header works), polling as a fallback ---
+  async connect() {
+    this.leave(); this.active = true;
+    const ctl = new AbortController(); this.abort = ctl;
+    try {
+      const res = await fetch(GAME_API_BASE + '/api/rocket/stream', { headers: { 'X-Telegram-Init-Data': STATE.tg?.initData || '' }, signal: ctl.signal, cache: 'no-store' });
+      if (!res.ok || !res.body) throw new Error('stream ' + res.status);
+      const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+      for (;;) {
+        const { value, done } = await rd.read(); if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i; while ((i = buf.indexOf('\n\n')) >= 0) {
+          const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+          const line = chunk.split('\n').find(l => l.startsWith('data: '));
+          if (line) { try { this.apply(JSON.parse(line.slice(6))); } catch {} }
+        }
+      }
+      throw new Error('stream closed');
+    } catch (e) {
+      if (ctl.signal.aborted || !this.active) return;
+      this.startPolling();
+      setTimeout(() => { if (this.active && this.abort === ctl) this.connect(); }, 4000);
+    }
+  },
+  startPolling() {
+    if (this.poll) return;
+    const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/rocket/state')); } catch {} };
+    tick(); this.poll = setInterval(tick, 1200);
+  },
+
+  apply(s) {
+    if (this.poll && s) { /* polling keeps running until the stream reconnects */ }
+    const prev = this.snap;
+    this.snap = s; this.off = s.serverNow - Date.now();
+    if (prev && prev.me?.status === 'active' && s.me && s.me.status !== 'active') this.settled(s.me);
+    this.render();
+  },
+  mult() {
+    const s = this.snap; if (!s) return 1;
+    if (s.phase === 'crash') return s.crashAt || 1;
+    if (s.phase !== 'fly') return 1;
+    const t = (Date.now() + this.off - s.flyStartedAt) / 1000;
+    return Math.max(1, Math.floor(Math.exp(this.K * t) * 100) / 100);
+  },
+  frame() {
+    cancelAnimationFrame(this.raf);
+    const loop = () => {
+      if (!this.active) return;
+      const s = this.snap, st = document.querySelector('.rk-stage');
+      if (s) {
+        const m = this.mult();
+        this.$('rkMult').textContent = m.toFixed(2) + 'x';
+        if (s.phase === 'bet') {
+          const left = Math.max(0, Math.ceil((s.betEndsAt - (Date.now() + this.off)) / 1000));
+          this.$('rkSub').textContent = `Betting open — ${left}s`;
+        }
+        if (s.phase === 'fly' && s.me?.status === 'active') {
+          this.$('rkGo').textContent = this.busy ? '…' : 'Cash out ' + this.valueText(m);
+        }
+        st.className = 'rk-stage ' + s.phase;
+      }
+      this.raf = requestAnimationFrame(loop);
+    };
+    loop();
+  },
+  valueText(m) {
+    const me = this.snap?.me; if (!me) return '';
+    if (me.kind === 'stars') return Math.floor(me.amount * m) + ' ⭐';
+    const v = (PRIZE_STAR_VALUES[me.item] || PRIZE_COIN_VALUES[me.item] || 0);
+    return '≈ ' + Math.floor(v * m) + ' value';
+  },
+
+  render() {
+    const s = this.snap; if (!s) return;
+    const sub = this.$('rkSub'), go = this.$('rkGo'), me = s.me;
+    this.$('rkHist').innerHTML = (s.history || []).map(h => `<span class="${h >= 2 ? 'hi' : 'lo'}">${h.toFixed(2)}x</span>`).join('');
+    if (s.phase === 'fly') sub.textContent = 'In flight';
+    if (s.phase === 'crash') sub.textContent = `Crashed at ${s.crashAt.toFixed(2)}x`;
+    // button
+    go.classList.remove('cash'); go.disabled = false;
+    if (me && me.status === 'active' && s.phase === 'fly') { go.classList.add('cash'); }
+    else if (me && s.phase === 'bet') { go.textContent = 'Bet placed ✓'; go.disabled = true; }
+    else if (me && me.status === 'active') { go.textContent = 'Waiting for takeoff…'; go.disabled = true; }
+    else if (s.phase === 'bet') { go.textContent = 'Place bet'; }
+    else { go.textContent = 'Next round soon…'; go.disabled = true; }
+    // players
+    this.$('rkPlayers').innerHTML = (s.bets || []).map(b => {
+      const what = b.k === 'stars' ? `${b.a} ⭐` : b.i;
+      const res = b.s === 'cashed' ? `<span class="w">${b.x.toFixed(2)}x</span>` : b.s === 'lost' ? '<span class="l">lost</span>' : '';
+      return `<div><span>${this.esc(b.n)} · ${this.esc(what)}</span>${res}</div>`;
+    }).join('');
+    this.$('rkFair').textContent = s.phase === 'crash' && s.secret ? `Round #${s.roundId} secret: ${s.secret}  (sha256 = ${s.hash})` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
+  },
+  esc(t) { return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
+
+  setKind(k) {
+    this.kind = k; this.sel = null;
+    document.querySelectorAll('.rk-tab').forEach(t => t.classList.toggle('active', t.dataset.k === k));
+    this.$('rkStarsBox').hidden = k !== 'stars'; this.$('rkItems').hidden = k === 'stars';
+    if (k !== 'stars') this.renderItems();
+  },
+  renderItems() {
+    const box = this.$('rkItems'), min = this.cfg().minBet || 50;
+    const list = (STATE.inventoryItems || []).filter(i => i.prizeId && !i.pendingTransfer && (PRIZE_STAR_VALUES[i.value] || PRIZE_COIN_VALUES[i.value] || 0) >= min);
+    box.innerHTML = list.length ? list.map(i => {
+      const v = PRIZE_STAR_VALUES[i.value] || PRIZE_COIN_VALUES[i.value];
+      return `<button class="rk-item${this.sel === i.prizeId ? ' sel' : ''}" data-p="${this.esc(i.prizeId)}"><b>${this.esc(i.value)}</b>${v}</button>`;
+    }).join('') : `<div class="rk-sub">No gifts worth ${min}+ to bet</div>`;
+    box.querySelectorAll('.rk-item').forEach(b => b.addEventListener('click', () => { this.sel = b.dataset.p; this.renderItems(); }));
+  },
+
+  note(t) { this.$('rkNote').textContent = t || ''; },
+  async go() {
+    const s = this.snap; if (!s || this.busy) return;
+    this.busy = true; this.note('');
+    try {
+      if (s.phase === 'fly' && s.me?.status === 'active') {
+        const r = await GameAPI.req('POST', '/api/rocket/cashout', {});
+        GameAPI.applyBalance(r.balance); this.won(r.at, r.result);
+      } else if (s.phase === 'bet') {
+        const auto = parseFloat(this.$('rkAuto').value) || 0;
+        const body = this.kind === 'stars' ? { amount: Math.floor(Number(this.$('rkAmount').value)) } : { prize_id: this.sel };
+        if (this.kind !== 'stars' && !this.sel) { this.note('Pick an item first'); return; }
+        if (auto) body.auto = auto;
+        const r = await GameAPI.req('POST', '/api/rocket/bet', body);
+        GameAPI.applyBalance(r.balance, false);
+        if (this.kind !== 'stars') { await GameAPI.refresh(); this.sel = null; this.renderItems(); }
+      }
+    } catch (e) { this.note(e.message); if (e.code === 'INSUFFICIENT_STARS') { /* user can top up from the wallet */ } }
+    finally { this.busy = false; }
+  },
+  won(at, res) {
+    if (res.stars != null && !res.to) this.note(`Cashed out at ${at.toFixed(2)}x → +${res.stars} ⭐`);
+    else this.note(`${res.from} → ${res.to}` + (res.stars ? ` + ${res.stars} ⭐` : res.coins ? ` + ${res.coins} coins` : ''));
+    this.note2 = true; GameAPI.refresh();
+  },
+  settled(me) {   // our bet finished without us clicking (auto cash-out or crash)
+    if (me.status === 'cashed' && me.result) this.won(me.cash_at, me.result);
+    else if (me.status === 'lost') this.note('Crashed — bet lost');
+    GameAPI.refresh();
   }
 };
 
@@ -6438,6 +6662,7 @@ async function initializeApp() {
   TonWalletManage.init();
   TonPurchaseFlow.init();
   ContentBoxes.init();
+  Rocket.init();
   EventListeners.init();
 
   GameAPI._firstRefresh = GameAPI.refresh();
@@ -6490,3 +6715,17 @@ if (document.readyState === 'loading') {
 } else {
   initializeApp();
 }
+
+// Stop every running Lottie while the app is backgrounded / minimised so it
+// does not burn CPU or battery; resume when the user comes back.
+document.addEventListener('visibilitychange', () => {
+  try {
+    if (document.hidden) {
+      window.__lottieWasPlaying = lottie.getRegisteredAnimations().filter(a => !a.isPaused);
+      window.__lottieWasPlaying.forEach(a => a.pause());
+    } else {
+      (window.__lottieWasPlaying || []).forEach(a => { try { a.play(); } catch {} });
+      window.__lottieWasPlaying = [];
+    }
+  } catch { /* lottie not loaded */ }
+});
