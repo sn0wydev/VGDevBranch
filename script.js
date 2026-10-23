@@ -93,10 +93,11 @@ const CONFIG = {
 };
 
 const PRIZE_COIN_VALUES = {};   // filled from the game server (GameAPI.loadConfig)
+const PRIZE_CONVERT_VALUES = {};   // what the inventory convert button pays for NFTs (from the server)
 const PRIZE_STAR_VALUES = {};   // NFT gifts only: what they convert into (STARS). Everyday gifts convert into coins.
 // What a prize converts into: NFT gifts -> Stars, everyday gifts -> Coins (numbers come from the game server).
 function prizeWorth(name) {
-  const s = PRIZE_STAR_VALUES[name];
+  const s = PRIZE_CONVERT_VALUES[name] ?? PRIZE_STAR_VALUES[name];
   if (s > 0) return { stars: true, value: s, icon: 'assets/TStars.svg', convertKey: 'convertToStars', wordKey: 'starsWord', valueKey: 'starsValue' };
   return { stars: false, value: PRIZE_COIN_VALUES[name] ?? 50, icon: 'assets/Coin.svg', convertKey: 'convertToCoins', wordKey: 'coinsWord', valueKey: 'coinsValue' };
 }
@@ -1849,6 +1850,7 @@ const GameAPI = {
     this.cfg = cfg;
     Object.assign(PRIZE_COIN_VALUES, cfg.coinValues);
     Object.assign(PRIZE_STAR_VALUES, cfg.starValues || {});
+    Object.assign(PRIZE_CONVERT_VALUES, cfg.convertValues || {});
     const T = { daily: [SPIN_PRIZES, PREVIEW_PRIZES], void: [VOID_SPIN_PRIZES, VOID_PREVIEW_PRIZES], furry: [FURRY_SPIN_PRIZES, FURRY_PREVIEW_PRIZES],
                 hex: [HEX_SPIN_PRIZES, HEX_PREVIEW_PRIZES], astral: [ASTRAL_SPIN_PRIZES, ASTRAL_PREVIEW_PRIZES] };
     for (const [name, w] of Object.entries(cfg.wheels)) {
@@ -6279,26 +6281,53 @@ const Promocode = {
 // ============================================
 
 const Rocket = {
-  K: 0.11, snap: null, off: 0, kind: 'stars', sel: null, abort: null, poll: null, raf: 0, active: false, busy: false,
-  $: (id) => document.getElementById(id),
+  K: 0.11, snap: null, off: 0, mode: 'stars', kind: 'gift', pick: null, abort: null, poll: null, raf: 0, active: false, busy: false,
+  announced: 0, tipPos: null, canvasReady: false, fx: { sparks: [], rings: [], debris: [], smoke: [], flash: 0, x: 0, y: 0 }, stars: null,
+  $: (s) => document.querySelector(s),
+  fmt: (n) => Math.round(n).toLocaleString('en-US'),
+  esc: (t) => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+  cfg() { return GameAPI.cfg?.rocket || { minBet: 50, maxBet: 20000, growth: 0.11, giftTiers: [], nftTiers: [] }; },
+  min() { return this.cfg().minBet || 50; },
+  isNft: (n) => NFT_GIFTS.includes(n),
+  val(n) { return (this.isNft(n) ? PRIZE_STAR_VALUES[n] : PRIZE_COIN_VALUES[n]) || 0; },
+
+  // ---------- icons ----------
+  tile(n) {
+    const hue = [...n].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 360, ini = n.split(' ').map(w => w[0]).join('').slice(0, 2);
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},85%,68%)"/><stop offset="1" stop-color="hsl(${(hue + 40) % 360},70%,38%)"/></linearGradient></defs><rect x="6" y="6" width="52" height="52" rx="14" fill="url(#g)"/><text x="32" y="40" font-family="Arial" font-weight="800" font-size="22" text-anchor="middle" fill="#fff">${ini}</text></svg>`);
+  },
+  img(n, cls = '') {
+    const src = GIFT_SVG_ICONS[n] || this.tile(n);
+    return `<img ${cls ? `class="${cls}" ` : ''}src="${src}" alt="" onerror="this.onerror=null;this.src='${this.tile(n).replace(/'/g, '%27')}'">`;
+  },
 
   init() {
-    const card = this.$('rocketCard');
+    const card = document.getElementById('rocketCard');
     if (!card) return;
     const open = () => Navigation.navigateTo('rocket');
     card.addEventListener('click', open);
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') open(); });
-    document.querySelectorAll('.rk-tab').forEach(t => t.addEventListener('click', () => this.setKind(t.dataset.k)));
-    document.querySelectorAll('.rk-quick button').forEach(b => b.addEventListener('click', () => {
-      const a = b.dataset.a; this.$('rkAmount').value = a === 'max' ? Math.min(STATE.userStars, this.cfg().maxBet || 20000) : a;
+    document.querySelectorAll('.rk-seg button').forEach(b => b.addEventListener('click', () => this.setMode(b.dataset.mode)));
+    this.$('#rkGo').addEventListener('click', () => this.go());
+    this.$('#rkAmount').addEventListener('input', () => this.renderButton());
+    document.querySelectorAll('.rk-step').forEach(b => b.addEventListener('click', () => {
+      const a = this.amount(), d = +b.dataset.step;
+      this.$('#rkAmount').value = Math.max(this.min(), a + d * (a >= 500 ? 100 : 50)); this.renderButton();
     }));
-    this.$('rkGo').addEventListener('click', () => this.go());
+    this.$('#rkChips').addEventListener('click', (e) => {
+      const v = e.target.dataset && e.target.dataset.v; if (!v) return; const a = this.amount();
+      this.$('#rkAmount').value = v === 'half' ? Math.max(this.min(), Math.floor(a / 2)) : v === 'double' ? a * 2 : +v; this.renderButton();
+    });
+    this.$('#rkGifts').addEventListener('click', (e) => {
+      const g = e.target.closest('.rk-gift'); if (!g || this.myBet()) return;
+      this.pick = g.dataset.g; this.renderGifts(); this.renderLadder(); this.renderButton();
+    });
   },
-  cfg() { return GameAPI.cfg?.rocket || { minBet: 50, maxBet: 20000, growth: 0.11 }; },
+  amount() { return Math.max(this.min(), Math.floor(+this.$('#rkAmount').value || 0)); },
 
   enter() {
     this.active = true; this.K = this.cfg().growth || 0.11;
-    this.renderItems(); this.connect(); this.frame();
+    this.resize(); this.renderGifts(); this.renderHistory(); this.connect(); this.frame();
   },
   leave() {
     this.active = false;
@@ -6306,13 +6335,15 @@ const Rocket = {
     clearInterval(this.poll); this.poll = null; cancelAnimationFrame(this.raf);
   },
 
-  // --- connection: SSE through fetch (so the auth header works), polling as a fallback ---
+  // ---------- connection: SSE through fetch (so the auth header works), polling as a fallback ----------
   async connect() {
-    this.leave(); this.active = true;
+    try { this.abort?.abort(); } catch {}
+    clearInterval(this.poll); this.poll = null;
     const ctl = new AbortController(); this.abort = ctl;
     try {
       const res = await fetch(GAME_API_BASE + '/api/rocket/stream', { headers: { 'X-Telegram-Init-Data': STATE.tg?.initData || '' }, signal: ctl.signal, cache: 'no-store' });
       if (!res.ok || !res.body) throw new Error('stream ' + res.status);
+      clearInterval(this.poll); this.poll = null;
       const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
       for (;;) {
         const { value, done } = await rd.read(); if (done) break;
@@ -6336,118 +6367,279 @@ const Rocket = {
     tick(); this.poll = setInterval(tick, 1200);
   },
 
+  // ---------- state from the server ----------
+  myBet() { return this.snap?.me && this.snap.me.status ? this.snap.me : null; },
   apply(s) {
-    if (this.poll && s) { /* polling keeps running until the stream reconnects */ }
     const prev = this.snap;
     this.snap = s; this.off = s.serverNow - Date.now();
-    if (prev && prev.me?.status === 'active' && s.me && s.me.status !== 'active') this.settled(s.me);
-    this.render();
+    if (!prev || prev.roundId !== s.roundId) { this.fx = { sparks: [], rings: [], debris: [], smoke: [], flash: 0, x: 0, y: 0 }; this.$('#rkMult').className = 'rk-mult'; this.$('#rkStage').classList.remove('shake'); this.renderGifts(); this.renderLadder(); }
+    if (s.phase === 'crash' && (!prev || prev.phase !== 'crash')) this.onCrash();
+    const me = s.me;
+    if (me && me.status !== 'active' && this.announced !== s.roundId) { this.announced = s.roundId; this.settled(me); }
+    this.renderHistory(); this.renderList(); this.renderButton(); this.renderGifts(); this.renderLadder();
+    this.$('#rkFair').textContent = s.phase === 'crash' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
+  },
+  tFly() {
+    const s = this.snap; if (!s) return 0;
+    if (s.phase === 'crash') return Math.log(s.crashAt) / this.K;
+    if (s.phase !== 'fly') return 0;
+    return Math.max(0, (Date.now() + this.off - s.flyStartedAt) / 1000);
   },
   mult() {
     const s = this.snap; if (!s) return 1;
     if (s.phase === 'crash') return s.crashAt || 1;
     if (s.phase !== 'fly') return 1;
-    const t = (Date.now() + this.off - s.flyStartedAt) / 1000;
-    return Math.max(1, Math.floor(Math.exp(this.K * t) * 100) / 100);
-  },
-  frame() {
-    cancelAnimationFrame(this.raf);
-    const loop = () => {
-      if (!this.active) return;
-      const s = this.snap, st = document.querySelector('.rk-stage');
-      if (s) {
-        const m = this.mult();
-        this.$('rkMult').textContent = m.toFixed(2) + 'x';
-        if (s.phase === 'bet') {
-          const left = Math.max(0, Math.ceil((s.betEndsAt - (Date.now() + this.off)) / 1000));
-          this.$('rkSub').textContent = `Betting open — ${left}s`;
-        }
-        if (s.phase === 'fly' && s.me?.status === 'active') {
-          this.$('rkGo').textContent = this.busy ? '…' : 'Cash out ' + this.valueText(m);
-        }
-        st.className = 'rk-stage ' + s.phase;
-      }
-      this.raf = requestAnimationFrame(loop);
-    };
-    loop();
-  },
-  valueText(m) {
-    const me = this.snap?.me; if (!me) return '';
-    if (me.kind === 'stars') return Math.floor(me.amount * m) + ' ⭐';
-    const v = (PRIZE_STAR_VALUES[me.item] || PRIZE_COIN_VALUES[me.item] || 0);
-    return '≈ ' + Math.floor(v * m) + ' value';
+    return Math.max(1, Math.floor(Math.exp(this.K * this.tFly()) * 100) / 100);
   },
 
-  render() {
+  // ---------- rendering of the panels ----------
+  renderHistory() {
+    this.$('#rkHistory').innerHTML = (this.snap?.history || []).slice(0, 16).map(x => `<span class="${x >= 20 ? 'mega' : x >= 5 ? 'hi' : x >= 2 ? 'mid' : ''}">${x.toFixed(2)}x</span>`).join('');
+  },
+  groups() {   // inventory grouped by name: { name: [prizeId, ...] }
+    const g = {};
+    for (const i of STATE.inventoryItems || []) if (i.prizeId && !i.pendingTransfer && this.val(i.value) >= this.min()) (g[i.value] ||= []).push(i.prizeId);
+    return g;
+  },
+  renderGifts() {
+    const g = this.groups(), names = Object.keys(g).sort((a, b) => this.val(a) - this.val(b));
+    if (this.pick && !g[this.pick]) this.pick = null;
+    if (!this.pick && names.length) this.pick = names[0];
+    const bet = this.myBet();
+    this.$('#rkGifts').innerHTML = names.map(n => {
+      const nft = this.isNft(n);
+      return `<button type="button" class="rk-gift ${nft ? 'is-nft' : ''} ${this.pick === n ? 'on' : ''}" data-g="${this.esc(n)}"><i>×${g[n].length}</i>${nft ? '<u>NFT</u>' : ''}${this.img(n)}<span>${this.esc(n)}</span><em><img src="assets/TStars.svg" alt="">${this.fmt(this.val(n))}</em></button>`;
+    }).join('') || '<p class="rk-hint">You have no gifts worth betting yet.</p>';
+  },
+  tiers(nft) { const c = this.cfg(); return (nft ? c.nftTiers : c.giftTiers) || []; },
+  renderLadder() {
+    const el = this.$('#rkLadder'), bet = this.myBet();
+    const item = bet && bet.item ? bet.item : (this.mode === 'gift' ? this.pick : null);
+    if (!item) { el.hidden = true; return; }
+    el.hidden = false;
+    const v = this.val(item), ups = [];
+    for (const t of this.tiers(this.isNft(item))) if (t.v > v && !ups.some(u => u.v === t.v)) ups.push(t);
+    const rungs = [{ n: item, req: 1, cur: true }, ...ups.slice(0, 5).map(t => ({ n: t.n, req: Math.ceil(t.v / v * 100) / 100 }))];
+    el.innerHTML = rungs.map(r => `<div class="rung ${r.cur ? 'cur' : ''}" data-req="${r.req}">${this.img(r.n)}<b>${r.cur ? 'yours' : r.req + 'x'}</b></div>`).join('');
+  },
+  paintLadder(m, flying) {
+    document.querySelectorAll('#rkLadder .rung').forEach(r => r.classList.toggle('hit', flying && !r.classList.contains('cur') && m >= +r.dataset.req));
+  },
+  setMode(mode) {
+    if (this.myBet()) return this.toast('You already have a bet this round');
+    this.mode = mode;
+    document.querySelectorAll('.rk-seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+    this.$('#paneStars').hidden = mode !== 'stars'; this.$('#paneGift').hidden = mode !== 'gift';
+    this.renderGifts(); this.renderLadder(); this.renderButton();
+  },
+  outcome(item, m) {
+    const nft = this.isNft(item), worth = Math.floor(this.val(item) * m); let to = item, tv = this.val(item);
+    for (const t of this.tiers(nft)) if (t.v <= worth && t.v >= tv) { to = t.n; tv = t.v; }
+    return { to, rem: Math.max(0, worth - tv), nft };
+  },
+  renderButton() {
+    const s = this.snap, b = this.$('#rkGo'), me = this.myBet(); if (!b) return;
+    b.className = 'rk-go'; b.disabled = false;
+    if (!s) { b.textContent = 'Connecting…'; b.disabled = true; b.classList.add('wait'); return; }
+    if (s.phase === 'bet') {
+      if (me) { b.textContent = 'Bet placed ✓'; b.classList.add('wait'); b.disabled = true; }
+      else b.textContent = this.mode === 'stars' ? `Place bet · ${this.fmt(this.amount())} ★` : (this.pick ? `Bet ${this.pick}` : 'Pick a gift');
+    } else if (s.phase === 'fly') {
+      if (me && me.status === 'active') {
+        b.classList.add('cash'); const m = this.mult();
+        if (me.kind === 'stars') b.textContent = `Cash out · ${this.fmt(me.amount * m)} ★`;
+        else { const o = this.outcome(me.item, m); b.textContent = `Cash out · ${o.to}${o.rem ? ' +' + this.fmt(o.rem) + (o.nft ? ' ★' : ' coins') : ''}`; }
+      } else { b.textContent = me ? (me.status === 'cashed' ? 'Cashed out ✓' : 'Round over') : 'Round in progress'; b.disabled = true; b.classList.add('wait'); }
+    } else { b.textContent = 'Next round starting…'; b.disabled = true; b.classList.add('wait'); }
+    if (this.busy) { b.disabled = true; }
+  },
+  renderList() {
     const s = this.snap; if (!s) return;
-    const sub = this.$('rkSub'), go = this.$('rkGo'), me = s.me;
-    this.$('rkHist').innerHTML = (s.history || []).map(h => `<span class="${h >= 2 ? 'hi' : 'lo'}">${h.toFixed(2)}x</span>`).join('');
-    if (s.phase === 'fly') sub.textContent = 'In flight';
-    if (s.phase === 'crash') sub.textContent = `Crashed at ${s.crashAt.toFixed(2)}x`;
-    // button
-    go.classList.remove('cash'); go.disabled = false;
-    if (me && me.status === 'active' && s.phase === 'fly') { go.classList.add('cash'); }
-    else if (me && s.phase === 'bet') { go.textContent = 'Bet placed ✓'; go.disabled = true; }
-    else if (me && me.status === 'active') { go.textContent = 'Waiting for takeoff…'; go.disabled = true; }
-    else if (s.phase === 'bet') { go.textContent = 'Place bet'; }
-    else { go.textContent = 'Next round soon…'; go.disabled = true; }
-    // players
-    this.$('rkPlayers').innerHTML = (s.bets || []).map(b => {
-      const what = b.k === 'stars' ? `${b.a} ⭐` : b.i;
-      const res = b.s === 'cashed' ? `<span class="w">${b.x.toFixed(2)}x</span>` : b.s === 'lost' ? '<span class="l">lost</span>' : '';
-      return `<div><span>${this.esc(b.n)} · ${this.esc(what)}</span>${res}</div>`;
+    const COLORS = ['#b9a2ff', '#ffd8a0', '#9cf0f6', '#ff9fcb', '#e4ff9a', '#7b5cff'];
+    const rows = [...(s.bets || [])].sort((a, b) => (b.me - a.me) || ((b.s === 'cashed') - (a.s === 'cashed')) || ((b.x || 0) - (a.x || 0)));
+    this.$('#rkList').innerHTML = rows.map((b, i) => {
+      const st = b.s === 'cashed' ? 'win' : b.s === 'lost' ? 'lose' : '';
+      const res = b.s === 'cashed' ? `${(b.x || 0).toFixed(2)}x` : b.s === 'lost' ? 'lost' : s.phase === 'bet' ? 'ready' : 'flying…';
+      const what = b.i ? `${this.img(b.i)}${this.esc(b.i)}` : `<img src="assets/TStars.svg" alt="">${this.fmt(b.a || 0)}`;
+      const name = b.me ? 'You' : b.n;
+      return `<li class="${b.me ? 'me' : ''}"><span class="rk-av" style="background:${b.me ? '#ffb25b' : COLORS[i % COLORS.length]}">${this.esc((name || '?')[0])}</span><span class="nm">${this.esc(name)}</span><span class="bt">${what}</span><span class="rs ${st}">${res}</span></li>`;
     }).join('');
-    this.$('rkFair').textContent = s.phase === 'crash' && s.secret ? `Round #${s.roundId} secret: ${s.secret}  (sha256 = ${s.hash})` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
-  },
-  esc(t) { return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
-
-  setKind(k) {
-    this.kind = k; this.sel = null;
-    document.querySelectorAll('.rk-tab').forEach(t => t.classList.toggle('active', t.dataset.k === k));
-    this.$('rkStarsBox').hidden = k !== 'stars'; this.$('rkItems').hidden = k === 'stars';
-    if (k !== 'stars') this.renderItems();
-  },
-  renderItems() {
-    const box = this.$('rkItems'), min = this.cfg().minBet || 50;
-    const list = (STATE.inventoryItems || []).filter(i => i.prizeId && !i.pendingTransfer && (PRIZE_STAR_VALUES[i.value] || PRIZE_COIN_VALUES[i.value] || 0) >= min);
-    box.innerHTML = list.length ? list.map(i => {
-      const v = PRIZE_STAR_VALUES[i.value] || PRIZE_COIN_VALUES[i.value];
-      return `<button class="rk-item${this.sel === i.prizeId ? ' sel' : ''}" data-p="${this.esc(i.prizeId)}"><b>${this.esc(i.value)}</b>${v}</button>`;
-    }).join('') : `<div class="rk-sub">No gifts worth ${min}+ to bet</div>`;
-    box.querySelectorAll('.rk-item').forEach(b => b.addEventListener('click', () => { this.sel = b.dataset.p; this.renderItems(); }));
+    this.$('#rkPlayers').textContent = `${rows.length} player${rows.length === 1 ? '' : 's'}`;
   },
 
-  note(t) { this.$('rkNote').textContent = t || ''; },
+  // ---------- toasts / popup ----------
+  toast(msg) {
+    const el = this.$('#rkToast'); el.textContent = msg; el.classList.add('show');
+    clearTimeout(this._tt); this._tt = setTimeout(() => el.classList.remove('show'), 2400);
+  },
+  showUpgrade(res, m) {
+    const pop = this.$('#rkPop'), same = res.from === res.to, nft = this.isNft(res.from);
+    const extra = nft ? (res.stars ? ` &nbsp;+ ${this.fmt(res.stars)} ★ Stars` : '') : (res.coins ? ` &nbsp;+ ${this.fmt(res.coins)} coins` : '');
+    pop.innerHTML = `<div class="rk-pop-box"><h3>${same ? 'Cashed out!' : (nft ? 'NFT upgraded!' : 'Gift upgraded!')}</h3><p>at ${m.toFixed(2)}x</p>
+      <div class="rk-up">${this.img(res.from, 'from')}<span class="arr">→</span>${this.img(res.to, 'to')}</div>
+      <p><b>${same ? this.esc(res.from) : this.esc(res.from) + ' → ' + this.esc(res.to)}</b>${extra}</p><button type="button" id="rkPopOk">Nice</button></div>`;
+    pop.hidden = false; this.$('#rkPopOk').onclick = () => (pop.hidden = true);
+  },
+  settled(me) {   // our bet finished (cashed by us, auto cash-out, or crash)
+    if (me.status === 'cashed' && me.result) {
+      if (me.result.to) this.showUpgrade(me.result, me.cash_at);
+      else this.toast(`+${this.fmt(me.result.stars - me.amount)} ★ profit  (${me.cash_at.toFixed(2)}x)`);
+    } else if (me.status === 'lost') this.toast(`Crashed at ${(this.snap.crashAt || 0).toFixed(2)}x — bet lost`);
+    GameAPI.refresh().then(() => { this.renderGifts(); this.renderLadder(); });
+  },
+
+  // ---------- actions ----------
   async go() {
     const s = this.snap; if (!s || this.busy) return;
-    this.busy = true; this.note('');
+    this.busy = true; this.renderButton();
     try {
       if (s.phase === 'fly' && s.me?.status === 'active') {
         const r = await GameAPI.req('POST', '/api/rocket/cashout', {});
-        GameAPI.applyBalance(r.balance); this.won(r.at, r.result);
+        GameAPI.applyBalance(r.balance);
+        if (this.announced !== s.roundId) {
+          this.announced = s.roundId;
+          if (r.result.to) this.showUpgrade(r.result, r.at);
+          else this.toast(`+${this.fmt(r.result.stars - s.me.amount)} ★ profit  (${r.at.toFixed(2)}x)`);
+          GameAPI.refresh().then(() => this.renderGifts());
+        }
       } else if (s.phase === 'bet') {
-        const auto = parseFloat(this.$('rkAuto').value) || 0;
-        const body = this.kind === 'stars' ? { amount: Math.floor(Number(this.$('rkAmount').value)) } : { prize_id: this.sel };
-        if (this.kind !== 'stars' && !this.sel) { this.note('Pick an item first'); return; }
-        if (auto) body.auto = auto;
+        const auto = parseFloat(this.$('#rkAuto').value) || 0, body = {};
+        if (this.mode === 'stars') {
+          if (+this.$('#rkAmount').value < this.min()) { this.$('#rkAmount').value = this.min(); this.toast(`Minimum bet is ${this.min()} ★`); return; }
+          body.amount = this.amount();
+        } else {
+          const ids = this.pick && this.groups()[this.pick]; if (!ids) { this.toast('Pick a gift first'); return; }
+          body.prize_id = ids[0];
+        }
+        if (auto >= 1.1) body.auto = auto;
         const r = await GameAPI.req('POST', '/api/rocket/bet', body);
         GameAPI.applyBalance(r.balance, false);
-        if (this.kind !== 'stars') { await GameAPI.refresh(); this.sel = null; this.renderItems(); }
+        if (body.prize_id) { await GameAPI.refresh(); this.renderGifts(); }
+        if (this.snap) this.snap.me = r.bet;
+        this.renderButton(); this.renderLadder();
       }
-    } catch (e) { this.note(e.message); if (e.code === 'INSUFFICIENT_STARS') { /* user can top up from the wallet */ } }
-    finally { this.busy = false; }
+    } catch (e) {
+      this.toast(e.code === 'INSUFFICIENT_STARS' ? 'Not enough Stars' : e.code === 'TOO_LATE' ? 'Too late — the rocket crashed' : e.message);
+    } finally { this.busy = false; this.renderButton(); }
   },
-  won(at, res) {
-    if (res.stars != null && !res.to) this.note(`Cashed out at ${at.toFixed(2)}x → +${res.stars} ⭐`);
-    else this.note(`${res.from} → ${res.to}` + (res.stars ? ` + ${res.stars} ⭐` : res.coins ? ` + ${res.coins} coins` : ''));
-    this.note2 = true; GameAPI.refresh();
+
+  // ---------- canvas ----------
+  resize() {
+    const cv = this.$('#rkCanvas'); if (!cv) return;
+    this.dpr = Math.min(2, window.devicePixelRatio || 1); this.W = cv.clientWidth; this.H = cv.clientHeight;
+    cv.width = this.W * this.dpr; cv.height = this.H * this.dpr; this.ctx = cv.getContext('2d'); this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    if (!this.stars) this.stars = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.9 }));
   },
-  settled(me) {   // our bet finished without us clicking (auto cash-out or crash)
-    if (me.status === 'cashed' && me.result) this.won(me.cash_at, me.result);
-    else if (me.status === 'lost') this.note('Crashed — bet lost');
-    GameAPI.refresh();
+  drawRocket(x, y, ang, flame) {
+    const ctx = this.ctx; ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    const f = flame ? 12 + Math.random() * 10 : 0;
+    if (f) { const g = ctx.createLinearGradient(0, 10, 0, 10 + f + 10); g.addColorStop(0, '#fff3c4'); g.addColorStop(.4, '#ffb25b'); g.addColorStop(1, 'rgba(255,93,108,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-6, 11); ctx.quadraticCurveTo(0, 14 + f * 1.6, 6, 11); ctx.closePath(); ctx.fill(); }
+    ctx.fillStyle = '#ff5fa8'; ctx.beginPath(); ctx.moveTo(-8, -2); ctx.lineTo(-17, 14); ctx.lineTo(-8, 10); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(8, -2); ctx.lineTo(17, 14); ctx.lineTo(8, 10); ctx.closePath(); ctx.fill();
+    const bg = ctx.createLinearGradient(-9, 0, 9, 0); bg.addColorStop(0, '#cfc6f5'); bg.addColorStop(.5, '#ffffff'); bg.addColorStop(1, '#b9a2ff');
+    ctx.fillStyle = bg; ctx.beginPath(); ctx.moveTo(0, -24); ctx.bezierCurveTo(12, -12, 10, 6, 8, 12); ctx.lineTo(-8, 12); ctx.bezierCurveTo(-10, 6, -12, -12, 0, -24); ctx.fill();
+    ctx.fillStyle = '#7b5cff'; ctx.beginPath(); ctx.moveTo(0, -24); ctx.bezierCurveTo(5, -19, 7, -16, 8, -14); ctx.lineTo(-8, -14); ctx.bezierCurveTo(-7, -16, -5, -19, 0, -24); ctx.fill();
+    ctx.fillStyle = '#0a0813'; ctx.beginPath(); ctx.arc(0, -3, 5.2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#4fd8e6'; ctx.beginPath(); ctx.arc(0, -3, 3.6, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(-1.2, -4.2, 1.1, 0, 7); ctx.fill();
+    ctx.restore();
+  },
+  burst(x, y) {
+    const fx = this.fx; fx.x = x; fx.y = y; fx.flash = 1;
+    fx.rings.push({ r: 6, v: 4.2, life: 1, w: 5 }, { r: 3, v: 2.6, life: 1, w: 3 });
+    for (let i = 0; i < 46; i++) { const a = Math.random() * 6.283, sp = 1.5 + Math.random() * 7.5;
+      fx.sparks.push({ x, y, px: x, py: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, d: 0.022 + Math.random() * 0.02, c: ['#fff3c4', '#ffb25b', '#ff5d6c', '#ff5fa8', '#ffffff'][i % 5], r: 1 + Math.random() * 2 }); }
+    for (const kind of ['fin', 'fin', 'nose', 'body', 'body', 'win']) { const a = -Math.PI / 2 + (Math.random() - .5) * 2.6, sp = 2 + Math.random() * 3.5;
+      fx.debris.push({ kind, x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1, rot: Math.random() * 6.28, vr: (Math.random() - .5) * .35, life: 1 }); }
+    for (let i = 0; i < 9; i++) { const a = Math.random() * 6.283, sp = .3 + Math.random() * 1.3;
+      fx.smoke.push({ x: x + Math.cos(a) * 6, y: y + Math.sin(a) * 6, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - .35, r: 7 + Math.random() * 7, life: 1 }); }
+  },
+  drawFx() {
+    const ctx = this.ctx, fx = this.fx;
+    for (const p of fx.smoke) { p.x += p.vx; p.y += p.vy; p.r += .32; p.life -= .016;
+      if (p.life > 0) { ctx.globalAlpha = Math.max(0, p.life) * .22; ctx.fillStyle = '#6b5b95'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); } }
+    fx.smoke = fx.smoke.filter(p => p.life > 0);
+    for (const d of fx.debris) { d.x += d.vx; d.y += d.vy; d.vy += .13; d.rot += d.vr; d.life -= .013;
+      if (d.life <= 0) continue; ctx.save(); ctx.globalAlpha = Math.min(1, d.life * 1.6); ctx.translate(d.x, d.y); ctx.rotate(d.rot);
+      if (d.kind === 'fin') { ctx.fillStyle = '#ff5fa8'; ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(5, 7); ctx.lineTo(-5, 4); ctx.closePath(); ctx.fill(); }
+      else if (d.kind === 'nose') { ctx.fillStyle = '#7b5cff'; ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(6, 4); ctx.lineTo(-6, 4); ctx.closePath(); ctx.fill(); }
+      else if (d.kind === 'body') { ctx.fillStyle = '#ffffff'; ctx.fillRect(-5, -4, 10, 8); ctx.fillStyle = '#b9a2ff'; ctx.fillRect(-5, 1, 10, 3); }
+      else { ctx.fillStyle = '#4fd8e6'; ctx.beginPath(); ctx.arc(0, 0, 3.4, 0, 7); ctx.fill(); }
+      ctx.restore(); }
+    fx.debris = fx.debris.filter(d => d.life > 0);
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'lighter';
+    if (fx.flash > 0) { const r = 18 + (1 - fx.flash) * 58, g = ctx.createRadialGradient(fx.x, fx.y, 0, fx.x, fx.y, r);
+      g.addColorStop(0, `rgba(255,243,196,${fx.flash})`); g.addColorStop(.4, `rgba(255,178,91,${fx.flash * .6})`); g.addColorStop(1, 'rgba(255,93,108,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx.x, fx.y, r, 0, 7); ctx.fill(); fx.flash -= .055; }
+    for (const r of fx.rings) { r.r += r.v; r.v *= .965; r.life -= .026;
+      if (r.life > 0) { ctx.globalAlpha = r.life; ctx.strokeStyle = '#ffd8a0'; ctx.lineWidth = r.w * r.life; ctx.beginPath(); ctx.arc(fx.x, fx.y, r.r, 0, 7); ctx.stroke(); } }
+    fx.rings = fx.rings.filter(r => r.life > 0);
+    for (const p of fx.sparks) { p.px = p.x; p.py = p.y; p.x += p.vx; p.y += p.vy; p.vx *= .965; p.vy = p.vy * .965 + .07; p.life -= p.d;
+      if (p.life > 0) { ctx.globalAlpha = Math.max(0, p.life); ctx.strokeStyle = p.c; ctx.lineWidth = p.r; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(p.px - p.vx * 1.6, p.py - p.vy * 1.6); ctx.lineTo(p.x, p.y); ctx.stroke(); } }
+    fx.sparks = fx.sparks.filter(p => p.life > 0);
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  },
+  onCrash() {
+    this.$('#rkStage').classList.add('shake'); this.$('#rkMult').className = 'rk-mult crashed';
+    if (this.tipPos) this.burst(this.tipPos.x, this.tipPos.y);
+  },
+  draw(t) {
+    const s = this.snap, ctx = this.ctx; if (!ctx || !s) return;
+    const W = this.W, H = this.H, K = this.K, pad = 26, top = 8, bp = this.mode === 'gift' || this.myBet()?.item ? 58 : pad;
+    const m = this.mult(), tt = this.tFly(), flying = s.phase === 'fly', crashedNow = s.phase === 'crash';
+    ctx.clearRect(0, 0, W, H);
+    const sp = flying ? 0.4 + Math.log(m + 1) * 0.9 : 0.12;
+    for (const st of this.stars) { st.y += 0.0009 * sp * st.z; st.x -= 0.0004 * sp * st.z; if (st.y > 1) { st.y = 0; st.x = Math.random(); } if (st.x < 0) st.x = 1;
+      ctx.fillStyle = `rgba(226,220,255,${0.25 + st.z * 0.4})`; ctx.fillRect(st.x * W, st.y * H, st.z * 1.6, st.z * 1.6); }
+    const xMax = Math.max(6, tt * 1.18), yMax = Math.max(2, m * 1.22);
+    const px = (u) => pad + (u / xMax) * (W - pad * 2 - 18);
+    const py = (mm) => H - bp - ((mm - 1) / (yMax - 1)) * (H - bp - pad - top - 112);
+    const tip = { x: px(tt), y: py(m) };
+    if ((flying || crashedNow) && tt > 0) {
+      ctx.beginPath(); ctx.moveTo(px(0), py(1));
+      for (let i = 1; i <= 70; i++) { const u = tt * i / 70; ctx.lineTo(px(u), py(Math.exp(K * u))); }
+      const grad = ctx.createLinearGradient(0, H, 0, 0); grad.addColorStop(0, 'rgba(123,92,255,0)'); grad.addColorStop(1, crashedNow ? 'rgba(255,93,108,.35)' : 'rgba(123,92,255,.45)');
+      ctx.strokeStyle = crashedNow ? '#ff5d6c' : '#b9a2ff'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.shadowColor = crashedNow ? '#ff5d6c' : '#7b5cff'; ctx.shadowBlur = 14; ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.lineTo(px(tt), H - bp); ctx.lineTo(px(0), H - bp); ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(226,220,255,.12)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, H - bp + 6); ctx.lineTo(W - pad, H - bp + 6); ctx.stroke();
+    this.drawFx();
+    if (flying) {
+      const dx = (W - pad * 2 - 18) / xMax, dy = K * m * (H - bp - pad - top - 112) / (yMax - 1);
+      this.tipPos = { x: tip.x, y: tip.y };
+      this.drawRocket(tip.x, tip.y, Math.PI / 2 - Math.atan2(dy, dx), true);
+    } else if (s.phase === 'bet') {
+      this.drawRocket(px(0) + 6, py(1) - 14 + Math.sin(t / 380) * 1.6, 0, false);
+      ctx.fillStyle = 'rgba(226,220,255,.25)'; ctx.fillRect(px(0) - 10, H - bp + 2, 32, 4);
+    }
+  },
+  frame() {
+    cancelAnimationFrame(this.raf);
+    const loop = (t) => {
+      if (!this.active) return;
+      const s = this.snap;
+      if (s) {
+        const num = this.$('#rkMultNum'), unit = this.$('#rkMult small'), sub = this.$('#rkSub'), me = this.myBet(), now = Date.now() + this.off;
+        if (s.phase === 'bet') {
+          num.textContent = Math.max(0, (s.betEndsAt - now) / 1000).toFixed(1); unit.textContent = 's';
+          sub.textContent = me ? 'Bet placed — get ready' : 'Place your bet';
+        } else {
+          const m = this.mult(); num.textContent = m.toFixed(2); unit.textContent = 'x';
+          this.$('#rkMult').classList.toggle('gold', s.phase === 'fly' && m >= 5);
+          if (s.phase === 'fly') {
+            sub.textContent = me && me.status === 'cashed' ? `You cashed out at ${me.cash_at.toFixed(2)}x` : me ? 'Cash out before it crashes' : 'Round in progress';
+            this.paintLadder(m, true); if (me && me.status === 'active') this.renderButton();
+          } else sub.textContent = 'Rocket crashed';
+        }
+        this.draw(t);
+      }
+      this.raf = requestAnimationFrame(loop);
+    };
+    this.raf = requestAnimationFrame(loop);
   }
 };
+window.addEventListener('resize', () => { if (Rocket.active) Rocket.resize(); });
 
 // ============================================
 // CONTENT BOXES
