@@ -94,6 +94,9 @@
       <!-- ============ HOME ============ -->
       <div class="page-content active" id="page-home">
 
+        <!-- ROCKET entry card (placeholder, design comes later) -->
+        <div class="rocket-card" id="rocketCard" role="button" tabindex="0">rocket</div>
+
         <div class="events-carousel">
           <div class="events-track" id="eventsTrack">
 
@@ -453,6 +456,8 @@
               <label class="toggle-switch"><input type="checkbox" id="soundEffects" checked><span class="toggle-slider"></span></label></div>
             <div class="setting-item"><div class="setting-info"><div class="setting-label" data-i18n="prizeAlerts">Prize Alerts</div><div class="setting-description" data-i18n="prizeAlertsDesc">Notify on rare prizes</div></div>
               <label class="toggle-switch"><input type="checkbox" id="prizeAlerts" checked><span class="toggle-slider"></span></label></div>
+            <div class="setting-item" id="demoSettingRow" hidden><div class="setting-info"><div class="setting-label">DEMO mode</div><div class="setting-description">Every spin is a random NFT (dev server only)</div></div>
+              <label class="toggle-switch"><input type="checkbox" id="demoMode"><span class="toggle-slider"></span></label></div>
           </div>
 
           <div class="settings-section">
@@ -477,6 +482,8 @@
               <label class="toggle-switch"><input type="checkbox" id="showInLeaderboard" checked><span class="toggle-slider"></span></label></div>
             <div class="setting-item"><div class="setting-info"><div class="setting-label" data-i18n="shareStatistics">Share Statistics</div><div class="setting-description" data-i18n="shareStatisticsDesc">Allow sharing stats with friends</div></div>
               <label class="toggle-switch"><input type="checkbox" id="shareStats" checked><span class="toggle-slider"></span></label></div>
+            <div class="setting-item"><div class="setting-info"><div class="setting-label" data-i18n="botReminders">Bot reminders</div><div class="setting-description" data-i18n="botRemindersDesc">Daily gift and comeback messages from the bot</div></div>
+              <label class="toggle-switch"><input type="checkbox" id="botReminders" checked><span class="toggle-slider"></span></label></div>
           </div>
 
           <div class="settings-section">
@@ -571,6 +578,38 @@
               <div class="reward-item"><div class="reward-amount">1</div><div class="reward-icon" id="coin1"></div></div>
             </div>
           </div>
+        </div>
+      </div>
+
+
+      <!-- ============ ROCKET ============ -->
+      <div class="page-content" id="page-rocket">
+        <div class="rk-wrap">
+          <button class="spin-back-btn" onclick="TelegramGame.Navigation.navigateTo('home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span>Home</span>
+          </button>
+          <div class="rk-hist" id="rkHist"></div>
+          <div class="rk-stage">
+            <div class="rk-mult" id="rkMult">1.00x</div>
+            <div class="rk-sub" id="rkSub">Connecting…</div>
+          </div>
+          <div class="rk-panel">
+            <div class="rk-tabs">
+              <button class="rk-tab active" data-k="stars">Stars</button>
+              <button class="rk-tab" data-k="item">Gift / NFT</button>
+            </div>
+            <div class="rk-stars" id="rkStarsBox">
+              <input id="rkAmount" type="number" inputmode="numeric" min="50" step="10" value="50">
+              <div class="rk-quick"><button data-a="50">50</button><button data-a="100">100</button><button data-a="500">500</button><button data-a="max">Max</button></div>
+            </div>
+            <div class="rk-items" id="rkItems" hidden></div>
+            <label class="rk-auto">Auto cash-out <input id="rkAuto" type="number" inputmode="decimal" min="1.1" step="0.1" placeholder="off">x</label>
+            <button class="rk-go" id="rkGo">Place bet</button>
+            <div class="rk-note" id="rkNote"></div>
+          </div>
+          <div class="rk-players" id="rkPlayers"></div>
+          <div class="rk-fair" id="rkFair"></div>
         </div>
       </div>
 
