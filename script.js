@@ -1,5 +1,24 @@
 'use strict';
 
+// ---- Version tag: shown at the top while loading, then fades a few seconds after the app opens. ----
+// APP_VERSION is edited by hand; the front-end commit is the newest commit of the front-end repo (GitHub);
+// the back-end commit comes from the game server's /api/config (Railway's RAILWAY_GIT_COMMIT_SHA).
+const APP_VERSION = 'V2.1.00';
+const FRONT_REPO = 'sn0wydev/VGDevBranch', FRONT_BRANCH = 'main';
+const VersionTag = {
+  front: '…', back: '…', el: null, timer: 0,
+  init() {
+    this.el = document.getElementById('versionTag'); this.render();
+    fetch(`https://api.github.com/repos/${FRONT_REPO}/commits/${FRONT_BRANCH}`, { headers: { Accept: 'application/vnd.github+json' } })
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error(r.status)))).then(j => this.set({ front: String(j.sha).slice(0, 7) })).catch(() => this.set({ front: 'n/a' }));
+    return this;
+  },
+  set(p) { Object.assign(this, p); this.render(); },
+  render() { if (this.el) this.el.textContent = `${APP_VERSION} · front ${this.front} · back ${this.back}`; },
+  fadeSoon(ms = 4000) { clearTimeout(this.timer); this.timer = setTimeout(() => this.el && this.el.classList.add('off'), ms); },
+};
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => VersionTag.init()); else VersionTag.init();
+
 // Missing/broken Lottie files (e.g. assets/giftGift.json) fall back to the
 // matching static icon instead of leaving a blank slot on the reel/lists.
 (function installLottieFallback() {
@@ -1848,6 +1867,7 @@ const GameAPI = {
     if (!res.ok) throw new Error(`config HTTP ${res.status}`);
     const cfg = await res.json();
     this.cfg = cfg;
+    VersionTag.set({ back: (cfg.version && cfg.version.commit) || 'n/a' });
     Object.assign(PRIZE_COIN_VALUES, cfg.coinValues);
     Object.assign(PRIZE_STAR_VALUES, cfg.starValues || {});
     Object.assign(PRIZE_CONVERT_VALUES, cfg.convertValues || {});
@@ -2172,6 +2192,7 @@ const LoadingScreen = {
     const mainContent   = document.getElementById('mainContent');
     if (!loadingScreen || !mainContent) return;
     loadingScreen.classList.add('hidden');
+    VersionTag.fadeSoon();
     setTimeout(() => {
       loadingScreen.style.display = 'none';
       mainContent.style.display  = 'block';
@@ -2636,6 +2657,7 @@ const Navigation = {
     if (pageName === 'leaderboard') Leaderboard.init();
     if (pageName === 'deposit')     Deposit.init();
     if (pageName === 'rocket') Rocket.enter(); else if (Rocket.active) Rocket.leave();
+    if (pageName === 'battle') Battle.enter(); else if (Battle.active) Battle.leave();
 
   }
 };
@@ -6280,6 +6302,10 @@ const Promocode = {
 // ROCKET (crash game) — the server decides everything, this only draws.
 // ============================================
 
+const RK_IMG = new Image(); RK_IMG.src = 'assets/RocketFlight.svg';
+const RK_IDLE = new Image(); RK_IDLE.src = 'assets/RocketIdle.svg';   // upright rocket (with its own flame) standing on the pad
+// In-flight rocket: assets/Rocket.json (Lottie) laid over the canvas; falls back to the drawn artwork if it can't load.
+const RK_LT = { anim: null, el: null, loading: false, failed: false, show: false, x: 0, y: 0, ang: 0, size: 76 };
 const Rocket = {
   K: 0.11, snap: null, off: 0, mode: 'stars', kind: 'gift', pick: null, abort: null, poll: null, raf: 0, active: false, busy: false,
   announced: 0, tipPos: null, canvasReady: false, fx: { sparks: [], rings: [], debris: [], smoke: [], flash: 0, x: 0, y: 0 }, stars: null,
@@ -6532,6 +6558,20 @@ const Rocket = {
   },
   drawRocket(x, y, ang, flame) {
     const ctx = this.ctx; ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    if (RK_IMG.complete && RK_IMG.naturalWidth) {   // artwork rocket (assets/RocketFlight.svg, no flame); the flame below is animated
+      const S = 92, ny = S * 0.26, nw = S * 0.11;    // nozzle position / width in local coordinates
+      if (flame) {
+        const tm = performance.now(), len = S * (0.42 + 0.07 * Math.sin(tm / 55) + Math.random() * 0.12);
+        const f1 = ctx.createLinearGradient(0, ny, 0, ny + len); f1.addColorStop(0, '#fff3c4'); f1.addColorStop(.35, '#ffb25b'); f1.addColorStop(1, 'rgba(255,93,60,0)');
+        ctx.fillStyle = f1; ctx.beginPath(); ctx.moveTo(-nw, ny - 1); ctx.quadraticCurveTo(-nw * 0.9, ny + len * 0.7, 0, ny + len); ctx.quadraticCurveTo(nw * 0.9, ny + len * 0.7, nw, ny - 1); ctx.closePath(); ctx.fill();
+        const l2 = len * (0.55 + Math.random() * 0.1), f2 = ctx.createLinearGradient(0, ny, 0, ny + l2); f2.addColorStop(0, '#ffffff'); f2.addColorStop(1, 'rgba(255,214,120,0)');
+        ctx.fillStyle = f2; ctx.beginPath(); ctx.moveTo(-nw * 0.5, ny - 1); ctx.quadraticCurveTo(-nw * 0.45, ny + l2 * 0.7, 0, ny + l2); ctx.quadraticCurveTo(nw * 0.45, ny + l2 * 0.7, nw * 0.5, ny - 1); ctx.closePath(); ctx.fill();
+        const gy = ny + len * 0.3, r = S * 0.2, g = ctx.createRadialGradient(0, gy, 0, 0, gy, r); g.addColorStop(0, 'rgba(255,190,90,.35)'); g.addColorStop(1, 'rgba(255,120,60,0)');
+        ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, gy, r, 0, 7); ctx.fill(); ctx.globalCompositeOperation = 'source-over';
+      }
+      ctx.drawImage(RK_IMG, -S * 0.5, -S * 0.42, S, S);
+      ctx.restore(); return;
+    }
     const f = flame ? 12 + Math.random() * 10 : 0;
     if (f) { const g = ctx.createLinearGradient(0, 10, 0, 10 + f + 10); g.addColorStop(0, '#fff3c4'); g.addColorStop(.4, '#ffb25b'); g.addColorStop(1, 'rgba(255,93,108,0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-6, 11); ctx.quadraticCurveTo(0, 14 + f * 1.6, 6, 11); ctx.closePath(); ctx.fill(); }
@@ -6562,10 +6602,10 @@ const Rocket = {
     fx.smoke = fx.smoke.filter(p => p.life > 0);
     for (const d of fx.debris) { d.x += d.vx; d.y += d.vy; d.vy += .13; d.rot += d.vr; d.life -= .013;
       if (d.life <= 0) continue; ctx.save(); ctx.globalAlpha = Math.min(1, d.life * 1.6); ctx.translate(d.x, d.y); ctx.rotate(d.rot);
-      if (d.kind === 'fin') { ctx.fillStyle = '#ff5fa8'; ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(5, 7); ctx.lineTo(-5, 4); ctx.closePath(); ctx.fill(); }
-      else if (d.kind === 'nose') { ctx.fillStyle = '#7b5cff'; ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(6, 4); ctx.lineTo(-6, 4); ctx.closePath(); ctx.fill(); }
+      if (d.kind === 'fin') { ctx.fillStyle = '#fa7a6e'; ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(5, 7); ctx.lineTo(-5, 4); ctx.closePath(); ctx.fill(); }
+      else if (d.kind === 'nose') { ctx.fillStyle = '#7b3be0'; ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(6, 4); ctx.lineTo(-6, 4); ctx.closePath(); ctx.fill(); }
       else if (d.kind === 'body') { ctx.fillStyle = '#ffffff'; ctx.fillRect(-5, -4, 10, 8); ctx.fillStyle = '#b9a2ff'; ctx.fillRect(-5, 1, 10, 3); }
-      else { ctx.fillStyle = '#4fd8e6'; ctx.beginPath(); ctx.arc(0, 0, 3.4, 0, 7); ctx.fill(); }
+      else { ctx.fillStyle = '#00b4ee'; ctx.beginPath(); ctx.arc(0, 0, 3.4, 0, 7); ctx.fill(); }
       ctx.restore(); }
     fx.debris = fx.debris.filter(d => d.life > 0);
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'lighter';
@@ -6584,8 +6624,30 @@ const Rocket = {
     this.$('#rkStage').classList.add('shake'); this.$('#rkMult').className = 'rk-mult crashed';
     if (this.tipPos) this.burst(this.tipPos.x, this.tipPos.y);
   },
+  ltEnsure() {
+    if (RK_LT.anim || RK_LT.loading || RK_LT.failed || typeof lottie === 'undefined') return;
+    RK_LT.el = this.$('#rkLottie'); if (!RK_LT.el) return;
+    RK_LT.loading = true;
+    fetch('assets/Rocket.json').then(r => r.json()).then(data => {
+      RK_LT.anim = lottie.loadAnimation({ container: RK_LT.el, renderer: 'svg', loop: true, autoplay: true, animationData: data, rendererSettings: { preserveAspectRatio: 'xMidYMid meet' } });
+    }).catch(() => { RK_LT.failed = true; }).finally(() => { RK_LT.loading = false; });
+  },
+  ltApply() {
+    const el = RK_LT.el; if (!el) return;
+    const on = RK_LT.show && !!RK_LT.anim;
+    if (el.hidden === on) el.hidden = !on;
+    if (!on) return;
+    const h = RK_LT.size / 2;
+    el.style.transform = `translate(${RK_LT.x - h}px, ${RK_LT.y - h}px) rotate(${(RK_LT.ang * 180 / Math.PI - 45).toFixed(1)}deg)`;
+  },
+  drawIdle(cx, bottom) {
+    if (!(RK_IDLE.complete && RK_IDLE.naturalWidth)) { this.drawRocket(cx, bottom - 27, 0, false); return; }
+    const h = 78, w = h * 305 / 515;
+    this.ctx.drawImage(RK_IDLE, cx - w / 2, bottom - h, w, h);
+  },
   draw(t) {
     const s = this.snap, ctx = this.ctx; if (!ctx || !s) return;
+    RK_LT.show = false; this.ltEnsure();
     const W = this.W, H = this.H, K = this.K, pad = 26, top = 8, bp = this.mode === 'gift' || this.myBet()?.item ? 58 : pad;
     const m = this.mult(), tt = this.tFly(), flying = s.phase === 'fly', crashedNow = s.phase === 'crash';
     ctx.clearRect(0, 0, W, H);
@@ -6608,11 +6670,13 @@ const Rocket = {
     if (flying) {
       const dx = (W - pad * 2 - 18) / xMax, dy = K * m * (H - bp - pad - top - 112) / (yMax - 1);
       this.tipPos = { x: tip.x, y: tip.y };
-      this.drawRocket(tip.x, tip.y, Math.PI / 2 - Math.atan2(dy, dx), true);
+      const ang = Math.PI / 2 - Math.atan2(dy, dx);
+      if (RK_LT.anim) { RK_LT.show = true; RK_LT.x = tip.x; RK_LT.y = tip.y; RK_LT.ang = ang; } else this.drawRocket(tip.x, tip.y, ang, true);
     } else if (s.phase === 'bet') {
-      this.drawRocket(px(0) + 6, py(1) - 14 + Math.sin(t / 380) * 1.6, 0, false);
+      this.drawIdle(px(0) + 26, py(1) + 2 + Math.sin(t / 380) * 1.0);
       ctx.fillStyle = 'rgba(226,220,255,.25)'; ctx.fillRect(px(0) - 10, H - bp + 2, 32, 4);
     }
+    this.ltApply();
   },
   frame() {
     cancelAnimationFrame(this.raf);
@@ -6640,6 +6704,221 @@ const Rocket = {
   }
 };
 window.addEventListener('resize', () => { if (Rocket.active) Rocket.resize(); });
+
+// ============================================
+// GIFT BATTLE — the server decides the winner, this only draws the reel.
+// ============================================
+
+const Battle = {
+  T: 96, G: 2,                               // tile width / gap in px (must match .bt-tile / .bt-track)
+  snap: null, off: 0, abort: null, poll: null, raf: 0, active: false, busy: false, sel: {}, stripFor: 0, announced: 0, lastPhase: null,
+  COLORS: ['#7b5cff', '#ffb25b', '#4fd8e6', '#ff5fa8', '#c9f25a', '#ff7a6e', '#b9a2ff', '#6ee7a8'],
+  $: (s) => document.querySelector(s),
+  fmt: (n) => Math.round(n).toLocaleString('en-US'),
+  esc: (t) => Rocket.esc(t),
+  cfg() { return GameAPI.cfg?.battle || { maxPlayers: 25, maxItems: 5 }; },
+
+  init() {
+    const card = document.getElementById('battleCard');
+    if (!card) return;
+    const open = () => Navigation.navigateTo('battle');
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') open(); });
+    this.$('#btGo').addEventListener('click', () => this.go());
+    this.$('#btGifts').addEventListener('click', (e) => {
+      const clr = e.target.closest('[data-clear]'); if (clr) { this.sel = {}; return this.renderAll(); }
+      const g = e.target.closest('.rk-gift'); if (!g || !this.canBet()) return;
+      const n = g.dataset.g, have = (this.groups()[n] || []).length, used = Object.values(this.sel).reduce((a, b) => a + b, 0);
+      if (used >= this.slots()) return this.toast(`Max ${this.cfg().maxItems} gifts per round`);
+      if ((this.sel[n] || 0) < have) this.sel[n] = (this.sel[n] || 0) + 1; else delete this.sel[n];   // tap past the last one = deselect
+      this.renderAll();
+    });
+    window.addEventListener('resize', () => { if (this.active) this.layoutIdle(); });
+  },
+
+  enter() { this.active = true; this.renderGifts(); this.connect(); this.frame(); },
+  leave() {
+    this.active = false;
+    try { this.abort?.abort(); } catch {}
+    clearInterval(this.poll); this.poll = null; cancelAnimationFrame(this.raf);
+  },
+
+  // ---------- connection (SSE through fetch, polling fallback) ----------
+  async connect() {
+    try { this.abort?.abort(); } catch {}
+    clearInterval(this.poll); this.poll = null;
+    const ctl = new AbortController(); this.abort = ctl;
+    try {
+      const res = await fetch(GAME_API_BASE + '/api/battle/stream', { headers: { 'X-Telegram-Init-Data': STATE.tg?.initData || '' }, signal: ctl.signal, cache: 'no-store' });
+      if (!res.ok || !res.body) throw new Error('stream ' + res.status);
+      clearInterval(this.poll); this.poll = null;
+      const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+      for (;;) {
+        const { value, done } = await rd.read(); if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i; while ((i = buf.indexOf('\n\n')) >= 0) {
+          const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+          const line = chunk.split('\n').find(l => l.startsWith('data: '));
+          if (line) { try { this.apply(JSON.parse(line.slice(6))); } catch {} }
+        }
+      }
+      throw new Error('stream closed');
+    } catch (e) {
+      if (ctl.signal.aborted || !this.active) return;
+      if (!this.poll) { const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/battle/state')); } catch {} }; tick(); this.poll = setInterval(tick, 1200); }
+      setTimeout(() => { if (this.active && this.abort === ctl) this.connect(); }, 4000);
+    }
+  },
+
+  // ---------- state ----------
+  me() { return this.snap?.players?.find(p => p.me) || null; },
+  canBet() { const s = this.snap; return !!s && (s.phase === 'open' || (s.phase === 'bet' && Date.now() + this.off < s.betEndsAt)); },
+  slots() { return Math.max(0, (this.snap?.maxItems || this.cfg().maxItems) - (this.me()?.items.length || 0)); },
+  apply(s) {
+    const prev = this.snap;
+    this.snap = s; this.off = s.serverNow - Date.now();
+    if (!prev || prev.roundId !== s.roundId) { this.sel = {}; this.stripFor = 0; this.$('#btReel').classList.remove('done'); }
+    if (s.phase === 'result' && this.announced !== s.roundId) { this.announced = s.roundId; setTimeout(() => this.onResult(s), 400); }
+    this.renderAll();
+  },
+  groups() {
+    const g = {};
+    for (const i of STATE.inventoryItems || []) if (i.prizeId && !i.pendingTransfer) (g[i.value] ||= []).push(i.prizeId);
+    return g;
+  },
+  selValue() { return Object.entries(this.sel).reduce((a, [n, c]) => a + Rocket.val(n) * c, 0); },
+  selCount() { return Object.values(this.sel).reduce((a, b) => a + b, 0); },
+
+  // ---------- rendering ----------
+  av(p, cls = '') {
+    const ini = this.esc((p.name || '?').replace('@', '')[0] || '?').toUpperCase();
+    return p.avatar ? `<img src="${this.esc(p.avatar)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${ini}'))">` : ini;
+  },
+  tile(p, i, extra = '') {
+    return `<div class="bt-tile ${p.me ? 'me' : ''} ${extra}" style="--tc:${this.COLORS[i % this.COLORS.length]}"><span class="bt-av">${this.av(p)}</span><span class="bt-nm">${this.esc(p.name)}</span><span class="bt-gf">${p.items.slice(0, 3).map(n => Rocket.img(n)).join('')}${p.items.length > 3 ? `<i>+${p.items.length - 3}</i>` : ''}</span><span class="bt-val"><img src="assets/TStars.svg" alt="">${this.fmt(p.value)}</span><span class="bt-ch">${(p.chance * 100).toFixed(p.chance >= 0.9995 ? 0 : 1)}%</span></div>`;
+  },
+  renderAll() { this.renderHistory(); this.renderStage(); this.renderGifts(); this.renderList(); this.renderButton(); },
+  renderHistory() {
+    this.$('#btHistory').innerHTML = (this.snap?.history || []).map(h => `<span class="mid" title="${this.esc(h.name)}">${this.esc(h.name)} · ${this.fmt(h.value)}</span>`).join('');
+  },
+  renderStage() {
+    const s = this.snap; if (!s) return;
+    this.$('#btPotVal').textContent = this.fmt(s.totalValue);
+    this.$('#btPotItems').textContent = s.itemCount;
+    this.$('#btPlayers').textContent = `${s.players.length}/${s.maxPlayers}`;
+    const track = this.$('#btTrack');
+    if (s.spin && (s.phase === 'spin' || s.phase === 'result')) {
+      if (this.stripFor !== s.roundId) {      // build the reel once per round
+        this.stripFor = s.roundId;
+        track.innerHTML = s.spin.strip.map((pi, k) => this.tile(s.players[pi], pi, k === s.spin.winnerTile ? 'win' : '')).join('');
+      }
+    } else if (!s.spin) {
+      this.stripFor = 0;
+      track.innerHTML = s.players.map((p, i) => this.tile(p, i)).join('');
+      this.layoutIdle();
+    }
+  },
+  layoutIdle() {   // before the spin: show the players centred on the line
+    const s = this.snap; if (!s || s.spin) return;
+    const reelW = this.$('#btReel').clientWidth, rowW = s.players.length * (this.T + this.G) - this.G;
+    this.$('#btTrack').style.transform = `translateX(${Math.max(0, (reelW - rowW) / 2)}px)`;
+  },
+  renderGifts() {
+    const g = this.groups(), names = Object.keys(g).sort((a, b) => Rocket.val(a) - Rocket.val(b)).filter(n => Rocket.val(n) > 0);
+    for (const n of Object.keys(this.sel)) if (!g[n]) delete this.sel[n];
+    const slots = this.slots(), mine = this.me();
+    this.$('#btSlots').textContent = this.snap ? `${mine ? mine.items.length : 0}/${this.snap.maxItems} in this round` : '';
+    this.$('#btGifts').innerHTML = (names.map(n => {
+      const nft = Rocket.isNft(n), c = this.sel[n] || 0;
+      return `<button type="button" class="rk-gift ${nft ? 'is-nft' : ''} ${c ? 'on' : ''}" data-g="${this.esc(n)}"><i>×${g[n].length}</i>${nft ? '<u>NFT</u>' : ''}${Rocket.img(n)}<span>${this.esc(n)}</span><em><img src="assets/TStars.svg" alt="">${this.fmt(Rocket.val(n))}</em>${c ? `<b>+${c}</b>` : ''}</button>`;
+    }).join('') || '<p class="rk-hint">You have no gifts to bet yet. Win some from the spins first.</p>')
+      + (this.selCount() ? '<button type="button" class="rk-gift" data-clear="1"><span style="margin-top:1.2rem">Clear</span></button>' : '');
+    // live chance preview
+    const s = this.snap, add = this.selValue();
+    if (s && add > 0) {
+      const mineV = (mine ? mine.value : 0) + add, tot = s.totalValue + add;
+      this.$('#btChance').innerHTML = `Your chance with these: <b>${(mineV / tot * 100).toFixed(1)}%</b> (${this.fmt(mineV)} of ${this.fmt(tot)})`;
+    } else if (mine) this.$('#btChance').innerHTML = `Your chance now: <b>${(mine.chance * 100).toFixed(1)}%</b>`;
+    else this.$('#btChance').innerHTML = '';
+  },
+  renderList() {
+    const s = this.snap; if (!s) return;
+    const win = s.spin && s.phase === 'result' ? s.spin.winner : -1;
+    this.$('#btList').innerHTML = s.players.map((p, i) => `<li class="${p.me ? 'me' : ''} ${i === win ? 'win' : ''}"><span class="rk-av" style="background:${this.COLORS[i % this.COLORS.length]}">${this.av(p)}</span><span class="nm">${this.esc(p.name)}</span><span class="ic">${p.items.map(n => Rocket.img(n)).join('')}</span><span class="rs">${(p.chance * 100).toFixed(1)}%</span></li>`).join('')
+      || '<li><span></span><span class="nm rk-dim">Nobody yet — be the first</span><span></span><span></span></li>';
+    this.$('#btCount').textContent = `${s.players.length}/${s.maxPlayers}`;
+    this.$('#btFair').textContent = s.phase === 'result' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
+  },
+  renderButton() {
+    const s = this.snap, b = this.$('#btGo'); if (!b) return;
+    b.className = 'rk-go'; b.disabled = false;
+    if (!s) { b.textContent = 'Connecting…'; b.disabled = true; b.classList.add('wait'); return; }
+    if (!this.canBet()) { b.textContent = s.phase === 'result' ? 'Next round starting…' : 'Round in progress'; b.disabled = true; b.classList.add('wait'); return; }
+    const c = this.selCount();
+    if (c) b.textContent = `${this.me() ? 'Add' : 'Join with'} ${c} gift${c === 1 ? '' : 's'} · ${this.fmt(this.selValue())}`;
+    else { b.textContent = this.slots() ? (this.me() ? 'Pick more gifts to add' : 'Pick gifts to join') : 'Max gifts reached'; b.disabled = true; b.classList.add('wait'); }
+    if (this.busy) b.disabled = true;
+  },
+
+  // ---------- reel animation ----------
+  lineX(p) { const k = Math.floor(p); return k * (this.T + this.G) + (p - k) * this.T; },
+  frame() {
+    cancelAnimationFrame(this.raf);
+    const loop = () => {
+      if (!this.active) return;
+      const s = this.snap;
+      if (s) {
+        const now = Date.now() + this.off, st = this.$('#btStatus'), reel = this.$('#btReel');
+        reel.classList.toggle('live', !!(s.spin && (s.phase === 'spin' || s.phase === 'result')));
+        if (s.phase === 'open') { st.textContent = 'Waiting for the first gift — the countdown starts when someone bets'; st.className = 'bt-status'; }
+        else if (s.phase === 'bet') { st.textContent = `Spin starts in ${Math.max(0, Math.ceil((s.betEndsAt - now) / 1000))}s`; st.className = 'bt-status go'; }
+        else if (s.phase === 'closing') { st.textContent = 'Bets closed…'; st.className = 'bt-status'; }
+        if (s.spin && (s.phase === 'spin' || s.phase === 'result') && this.stripFor === s.roundId) {
+          const t = Math.min(1, Math.max(0, (now - s.spin.startedAt) / s.spin.ms)), e = 1 - Math.pow(1 - t, 4);
+          const x0 = this.lineX(2.2), x1 = this.lineX(s.spin.winnerTile + s.spin.offset), x = x0 + (x1 - x0) * e;
+          this.$('#btTrack').style.transform = `translateX(${reel.clientWidth / 2 - x}px)`;
+          if (t < 1) { st.textContent = 'Spinning…'; st.className = 'bt-status'; reel.classList.remove('done'); }
+          else { const w = s.players[s.spin.winner]; reel.classList.add('done'); st.className = 'bt-status go'; st.textContent = `${w.me ? 'You win' : w.name + ' wins'} ${s.itemCount} gift${s.itemCount === 1 ? '' : 's'} · ${this.fmt(s.totalValue)}`; }
+        }
+      }
+      this.raf = requestAnimationFrame(loop);
+    };
+    this.raf = requestAnimationFrame(loop);
+  },
+
+  // ---------- result ----------
+  toast(msg) { const el = this.$('#btToast'); el.textContent = msg; el.classList.add('show'); clearTimeout(this._tt); this._tt = setTimeout(() => el.classList.remove('show'), 2400); },
+  onResult(s) {
+    if (!this.active || !s.spin) return;
+    const me = s.players.find(p => p.me); if (!me) return;
+    const w = s.players[s.spin.winner];
+    if (w.me) {
+      const all = s.players.flatMap(p => p.items);
+      const pop = this.$('#btPop');
+      pop.innerHTML = `<div class="rk-pop-box"><h3>You won the battle!</h3><p>${all.length} gift${all.length === 1 ? '' : 's'} · ${this.fmt(s.totalValue)} total</p>
+        <div class="rk-up" style="flex-wrap:wrap">${all.map(n => Rocket.img(n, 'to')).join('')}</div><p>${all.map(n => this.esc(n)).join(', ')}</p><button type="button" id="btPopOk">Nice</button></div>`;
+      pop.hidden = false; this.$('#btPopOk').onclick = () => (pop.hidden = true);
+    } else this.toast(`${w.name} won the pot — better luck next time`);
+    GameAPI.refresh().then(() => this.renderGifts());
+  },
+
+  // ---------- join ----------
+  async go() {
+    if (this.busy || !this.canBet()) return;
+    const g = this.groups(), ids = [];
+    for (const [n, c] of Object.entries(this.sel)) ids.push(...(g[n] || []).slice(0, c));
+    if (!ids.length) return;
+    this.busy = true; this.renderButton();
+    try {
+      await GameAPI.req('POST', '/api/battle/join', { prize_ids: ids });
+      this.sel = {};
+      await GameAPI.refresh();
+    } catch (e) {
+      this.toast(e.code === 'BETTING_CLOSED' ? 'Betting just closed' : e.code === 'ROOM_FULL' ? 'This round is full' : e.message);
+      await GameAPI.refresh().catch(() => {});
+    } finally { this.busy = false; this.renderAll(); }
+  }
+};
 
 // ============================================
 // CONTENT BOXES
@@ -6855,6 +7134,7 @@ async function initializeApp() {
   TonPurchaseFlow.init();
   ContentBoxes.init();
   Rocket.init();
+  Battle.init();
   EventListeners.init();
 
   GameAPI._firstRefresh = GameAPI.refresh();
