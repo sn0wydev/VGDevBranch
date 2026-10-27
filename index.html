@@ -14,6 +14,7 @@
 <body class="no-scroll">
 
   <!-- Loading Screen -->
+<div class="version-tag" id="versionTag" aria-hidden="true"></div>
 <div class="loading-screen" id="loadingScreen">
   <div class="loading-container">
     <div class="loading-status-heading" id="loadingStatusHeading" style="display:none;"></div>
@@ -139,6 +140,7 @@
 
         <!-- ROCKET entry card (placeholder, design comes later) -->
         <div class="rocket-card" id="rocketCard" role="button" tabindex="0">rocket</div>
+        <div class="rocket-card battle-card" id="battleCard" role="button" tabindex="0">gift battle</div>
 
         <div class="home-grid">
 
@@ -600,6 +602,7 @@
 
         <div class="rk-stage" id="rkStage">
           <canvas id="rkCanvas"></canvas>
+          <div class="rk-lottie" id="rkLottie" hidden></div>
           <div class="rk-mult" id="rkMult"><span id="rkMultNum">1.00</span><small>x</small></div>
           <div class="rk-sub" id="rkSub">Connecting…</div>
           <div class="rk-ladder" id="rkLadder" hidden></div>
@@ -650,6 +653,57 @@
 
       <div class="rk-toast" id="rkToast"></div>
       <div class="rk-pop" id="rkPop" hidden></div>
+
+      <!-- ============ GIFT BATTLE ============ -->
+      <div class="page-content" id="page-battle">
+        <button class="spin-back-btn" onclick="TelegramGame.Navigation.navigateTo('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span data-i18n="backToHome">Home</span>
+        </button>
+
+        <div class="rk-head">
+          <div>
+            <span class="eyebrow">Mini game</span>
+            <h1 class="rk-title">Gift Battle</h1>
+          </div>
+        </div>
+
+        <div class="rk-history" id="btHistory" aria-label="Previous winners"></div>
+
+        <div class="bt-stage" id="btStage">
+          <div class="bt-pot">
+          <div class="bt-stat bt-stat--pot"><span>Pot</span><b><img src="assets/TStars.svg" alt=""><em id="btPotVal">0</em></b></div>
+          <div class="bt-stat"><span>Gifts</span><b id="btPotItems">0</b></div>
+          <div class="bt-stat"><span>Players</span><b id="btPlayers">0</b></div>
+        </div>
+        <div class="bt-reel" id="btReel">
+            <div class="bt-track" id="btTrack"></div>
+            <div class="bt-line"></div>
+          </div>
+          <div class="bt-status" id="btStatus">Connecting…</div>
+        </div>
+
+        <div class="rk-card">
+          <div class="rk-card-h"><span>Your gifts</span><span id="btSlots" class="rk-dim"></span></div>
+          <div class="rk-gifts bt-gifts" id="btGifts"></div>
+          <p class="rk-hint">Bet any gifts from your inventory. Your chance is <b>the value of your gifts ÷ the value of all gifts in the pot</b>. The winner takes <b>every</b> gift that was bet, and nothing else is added. Alone in the round? Your chance is 100% and you get your gifts back.</p>
+          <div class="bt-chance" id="btChance"></div>
+          <button type="button" class="rk-go" id="btGo">Pick gifts to join</button>
+        </div>
+
+        <div class="rk-card">
+          <div class="rk-card-h"><span>In this battle</span><span id="btCount" class="rk-dim"></span></div>
+          <ul class="rk-list bt-list" id="btList"></ul>
+        </div>
+
+        <div class="rk-card rk-note">
+          <b>Provably fair.</b> The winner is fixed by a secret chosen before betting opens. Its hash is shown below; after the spin the secret is revealed so anyone can verify the result.
+          <div class="rk-fair" id="btFair"></div>
+        </div>
+      </div>
+
+      <div class="rk-toast" id="btToast"></div>
+      <div class="rk-pop" id="btPop" hidden></div>
 
       <!-- ============ VOID SPIN ============ -->
       <div class="page-content" id="page-voidspin">
