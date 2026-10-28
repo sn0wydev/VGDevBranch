@@ -98,32 +98,40 @@
         <div class="events-carousel">
           <div class="events-track" id="eventsTrack">
 
-            <div class="event-card event-card--birthday" data-event-id="app-birthday">
-              <span class="event-confetti" aria-hidden="true">
-                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-              </span>
+            <a class="event-card event-card--rocket" href="#" data-event-id="rocket-promo" onclick="TelegramGame.Navigation.navigateTo('rocket');return false;">
+              <span class="rkc-nebula" aria-hidden="true"></span>
+              <span class="rkc-streaks" aria-hidden="true"></span>
+              <span class="rkc-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><b></b><b></b><b></b></span>
+              <span class="rkc-dash" aria-hidden="true"><u></u><u></u><u></u><u></u><u></u></span>
               <span class="event-sheen" aria-hidden="true"></span>
-              <div class="event-art event-art--left"><img src="assets/BirthdayCake.svg" alt=""></div>
-              <div class="event-copy event-copy--center">
-                <span class="event-badge" data-i18n="eventBadgeAnniversary">🎉 Anniversary</span>
-                <div class="event-title event-title--hero">
-                  <span class="event-title-sm" data-i18n="eventBirthdayTitleSm">App</span>
-                  <span class="event-title-lg" data-i18n="eventBirthdayTitleLg">Birthday!</span>
-                </div>
-                <div class="event-sub" data-i18n="eventBirthdaySub">Thank you for an amazing year</div>
-              </div>
-              <div class="event-art event-art--right"><img src="assets/Balloons.svg" alt=""></div>
-            </div>
+              <div class="rkc-title"><span class="rkc-title-sm" data-i18n="eventRocketTitleA">Fly up to the</span><span class="rkc-title-lg" data-i18n="eventRocketTitleB">Skies!</span></div>
+              <span class="rkc-x rkc-x1" aria-hidden="true">x67</span>
+              <span class="rkc-x rkc-x2" aria-hidden="true">x228</span>
+              <span class="rkc-x rkc-x3" aria-hidden="true">x557</span>
+              <svg class="rkc-trail" width="1" height="148" viewBox="0 0 1 148" overflow="visible" aria-hidden="true">
+                <defs>
+                  <linearGradient id="rkcTr" gradientUnits="userSpaceOnUse" x1="-420" y1="0" x2="-38" y2="0"><stop offset="0" stop-color="#7b5cff" stop-opacity="0"/><stop offset=".6" stop-color="#9b7dff" stop-opacity=".85"/><stop offset="1" stop-color="#e4dbff"/></linearGradient>
+                  <linearGradient id="rkcFill" gradientUnits="userSpaceOnUse" x1="-420" y1="0" x2="-38" y2="0"><stop offset="0" stop-color="#7b5cff" stop-opacity="0"/><stop offset=".7" stop-color="#7b5cff" stop-opacity=".35"/><stop offset="1" stop-color="#7b5cff" stop-opacity="0"/></linearGradient>
+                </defs>
+                <path d="M-900 152 C-420 150 -170 144 -38 94 L-38 160 Z" fill="url(#rkcFill)"/>
+                <path d="M-900 152 C-420 150 -170 144 -38 94" fill="none" stroke="url(#rkcTr)" stroke-width="3.6" stroke-linecap="round"/>
+              </svg>
+              <span class="rkc-ship" aria-hidden="true"><img src="assets/RocketCard.svg" alt="" draggable="false"></span>
+              <span class="rkc-big" aria-hidden="true">x999</span>
+            </a>
 
-            <a class="event-card event-card--teal" href="#" data-event-id="double-stars" onclick="TelegramGame.Navigation.navigateTo('deposit');return false;">
-              <div class="event-clouds" aria-hidden="true"><img src="assets/Clouds.svg" alt=""></div>
+            <a class="event-card event-card--battle" href="#" data-event-id="battle-promo" onclick="TelegramGame.Navigation.navigateTo('battle');return false;">
+              <span class="bc-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
               <span class="event-sheen" aria-hidden="true"></span>
-              <div class="event-art"><img src="assets/TStars.svg" alt=""></div>
-              <div class="event-copy">
-                <span class="event-badge" data-i18n="eventBadgeLimited">Limited</span>
-                <div class="event-title event-title--big" data-i18n="eventStarsTitle">Double Stars weekend</div>
-                <div class="event-sub" data-i18n="eventStarsSub">Bonus Stars on every deposit</div>
+              <div class="bc-copy">
+                <span class="event-badge" data-i18n="eventBattleBadge">Winner takes all</span>
+                <div class="bc-title"><span class="bc-title-sm" data-i18n="eventBattleSm">Gift</span><span class="bc-title-lg" data-i18n="eventBattleLg">Battle!</span></div>
+                <div class="bc-sub" data-i18n="eventBattleSub">Bet a gift, win the whole pot</div>
               </div>
+              <div class="bc-reel" aria-hidden="true">
+                <div class="bc-track"><span class="bc-tile" style="--tc:#7b5cff"><i class="bc-av"></i><img src="assets/Bear.svg" alt=""><b>24%</b></span><span class="bc-tile" style="--tc:#ff9d5c"><i class="bc-av"></i><img src="assets/Diamond.svg" alt=""><b>52%</b></span><span class="bc-tile" style="--tc:#35d6e8"><i class="bc-av"></i><img src="assets/Cake.svg" alt=""><b>18%</b></span><span class="bc-tile" style="--tc:#ff4d8d"><i class="bc-av"></i><img src="assets/Rose.svg" alt=""><b>6%</b></span><span class="bc-tile" style="--tc:#7b5cff"><i class="bc-av"></i><img src="assets/Bear.svg" alt=""><b>24%</b></span><span class="bc-tile" style="--tc:#ff9d5c"><i class="bc-av"></i><img src="assets/Diamond.svg" alt=""><b>52%</b></span><span class="bc-tile" style="--tc:#35d6e8"><i class="bc-av"></i><img src="assets/Cake.svg" alt=""><b>18%</b></span><span class="bc-tile" style="--tc:#ff4d8d"><i class="bc-av"></i><img src="assets/Rose.svg" alt=""><b>6%</b></span></div>
+              </div>
+              <span class="bc-line" aria-hidden="true"></span>
             </a>
 
           </div>
