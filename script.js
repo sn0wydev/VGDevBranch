@@ -388,6 +388,7 @@ const TRANSLATIONS = {
     eventBattleSm: 'Gift',
     eventBattleLg: 'Battle!',
     eventBattleSub: 'Bet a gift, win the whole pot',
+    ecRocketPill: 'up to x500', ecRocketSub: 'Cash out before it flies away', ecBattlePill: 'no player limit', ecBattleSub: 'Winner takes the pot',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: 'Birthday!',
     eventBirthdaySub: 'Thank you for an amazing year',
@@ -647,6 +648,7 @@ const TRANSLATIONS = {
     eventBattleSm: 'Гифт',
     eventBattleLg: 'Баттл!',
     eventBattleSub: 'Ставь подарок — забирай банк',
+    ecRocketPill: 'до x500', ecRocketSub: 'Забери выигрыш до взрыва', ecBattlePill: 'без лимита игроков', ecBattleSub: 'Победитель забирает банк',
     eventBirthdayTitleSm: 'Прил.',
     eventBirthdayTitleLg: 'День рождения!',
     eventBirthdaySub: 'Спасибо за потрясающий год',
@@ -876,6 +878,7 @@ const TRANSLATIONS = {
     eventBattleSm: 'Batalla',
     eventBattleLg: 'de regalos!',
     eventBattleSub: 'Apuesta un regalo y gana el bote',
+    ecRocketPill: 'hasta x500', ecRocketSub: 'Retira antes de que se escape', ecBattlePill: 'sin límite de jugadores', ecBattleSub: 'El ganador se lleva el bote',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: '¡Cumpleaños!',
     eventBirthdaySub: 'Gracias por un año increíble',
@@ -1105,6 +1108,7 @@ const TRANSLATIONS = {
     eventBattleSm: 'Bataille',
     eventBattleLg: 'de cadeaux!',
     eventBattleSub: 'Mise un cadeau, gagne la cagnotte',
+    ecRocketPill: 'jusqu\'à x500', ecRocketSub: 'Encaisse avant qu\'elle ne s\'envole', ecBattlePill: 'sans limite de joueurs', ecBattleSub: 'Le gagnant remporte la cagnotte',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: 'Anniversaire !',
     eventBirthdaySub: 'Merci pour une année incroyable',
@@ -1334,6 +1338,7 @@ const TRANSLATIONS = {
     eventBattleSm: 'Geschenke-',
     eventBattleLg: 'Battle!',
     eventBattleSub: 'Setze ein Geschenk, gewinne den Pot',
+    ecRocketPill: 'bis zu x500', ecRocketSub: 'Auszahlen, bevor sie abhebt', ecBattlePill: 'unbegrenzt viele Spieler', ecBattleSub: 'Der Gewinner bekommt den Pot',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: 'Geburtstag!',
     eventBirthdaySub: 'Danke für ein tolles Jahr',
@@ -1563,6 +1568,7 @@ const TRANSLATIONS = {
     eventBattleSm: '礼物',
     eventBattleLg: '大战!',
     eventBattleSub: '下注一件礼物，赢取整个奖池',
+    ecRocketPill: '最高 x500', ecRocketSub: '在火箭飞走前提现', ecBattlePill: '不限玩家人数', ecBattleSub: '赢家独得奖池',
     eventBirthdayTitleSm: '应用',
     eventBirthdayTitleLg: '生日快乐！',
     eventBirthdaySub: '感谢这美好的一年',
@@ -1882,12 +1888,15 @@ const GameAPI = {
   _firstRefresh: null,
 
   async req(method, path, body) {
-    const res = await fetch(GAME_API_BASE + path, {
-      method,
-      headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': STATE.tg?.initData || '' },
-      body: body ? JSON.stringify(body) : undefined,
-      cache: 'no-store'
-    });
+    let res;
+    try {
+      res = await fetch(GAME_API_BASE + path, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': STATE.tg?.initData || '' },
+        body: body ? JSON.stringify(body) : undefined,
+        cache: 'no-store'
+      });
+    } catch (err) { const e = new Error('Server is not reachable, try again in a moment'); e.code = 'OFFLINE'; throw e; }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const e = new Error(data.error || `HTTP ${res.status}`);
@@ -2806,7 +2815,7 @@ const Notifications = {
 // ============================================
 
 const LiveGiftNotifications = {
-  add(prize) {
+  add(prize, opts = {}) {
     if (STATE.liveGiftNotifications.length >= CONFIG.MAX_LIVE_NOTIFICATIONS) {
       this.remove(STATE.liveGiftNotifications[0]);
     }
@@ -2830,27 +2839,54 @@ const LiveGiftNotifications = {
     const label = Object.assign(document.createElement('div'), { className: 'gift-notification-label', textContent: isNFT ? 'NFT' : prize.value });
     cube.appendChild(label);
 
-    const fill = document.createElement('div'); fill.className = 'time-bar-fill';
-    fill.style.animationDuration = `${CONFIG.NOTIFICATION_DURATION}ms`;
-    const bar = document.createElement('div'); bar.className = 'time-bar';
-    bar.appendChild(fill); cube.appendChild(bar);
-
-    document.getElementById('notificationContainer')?.appendChild(cube);
+    // no timer: gifts stay until newer ones push them out. Newest goes to the front so it is always in view.
+    const box = document.getElementById('notificationContainer');
+    if (box) { box.insertBefore(cube, box.firstChild); box.scrollTo({ left: 0, behavior: 'smooth' }); }
     STATE.liveGiftNotifications.push(id);
     Notifications.updateCount();
-    setTimeout(() => this.remove(id), CONFIG.NOTIFICATION_DURATION);
   },
 
   remove(id) {
     const cube = document.querySelector(`[data-id="${id}"]`);
-    if (cube) {
-      Object.assign(cube.style, { animation:'none', transform:'translateX(100px)', opacity:'0' });
-      setTimeout(() => {
-        cube.remove();
-        STATE.liveGiftNotifications = STATE.liveGiftNotifications.filter(n => n !== id);
-        Notifications.updateCount();
-      }, 300);
-    }
+    STATE.liveGiftNotifications = STATE.liveGiftNotifications.filter(n => n !== id);
+    Notifications.updateCount();
+    if (!cube) return;
+    cube.classList.add('leaving');                       // shrinks and fades; neighbours slide in smoothly
+    setTimeout(() => cube.remove(), 600);
+  }
+};
+
+// Global live feed: real non-NFT gift wins from every player (server: GET /api/live-gifts).
+// New wins are queued and shown ONE BY ONE at random moments, so the strip trickles in like a live feed instead of dumping a row.
+const LiveFeed = {
+  seen: new Set(), queue: [], pollTimer: null, showTimer: null,
+  start() {
+    if (this.pollTimer) return;
+    this.poll();
+    this.pollTimer = setInterval(() => { if (!document.hidden) this.poll(); }, 20000);
+  },
+  async poll() {
+    try {
+      const res = await fetch(GAME_API_BASE + '/api/live-gifts', { cache: 'no-store' });
+      if (!res.ok) return;
+      const { items } = await res.json();
+      (items || []).forEach(i => {
+        const key = i.ts + i.gift;
+        if (this.seen.has(key) || NFT_GIFTS.includes(i.gift) || !GIFT_SVG_ICONS[i.gift]) return;
+        this.seen.add(key); this.queue.push(i.gift);
+      });
+      if (this.queue.length > 20) this.queue.splice(0, this.queue.length - 20);   // never fall far behind
+      this.schedule(1200);
+    } catch (_) { /* the strip simply keeps what it has */ }
+  },
+  schedule(delay) {
+    if (this.showTimer || !this.queue.length) return;
+    this.showTimer = setTimeout(() => {
+      this.showTimer = null;
+      if (document.hidden) { this.schedule(4000); return; }
+      LiveGiftNotifications.add({ value: this.queue.shift(), lottie: true }, { persist: true });
+      this.schedule(2500 + Math.random() * 6500);                                  // next one in 2.5-9 s
+    }, delay);
   }
 };
 
@@ -4948,6 +4984,33 @@ const EventsCarousel = {
     }, { passive: true });
 
     window.addEventListener('resize', () => this.goTo(this.activeIndex, false));
+    this.initAutoplay();
+  },
+
+  autoMs: 15000,
+  resumeMs: 8000,
+  autoTimer: null,
+  pausedUntil: 0,
+
+  initAutoplay() {
+    if (this.cards.length < 2) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const hold = () => { this.pausedUntil = Date.now() + this.resumeMs; };
+    ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(ev =>
+      this.track.addEventListener(ev, hold, { passive: true }));
+    this.dotsEl.addEventListener('click', hold);
+    this.track.addEventListener('mouseenter', () => { this.pausedUntil = Infinity; });
+    this.track.addEventListener('mouseleave', hold);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) hold(); });
+    this.autoTimer = setInterval(() => this.autoTick(), this.autoMs);
+  },
+
+  autoTick() {
+    if (document.hidden || Date.now() < this.pausedUntil) return;
+    const r = this.track.getBoundingClientRect();
+    if (r.width === 0 || r.bottom < 0 || r.top > window.innerHeight) return;
+    const next = (this.activeIndex + 1) % this.cards.length;
+    this.goTo(next, true);
   },
 
   renderDots() {
@@ -6342,6 +6405,32 @@ const RK_IMG = new Image(); RK_IMG.src = 'assets/RocketFlight.svg';
 const RK_IDLE = new Image(); RK_IDLE.src = 'assets/RocketIdle.svg';   // upright rocket (with its own flame) standing on the pad
 // In-flight rocket: assets/Rocket.json (Lottie) laid over the canvas; falls back to the drawn artwork if it can't load.
 const RK_LT = { anim: null, el: null, loading: false, failed: false, show: false, x: 0, y: 0, ang: 0, size: 76 };
+const LiveLink = {
+  down: false, since: 0, _el: null,
+  el() {
+    if (this._el) return this._el;
+    const e = document.createElement('div'); e.className = 'live-link-banner'; e.setAttribute('role', 'status'); e.setAttribute('aria-live', 'polite');
+    e.innerHTML = '<span class="ll-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8a15 15 0 0 0-9.4-3.7M5.2 12.6a10 10 0 0 1 3-1.8M18.8 12.6a10 10 0 0 0-2.6-1.7M8.6 16.2a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.5" r=".6" fill="currentColor"/><path d="M3 3l18 18"/></svg></span><span class="ll-tx"><b>Connection lost</b><small>Reconnecting…</small></span><span class="ll-spin"></span>';
+    document.body.appendChild(e); return (this._el = e);
+  },
+  set(down) {
+    if (down === this.down) return;
+    this.down = down; this.since = Date.now();
+    const e = this.el(), b = e.querySelector('b'), sm = e.querySelector('small');
+    clearTimeout(this._ht);
+    if (down) { e.classList.remove('ok'); b.textContent = 'Connection lost'; sm.textContent = 'Reconnecting…'; e.classList.add('show'); }
+    else {
+      if (e.classList.contains('show')) { e.classList.add('ok'); b.textContent = 'Back online'; sm.textContent = 'Connection restored'; this._ht = setTimeout(() => e.classList.remove('show', 'ok'), 1800); }
+      try { BackendAPI.syncBalance(); } catch (_) {}
+    }
+  },
+  guard() {
+    if (!this.down) return false;
+    try { (Rocket.active ? Rocket : Battle).toast('Server is not reachable, wait a moment'); } catch (_) {}
+    return true;
+  }
+};
+
 const Rocket = {
   K: 0.11, snap: null, off: 0, mode: 'stars', kind: 'gift', pick: null, abort: null, poll: null, raf: 0, active: false, busy: false,
   announced: 0, tipPos: null, canvasReady: false, fx: { sparks: [], rings: [], debris: [], smoke: [], flash: 0, x: 0, y: 0 }, stars: null,
@@ -6394,6 +6483,7 @@ const Rocket = {
   leave() {
     this.active = false;
     try { this.abort?.abort(); } catch {}
+    clearInterval(this.wd); LiveLink.set(false);
     clearInterval(this.poll); this.poll = null; cancelAnimationFrame(this.raf);
   },
 
@@ -6407,8 +6497,11 @@ const Rocket = {
       if (!res.ok || !res.body) throw new Error('stream ' + res.status);
       clearInterval(this.poll); this.poll = null;
       const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+      this.lastRx = Date.now(); clearInterval(this.wd);
+      this.wd = setInterval(() => { if (Date.now() - this.lastRx > 22000) { ctl.stale = true; try { ctl.abort(); } catch (_) {} } }, 4000);
       for (;;) {
         const { value, done } = await rd.read(); if (done) break;
+        this.lastRx = Date.now(); LiveLink.set(false);
         buf += dec.decode(value, { stream: true });
         let i; while ((i = buf.indexOf('\n\n')) >= 0) {
           const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
@@ -6418,14 +6511,16 @@ const Rocket = {
       }
       throw new Error('stream closed');
     } catch (e) {
-      if (ctl.signal.aborted || !this.active) return;
+      clearInterval(this.wd);
+      if ((ctl.signal.aborted && !ctl.stale) || !this.active) return;
+      LiveLink.set(true);
       this.startPolling();
       setTimeout(() => { if (this.active && this.abort === ctl) this.connect(); }, 4000);
     }
   },
   startPolling() {
     if (this.poll) return;
-    const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/rocket/state')); } catch {} };
+    const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/rocket/state')); LiveLink.set(false); } catch { LiveLink.set(true); } };
     tick(); this.poll = setInterval(tick, 1200);
   },
 
@@ -6439,10 +6534,12 @@ const Rocket = {
     const me = s.me;
     if (me && me.status !== 'active' && this.announced !== s.roundId) { this.announced = s.roundId; this.settled(me); }
     this.renderHistory(); this.renderList(); this.renderButton(); this.renderGifts(); this.renderLadder();
-    this.$('#rkFair').textContent = s.phase === 'crash' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
+    const _rf = this.$('#rkFair'); if (_rf) _rf.textContent = s.phase === 'crash' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
   },
   tFly() {
     const s = this.snap; if (!s) return 0;
+    if (LiveLink.down && s.phase === 'fly') { if (this._frz == null) this._frz = Math.max(0, (Date.now() + this.off - s.flyStartedAt) / 1000); return this._frz; }
+    this._frz = null;
     if (s.phase === 'crash') return Math.log(s.crashAt) / this.K;
     if (s.phase !== 'fly') return 0;
     return Math.max(0, (Date.now() + this.off - s.flyStartedAt) / 1000);
@@ -6536,7 +6633,7 @@ const Rocket = {
   },
   showUpgrade(res, m) {
     const pop = this.$('#rkPop'), same = res.from === res.to, nft = this.isNft(res.from);
-    const extra = nft ? (res.stars ? ` &nbsp;+ ${this.fmt(res.stars)} ★ Stars` : '') : (res.coins ? ` &nbsp;+ ${this.fmt(res.coins)} coins` : '');
+    const extra = res.stars ? ` &nbsp;+ ${this.fmt(res.stars)} ★ Stars` : (res.coins ? ` &nbsp;+ ${this.fmt(res.coins)} coins` : '');
     pop.innerHTML = `<div class="rk-pop-box"><h3>${same ? 'Cashed out!' : (nft ? 'NFT upgraded!' : 'Gift upgraded!')}</h3><p>at ${m.toFixed(2)}x</p>
       <div class="rk-up">${this.img(res.from, 'from')}<span class="arr">→</span>${this.img(res.to, 'to')}</div>
       <p><b>${same ? this.esc(res.from) : this.esc(res.from) + ' → ' + this.esc(res.to)}</b>${extra}</p><button type="button" id="rkPopOk">Nice</button></div>`;
@@ -6751,8 +6848,13 @@ const Battle = {
   COLORS: ['#7b5cff', '#ffb25b', '#4fd8e6', '#ff5fa8', '#c9f25a', '#ff7a6e', '#b9a2ff', '#6ee7a8'],
   $: (s) => document.querySelector(s),
   fmt: (n) => Math.round(n).toLocaleString('en-US'),
+  // price of one gift inside Gift Battle, as the server counts it: real Telegram Star prices for everyday gifts, current market price for NFTs
+  val(n) { const v = GameAPI.cfg && GameAPI.cfg.battle && GameAPI.cfg.battle.values; return (v && v[n] != null) ? v[n] : Rocket.val(n); },
+  async refreshValues() {
+    try { const r = await fetch(GAME_API_BASE + '/api/config', { cache: 'no-store' }); if (!r.ok) return; const c = await r.json(); if (GameAPI.cfg && c.battle) { GameAPI.cfg.battle = c.battle; if (this.active) this.renderAll(); } } catch (_) { /* keep the last prices */ }
+  },
   esc: (t) => Rocket.esc(t),
-  cfg() { return GameAPI.cfg?.battle || { maxPlayers: 25, maxItems: 5 }; },
+  cfg() { return GameAPI.cfg?.battle || { maxPlayers: 0, maxItems: 5 }; },
 
   init() {
     const card = document.getElementById('battleCard');
@@ -6772,10 +6874,11 @@ const Battle = {
     window.addEventListener('resize', () => { if (this.active) this.layoutIdle(); });
   },
 
-  enter() { this.active = true; this.renderGifts(); this.connect(); this.frame(); },
-  leave() {
+  enter() { this.active = true; this.renderGifts(); this.connect(); this.frame(); this.refreshValues(); clearInterval(this._vt); this._vt = setInterval(() => { if (this.active) this.refreshValues(); }, 60000); },
+  leave() { clearInterval(this._vt);
     this.active = false;
     try { this.abort?.abort(); } catch {}
+    clearInterval(this.wd); LiveLink.set(false);
     clearInterval(this.poll); this.poll = null; cancelAnimationFrame(this.raf);
   },
 
@@ -6789,8 +6892,11 @@ const Battle = {
       if (!res.ok || !res.body) throw new Error('stream ' + res.status);
       clearInterval(this.poll); this.poll = null;
       const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+      this.lastRx = Date.now(); clearInterval(this.wd);
+      this.wd = setInterval(() => { if (Date.now() - this.lastRx > 22000) { ctl.stale = true; try { ctl.abort(); } catch (_) {} } }, 4000);
       for (;;) {
         const { value, done } = await rd.read(); if (done) break;
+        this.lastRx = Date.now(); LiveLink.set(false);
         buf += dec.decode(value, { stream: true });
         let i; while ((i = buf.indexOf('\n\n')) >= 0) {
           const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
@@ -6800,8 +6906,10 @@ const Battle = {
       }
       throw new Error('stream closed');
     } catch (e) {
-      if (ctl.signal.aborted || !this.active) return;
-      if (!this.poll) { const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/battle/state')); } catch {} }; tick(); this.poll = setInterval(tick, 1200); }
+      clearInterval(this.wd);
+      if ((ctl.signal.aborted && !ctl.stale) || !this.active) return;
+      LiveLink.set(true);
+      if (!this.poll) { const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/battle/state')); LiveLink.set(false); } catch { LiveLink.set(true); } }; tick(); this.poll = setInterval(tick, 1200); }
       setTimeout(() => { if (this.active && this.abort === ctl) this.connect(); }, 4000);
     }
   },
@@ -6822,7 +6930,7 @@ const Battle = {
     for (const i of STATE.inventoryItems || []) if (i.prizeId && !i.pendingTransfer) (g[i.value] ||= []).push(i.prizeId);
     return g;
   },
-  selValue() { return Object.entries(this.sel).reduce((a, [n, c]) => a + Rocket.val(n) * c, 0); },
+  selValue() { return Object.entries(this.sel).reduce((a, [n, c]) => a + this.val(n) * c, 0); },
   selCount() { return Object.values(this.sel).reduce((a, b) => a + b, 0); },
 
   // ---------- rendering ----------
@@ -6841,7 +6949,7 @@ const Battle = {
     const s = this.snap; if (!s) return;
     this.$('#btPotVal').textContent = this.fmt(s.totalValue);
     this.$('#btPotItems').textContent = s.itemCount;
-    this.$('#btPlayers').textContent = `${s.players.length}/${s.maxPlayers}`;
+    this.$('#btPlayers').textContent = s.maxPlayers > 0 ? `${s.players.length}/${s.maxPlayers}` : `${s.players.length}`;
     const track = this.$('#btTrack');
     if (s.spin && (s.phase === 'spin' || s.phase === 'result')) {
       if (this.stripFor !== s.roundId) {      // build the reel once per round
@@ -6860,30 +6968,37 @@ const Battle = {
     this.$('#btTrack').style.transform = `translateX(${Math.max(0, (reelW - rowW) / 2)}px)`;
   },
   renderGifts() {
-    const g = this.groups(), names = Object.keys(g).sort((a, b) => Rocket.val(a) - Rocket.val(b)).filter(n => Rocket.val(n) > 0);
+    const g = this.groups(), names = Object.keys(g).sort((a, b) => this.val(a) - this.val(b)).filter(n => this.val(n) > 0);
     for (const n of Object.keys(this.sel)) if (!g[n]) delete this.sel[n];
     const slots = this.slots(), mine = this.me();
     this.$('#btSlots').textContent = this.snap ? `${mine ? mine.items.length : 0}/${this.snap.maxItems} in this round` : '';
     this.$('#btGifts').innerHTML = (names.map(n => {
       const nft = Rocket.isNft(n), c = this.sel[n] || 0;
-      return `<button type="button" class="rk-gift ${nft ? 'is-nft' : ''} ${c ? 'on' : ''}" data-g="${this.esc(n)}"><i>×${g[n].length}</i>${nft ? '<u>NFT</u>' : ''}${Rocket.img(n)}<span>${this.esc(n)}</span><em><img src="assets/TStars.svg" alt="">${this.fmt(Rocket.val(n))}</em>${c ? `<b>+${c}</b>` : ''}</button>`;
+      return `<button type="button" class="rk-gift ${nft ? 'is-nft' : ''} ${c ? 'on' : ''}" data-g="${this.esc(n)}"><i>×${g[n].length}</i>${nft ? '<u>NFT</u>' : ''}${Rocket.img(n)}<span>${this.esc(n)}</span><em><img src="assets/TStars.svg" alt="">${this.fmt(this.val(n))}</em>${c ? `<b>+${c}</b>` : ''}</button>`;
     }).join('') || '<p class="rk-hint">You have no gifts to bet yet. Win some from the spins first.</p>')
       + (this.selCount() ? '<button type="button" class="rk-gift" data-clear="1"><span style="margin-top:1.2rem">Clear</span></button>' : '');
     // live chance preview
     const s = this.snap, add = this.selValue();
     if (s && add > 0) {
       const mineV = (mine ? mine.value : 0) + add, tot = s.totalValue + add;
-      this.$('#btChance').innerHTML = `Your chance with these: <b>${(mineV / tot * 100).toFixed(1)}%</b> (${this.fmt(mineV)} of ${this.fmt(tot)})`;
-    } else if (mine) this.$('#btChance').innerHTML = `Your chance now: <b>${(mine.chance * 100).toFixed(1)}%</b>`;
-    else this.$('#btChance').innerHTML = '';
+      this.$('#btChance').innerHTML = `Your chance with these: <b>${(mineV / tot * 100).toFixed(1)}%</b> (${this.fmt(mineV)} of ${this.fmt(tot)})` + this.feeNote(mineV / tot);
+    } else if (mine) this.$('#btChance').innerHTML = `Your chance now: <b>${(mine.chance * 100).toFixed(1)}%</b>` + this.feeNote(mine.chance);
+    else this.$('#btChance').innerHTML = this.feeNote(null);
+  },
+  // House fee: none at 90%+ chance, up to maxPct at tiny chances (taken in gifts from the other players' stakes when you win)
+  feeNote(chance) {
+    const f = this.snap && this.snap.fee; if (!f || !f.enabled) return '';
+    if (chance == null) return `<br><span class="rk-dim">Winner fee: up to ${f.maxPct}% of the pot - none at ${Math.round(f.freeAtChance * 100)}%+ chance</span>`;
+    const pct = chance >= f.freeAtChance ? 0 : Math.round(f.maxPct * (1 - chance / f.freeAtChance) * 10) / 10;
+    return `<br><span class="rk-dim">${pct ? `If you win, fee ~${pct}% of the pot` : 'No fee at this chance'}</span>`;
   },
   renderList() {
     const s = this.snap; if (!s) return;
     const win = s.spin && s.phase === 'result' ? s.spin.winner : -1;
     this.$('#btList').innerHTML = s.players.map((p, i) => `<li class="${p.me ? 'me' : ''} ${i === win ? 'win' : ''}"><span class="rk-av" style="background:${this.COLORS[i % this.COLORS.length]}">${this.av(p)}</span><span class="nm">${this.esc(p.name)}</span><span class="ic">${p.items.map(n => Rocket.img(n)).join('')}</span><span class="rs">${(p.chance * 100).toFixed(1)}%</span></li>`).join('')
       || '<li><span></span><span class="nm rk-dim">Nobody yet — be the first</span><span></span><span></span></li>';
-    this.$('#btCount').textContent = `${s.players.length}/${s.maxPlayers}`;
-    this.$('#btFair').textContent = s.phase === 'result' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
+    this.$('#btCount').textContent = s.maxPlayers > 0 ? `${s.players.length}/${s.maxPlayers}` : `${s.players.length}`;
+    const _bf = this.$('#btFair'); if (_bf) _bf.textContent = s.phase === 'result' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
   },
   renderButton() {
     const s = this.snap, b = this.$('#btGo'); if (!b) return;
@@ -6929,9 +7044,11 @@ const Battle = {
     const me = s.players.find(p => p.me); if (!me) return;
     const w = s.players[s.spin.winner];
     if (w.me) {
-      const all = s.players.flatMap(p => p.items);
+      const all = s.players.flatMap(p => p.items), taken = (s.fee && s.fee.taken) || null;
+      if (taken) for (const n of taken.items) { const k = all.indexOf(n); if (k > -1) all.splice(k, 1); }       // the house keeps these
+      const got = all.reduce((a, n) => a + this.val(n), 0);
       const pop = this.$('#btPop');
-      pop.innerHTML = `<div class="rk-pop-box"><h3>You won the battle!</h3><p>${all.length} gift${all.length === 1 ? '' : 's'} · ${this.fmt(s.totalValue)} total</p>
+      pop.innerHTML = `<div class="rk-pop-box"><h3>You won the battle!</h3><p>${all.length} gift${all.length === 1 ? '' : 's'} · ${this.fmt(taken && taken.value ? got : s.totalValue)} total${taken && taken.value ? ` <span class="rk-dim">(fee ${taken.pct}% · ${this.fmt(taken.value)})</span>` : ''}</p>
         <div class="rk-up" style="flex-wrap:wrap">${all.map(n => Rocket.img(n, 'to')).join('')}</div><p>${all.map(n => this.esc(n)).join(', ')}</p><button type="button" id="btPopOk">Nice</button></div>`;
       pop.hidden = false; this.$('#btPopOk').onclick = () => (pop.hidden = true);
     } else this.toast(`${w.name} won the pot — better luck next time`);
@@ -7202,6 +7319,8 @@ function startWheels() {
     MultiSpin.init();
     EventsCarousel.init();
     LottieAnimations.init();
+    EntryCards.init();
+    LiveFeed.start();
   };
   if (document.readyState === 'complete') {
     run();
@@ -7237,3 +7356,28 @@ document.addEventListener('visibilitychange', () => {
     }
   } catch { /* lottie not loaded */ }
 });
+
+
+// Home entry cards: the little multiplier on the Rocket card climbs and "crashes" on a loop (decoration only - no real data).
+const EntryCards = {
+  init() {
+    const el = document.getElementById('ecMult'); if (!el) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = 'x2.00'; return; }
+    let vis = true, raf = 0, t0 = 0, crashAt = 0, hold = 0;
+    const newRound = () => { crashAt = 1.6 + Math.random() * Math.random() * 38; t0 = performance.now(); hold = 0; el.classList.remove('crash'); };
+    const loop = (now) => {
+      raf = 0; if (!vis || document.hidden) return;
+      if (hold) { if (now > hold) newRound(); }
+      else {
+        const m = Math.exp(0.11 * (now - t0) / 1000 * 3.2);
+        if (m >= crashAt) { el.textContent = 'x' + crashAt.toFixed(2); el.classList.add('crash'); hold = now + 1400; }
+        else el.textContent = 'x' + m.toFixed(2);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    const go = () => { if (!raf && vis && !document.hidden) raf = requestAnimationFrame(loop); };
+    new IntersectionObserver((es) => { vis = es[0].isIntersecting; go(); }, { threshold: 0.1 }).observe(el);
+    document.addEventListener('visibilitychange', go);
+    newRound(); go();
+  }
+};
