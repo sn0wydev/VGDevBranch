@@ -2253,7 +2253,7 @@ html.bf-theme .ec-battle{ background:radial-gradient(70% 120% at 100% 0%, rgba(2
 .pf-stat:last-child b{ background:linear-gradient(180deg,#fff6cf,var(--rift)); -webkit-background-clip:text; background-clip:text; color:transparent; }
 
 /* profile card v4: the casino frame is the card; avatar + name sit on the felt, stats under it */
-.pf-card{ container-type:inline-size; --u:calc(100cqw / 358); position:relative; display:block; padding:0; border:none; border-radius:0; background:none; box-shadow:none; overflow:visible; text-align:center; }
+.pf-card{ container-type:inline-size; --u:calc(100cqw / 358); aspect-ratio:358 / 272; position:relative; display:block; padding:0; border:none; border-radius:0; background:none; box-shadow:none; overflow:visible; text-align:center; }
 .pf-frame{ display:block; width:100%; height:auto; pointer-events:none; user-select:none; -webkit-user-drag:none; }
 .pf-in{ position:absolute; left:13.1%; width:74.9%; top:13.7%; height:63.3%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .pf-ava{ width:calc(var(--u) * 72); height:calc(var(--u) * 72); margin:0; font-size:calc(var(--u) * 28); color:#1a1004;
