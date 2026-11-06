@@ -13,7 +13,44 @@
 
 <body class="no-scroll">
 
-  <!-- Loading Screen -->
+  <!-- Ban screen: shown by script.js when the server says this account is banned -->
+<div class="ban-screen" id="banScreen" hidden role="alert">
+  <div class="ban-tape" aria-hidden="true"></div>
+  <div class="ban-body">
+    <img class="ban-art" src="assets/Ban.svg" alt="" draggable="false">
+    <h1 class="ban-title" data-i18n="banTitle">Your account is banned</h1>
+    <div class="ban-article">
+      <h2 data-i18n="banWhyTitle">Why was I banned?</h2>
+      <p data-i18n="banWhyText">Our systems and moderators found activity on your account that breaks the VoidGifts rules, such as using bots or scripts, exploiting bugs, abusing promo codes or running several accounts.</p>
+      <h2 data-i18n="banNoTolTitle">Why we don't tolerate cheaters</h2>
+      <p data-i18n="banNoTolText">Every gift, Star and coin in VoidGifts is real value. Cheating takes it from honest players and makes the game unfair for everyone, so we act on it.</p>
+    </div>
+    <div class="ban-actions">
+      <p class="ban-appeal" data-i18n="banAppeal">Think this is a mistake? Contact support and we'll review your case.</p>
+      <button type="button" class="ban-contact" id="banContact">
+        <svg viewBox="0 0 26 26" aria-hidden="true"><path d="M22.6 3.2 2.5 10.9c-1.4.5-1.3 1.3-.2 1.7l5 1.6 1.9 6c.2.7.4.9 1 .9s.7-.2 1.1-.5l2.5-2.4 5.1 3.8c.9.5 1.6.2 1.9-.9L24.2 5c.4-1.4-.5-2.1-1.6-1.8Z" fill="currentColor"/></svg>
+        <span><b data-i18n="banContact">Contact support</b><em>@voidgiftssupportbot</em></span>
+      </button>
+      <span class="ban-id" id="banId"></span>
+    </div>
+  </div>
+  <div class="ban-tape" aria-hidden="true"></div>
+</div>
+
+  <!-- Tester gate: shown by script.js when the server says this account is not on the tester list (TESTERS_ONLY) -->
+<div class="tester-screen" id="testerScreen" hidden role="alert">
+  <div class="ts-card">
+    <div class="ts-icon" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6h10M21 6v13.2L9.6 38.4A4 4 0 0 0 13 44.5h22a4 4 0 0 0 3.4-6.1L27 19.2V6"/><path d="M14 31h20"/><circle cx="21" cy="37" r="1.3" fill="currentColor" stroke="none"/><circle cx="28" cy="35" r="1.3" fill="currentColor" stroke="none"/></svg>
+    </div>
+    <span class="ts-until" id="tsUntil"></span>
+    <h1 class="ts-title" data-i18n="tgTitle">Scheduled testing</h1>
+    <p class="ts-text" data-i18n="tgText">You are not a tester</p>
+    <span class="ts-id" id="tsId"></span>
+  </div>
+</div>
+
+<!-- Loading Screen -->
 <div class="version-tag" id="versionTag" aria-hidden="true"></div>
 <div class="loading-screen" id="loadingScreen">
   <div class="loading-container">
@@ -77,13 +114,21 @@
           <div class="nav-icon"><img src="assets/LBIcon.svg" alt="Leaderboard"></div>
           <span data-i18n="leaderboard">Leaderboard</span>
         </a></li>
+        <li><a href="#earn" class="nav-link" data-page="earn">
+          <div class="nav-icon"><img src="assets/EarnIcon.svg" alt="Earn"></div>
+          <span data-i18n="earn">Earn</span>
+        </a></li>
+        <li><a href="#voidcoin" class="nav-link" data-page="voidcoin">
+          <div class="nav-icon"><img src="assets/VoidCoinIcon.svg" alt="Void Coin"></div>
+          <span data-i18n="voidCoin">Void Coin</span>
+        </a></li>
         <li><a href="#deposit" class="nav-link" data-page="deposit">
           <div class="nav-icon"><img src="assets/WalletIcon.svg" alt="Deposit"></div>
           <span data-i18n="deposit">Deposit</span>
         </a></li>
         <li><a href="#settings" class="nav-link" data-page="settings">
-          <div class="nav-icon"><img src="assets/GearIcon.svg" alt="Settings"></div>
-          <span data-i18n="settings">Settings</span>
+          <div class="nav-icon"><img src="assets/GearIcon.svg" alt="Profile"></div>
+          <span data-i18n="profile">Profile</span>
         </a></li>
       </ul>
     </nav>
@@ -98,40 +143,79 @@
         <div class="events-carousel">
           <div class="events-track" id="eventsTrack">
 
-            <a class="event-card event-card--rocket" href="#" data-event-id="rocket-promo" onclick="TelegramGame.Navigation.navigateTo('rocket');return false;">
-              <span class="rkc-nebula" aria-hidden="true"></span>
-              <span class="rkc-streaks" aria-hidden="true"></span>
-              <span class="rkc-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><b></b><b></b><b></b></span>
-              <span class="rkc-dash" aria-hidden="true"><u></u><u></u><u></u><u></u><u></u></span>
+            <!-- ===== BLACK FRIDAY: banner 1 = the event, banners 2-4 = more about it. Edit the words in the i18n keys bf* (script.js). ===== -->
+            <div class="event-card event-card--bf bf-main" data-event-id="bf-main">
+              
               <span class="event-sheen" aria-hidden="true"></span>
-              <div class="rkc-title"><span class="rkc-title-sm" data-i18n="eventRocketTitleA">Fly up to the</span><span class="rkc-title-lg" data-i18n="eventRocketTitleB">Skies!</span></div>
-              <span class="rkc-x rkc-x1" aria-hidden="true">x67</span>
-              <span class="rkc-x rkc-x2" aria-hidden="true">x228</span>
-              <span class="rkc-x rkc-x3" aria-hidden="true">x557</span>
-              <svg class="rkc-live" id="rkcLive" aria-hidden="true">
-                <defs>
-                  <linearGradient id="rkcLg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffb25b" stop-opacity="0"/><stop offset=".6" stop-color="#ffb25b" stop-opacity=".85"/><stop offset="1" stop-color="#fff0d0"/></linearGradient>
-                  <linearGradient id="rkcFg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffb25b" stop-opacity="0"/><stop offset=".75" stop-color="#ffb25b" stop-opacity=".3"/><stop offset="1" stop-color="#ffb25b" stop-opacity="0"/></linearGradient>
-                </defs>
-                <path id="rkcFill" fill="url(#rkcFg)"/>
-                <path id="rkcLine" fill="none" stroke="url(#rkcLg)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <div class="bf-copy">
+                <span class="bf-eyebrow" data-i18n="bfPill">Special event</span>
+                <div class="bf-title"><span class="bf-title-sm" data-i18n="bf1A">Black</span><span class="bf-title-lg" data-i18n="bf1B">Friday</span></div>
+                <span class="bf-sub" data-i18n="bf1Sub">The biggest event of the year</span>
+              </div>
+              <svg class="bf-tag" viewBox="0 0 120 120" aria-hidden="true">
+                <defs><linearGradient id="bfTagG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1b8"/><stop offset=".55" stop-color="#ffc25b"/><stop offset="1" stop-color="#e58a1f"/></linearGradient></defs>
+                <g transform="rotate(14 60 60)"><path d="M22 14h46l30 30v50a10 10 0 0 1-10 10H32a10 10 0 0 1-10-10V24a10 10 0 0 1 10-10Z" fill="url(#bfTagG)"/><circle cx="48" cy="34" r="6" fill="#120a02"/><path d="M48 34c-10-14-4-24 8-30" fill="none" stroke="#ffd58a" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+                <text x="60" y="88" text-anchor="middle" font-family="Unbounded,system-ui,sans-serif" font-weight="800" font-size="40" fill="#120a02">%</text></g>
               </svg>
-              <span class="rkc-lt" id="rkcLt" aria-hidden="true"><img src="assets/RocketCard.svg" alt="" draggable="false"></span>
-              <span class="rkc-big" aria-hidden="true">x999</span>
-            </a>
+              <span class="bf-tape" aria-hidden="true"></span>
+            </div>
 
-            <a class="event-card event-card--battle" href="#" data-event-id="battle-promo" onclick="TelegramGame.Navigation.navigateTo('battle');return false;">
-              <span class="bc-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <div class="event-card event-card--bf bf-prizes" data-event-id="bf-prizes">
+              <span class="bf-rays" aria-hidden="true"></span>
+              <span class="event-confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
               <span class="event-sheen" aria-hidden="true"></span>
-              <div class="bc-copy">
-                <span class="event-badge" data-i18n="eventBattleBadge">Winner takes all</span>
-                <div class="bc-title"><span class="bc-title-sm" data-i18n="eventBattleSm">Gift</span><span class="bc-title-lg" data-i18n="eventBattleLg">Battle!</span></div>
-                <div class="bc-sub" data-i18n="eventBattleSub">Bet a gift, win the whole pot</div>
+              <div class="bf-copy">
+                <div class="bf-h" data-i18n="bf2Title">Bigger prizes</div>
+                <span class="bf-sub" data-i18n="bf2Sub">Rare gifts, NFTs and Stars up for grabs</span>
               </div>
-              <div class="bc-reel" aria-hidden="true">
-                <div class="bc-track"><span class="bc-tile" style="--tc:#7b5cff"><i class="bc-av"></i><img src="assets/Bear.svg" alt=""><b>24%</b></span><span class="bc-tile" style="--tc:#ff9d5c"><i class="bc-av"></i><img src="assets/Diamond.svg" alt=""><b>52%</b></span><span class="bc-tile" style="--tc:#35d6e8"><i class="bc-av"></i><img src="assets/Cake.svg" alt=""><b>18%</b></span><span class="bc-tile" style="--tc:#ff4d8d"><i class="bc-av"></i><img src="assets/Rose.svg" alt=""><b>6%</b></span><span class="bc-tile" style="--tc:#7b5cff"><i class="bc-av"></i><img src="assets/Bear.svg" alt=""><b>24%</b></span><span class="bc-tile" style="--tc:#ff9d5c"><i class="bc-av"></i><img src="assets/Diamond.svg" alt=""><b>52%</b></span><span class="bc-tile" style="--tc:#35d6e8"><i class="bc-av"></i><img src="assets/Cake.svg" alt=""><b>18%</b></span><span class="bc-tile" style="--tc:#ff4d8d"><i class="bc-av"></i><img src="assets/Rose.svg" alt=""><b>6%</b></span><span class="bc-tile" style="--tc:#7b5cff"><i class="bc-av"></i><img src="assets/Bear.svg" alt=""><b>24%</b></span><span class="bc-tile" style="--tc:#ff9d5c"><i class="bc-av"></i><img src="assets/Diamond.svg" alt=""><b>52%</b></span><span class="bc-tile" style="--tc:#35d6e8"><i class="bc-av"></i><img src="assets/Cake.svg" alt=""><b>18%</b></span><span class="bc-tile" style="--tc:#ff4d8d"><i class="bc-av"></i><img src="assets/Rose.svg" alt=""><b>6%</b></span></div>
+              <div class="bf-fan" aria-hidden="true"><img src="assets/Trophy.svg" alt=""><img src="assets/Diamond.svg" alt=""><img src="assets/Gift.svg" alt=""></div>
+              <span class="bf-tape" aria-hidden="true"></span>
+            </div>
+
+            <div class="event-card event-card--bf bf-time" data-event-id="bf-time">
+              
+              <span class="event-sheen" aria-hidden="true"></span>
+              <div class="bf-copy">
+                <div class="bf-h" data-i18n="bf3Title">Limited time</div>
+                <span class="bf-sub" data-i18n="bf3Sub">It won't last. Don't miss it.</span>
               </div>
-              <span class="bc-line" aria-hidden="true"></span>
+              <div class="bf-clockwrap" aria-hidden="true"><span class="bf-pulse"></span><span class="bf-pulse bf-pulse--2"></span>
+                <svg class="bf-clock" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="rgba(255,194,91,.07)" stroke="rgba(255,194,91,.22)" stroke-width="4"/>
+                  <circle class="bf-arc" cx="40" cy="40" r="34" fill="none" stroke="url(#bfArcG)" stroke-width="4" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+                  <defs><linearGradient id="bfArcG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1b8"/><stop offset="1" stop-color="#ff9a3c"/></linearGradient></defs>
+                  <circle cx="40" cy="40" r="26" fill="none" stroke="rgba(255,213,138,.55)" stroke-width="3" stroke-dasharray="1.6 12.7" transform="rotate(-90 40 40)"/>
+                  <path class="bf-hand-m" d="M40 40V22" stroke="#fff1b8" stroke-width="3.5" stroke-linecap="round"/><path class="bf-hand-h" d="M40 40l10 6" stroke="#ffc25b" stroke-width="3.5" stroke-linecap="round"/><circle cx="40" cy="40" r="3.4" fill="#ffc25b"/>
+                </svg>
+              </div>
+              <span class="bf-tape" aria-hidden="true"></span>
+            </div>
+
+            <div class="event-card event-card--bf bf-how" data-event-id="bf-how">
+              
+              <span class="event-sheen" aria-hidden="true"></span>
+              <div class="bf-copy">
+                <div class="bf-h" data-i18n="bf4Title">How to join</div>
+              </div>
+              <div class="bf-steps" aria-hidden="true">
+                <span class="bf-step"><i class="bf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v8.5l6 4M12 12L5.2 16"/></svg><b>1</b></i><em data-i18n="bfStep1">Spin</em></span><u></u>
+                <span class="bf-step"><i class="bf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8 6.8 19.6l1-5.8L3.5 9.7l5.9-.9L12 3.5Z"/></svg><b>2</b></i><em data-i18n="bfStep2">Win</em></span><u></u>
+                <span class="bf-step"><i class="bf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v8H4v-8M2.5 7.5h19V12h-19zM12 7.5V20M12 7.5c-2.5 0-4.5-1-4.5-2.8S9.5 2.6 12 7.5c2.5-4.9 4.5-3.6 4.5-2.8S14.5 7.5 12 7.5Z"/></svg><b>3</b></i><em data-i18n="bfStep3">Claim</em></span>
+              </div>
+              <span class="bf-tape" aria-hidden="true"></span>
+            </div>
+
+            <a class="event-card event-card--bf event-card--tg" href="https://t.me/VoidGiftsOfficial" target="_blank" rel="noopener" data-event-id="tg-channel">
+              <span class="event-sheen" aria-hidden="true"></span>
+              <div class="bf-copy">
+                <span class="bf-sub tg-lead" data-i18n="bfTgLead">Know more about the event in:</span>
+                <div class="bf-h"><span data-i18n="freeHighlight">Telegram</span> <span data-i18n="channelSuffix">Channel</span></div>
+                <span class="tg-btn" data-i18n="joinChannel">Join Channel</span>
+              </div>
+              <div class="tg-art" aria-hidden="true"><span class="tg-ring"></span><span class="tg-ring tg-ring--2"></span>
+                <svg viewBox="0 0 26 26"><path d="M22.6 3.2 2.5 10.9c-1.4.5-1.3 1.3-.2 1.7l5 1.6 1.9 6c.2.7.4.9 1 .9s.7-.2 1.1-.5l2.5-2.4 5.1 3.8c.9.5 1.6.2 1.9-.9L24.2 5c.4-1.4-.5-2.1-1.6-1.8Z" fill="#1a1004"/><path d="M8.7 14.3 19 7.7c.5-.3.9-.1.5.3l-8.2 7.6-.3 3.5-2.1-4.8Z" fill="#7a4a0c" opacity=".55"/></svg>
+              </div>
+              <span class="bf-tape" aria-hidden="true"></span>
             </a>
 
           </div>
@@ -147,7 +231,8 @@
         </div>
 
         <!-- ROCKET entry card (placeholder, design comes later) -->
-        <!-- Entry cards for the two mini games -->
+        <div class="home-sec"><span data-i18n="secPvp">PvP games</span><em data-i18n="secPvpHint">Play against others</em></div>
+        <div class="ec-stack">
         <div class="ec ec-rocket" id="rocketCard" role="button" tabindex="0" aria-label="Rocket">
           <span class="ec-grid" aria-hidden="true"></span>
           <div class="ec-copy">
@@ -174,6 +259,26 @@
           </div>
         </div>
 
+        </div><!-- /.ec-stack -->
+
+        <div class="home-sec" id="soloHead" style="display:none"><span data-i18n="secSolo">Solo games</span><em data-i18n="secSoloHint">You vs the house</em></div>
+        <div class="ec-stack" id="soloStack" style="display:none">
+        <div class="ec ec-mines" id="minesCard" role="button" tabindex="0" aria-label="Mines">
+          <span class="ec-grid" aria-hidden="true"></span>
+          <div class="ec-copy">
+            <span class="ec-pill" data-i18n="ecMinesPill">up to 24 mines</span>
+            <b class="ec-title">Mines</b>
+            <span class="ec-sub" data-i18n="ecMinesSub">Find the gems, dodge the bombs</span>
+          </div>
+          <div class="ec-art ec-mgrid" aria-hidden="true">
+            <i></i><i class="g"></i><i></i><i></i>
+            <i class="g"></i><i></i><i class="b"></i><i></i>
+            <i></i><i></i><i class="g"></i><i></i>
+          </div>
+        </div>
+        </div><!-- /.ec-stack (solo) -->
+
+        <div class="home-sec"><span data-i18n="secSpins">Spin wheels</span></div>
         <div class="home-grid">
 
           <!-- Daily loot: the hero. The seam opens, the gift rises along it. -->
@@ -271,6 +376,8 @@
           </div>
 
           <!-- Channel -->
+          <div class="home-sec home-sec--cell"><span data-i18n="secMore">Community</span></div>
+
           <div class="hero hero--channel">
             <img class="hero-asset" src="https://raw.githubusercontent.com/IMAGE002/ProtV2/main/assets/Lolipop.svg" alt="">
             <div class="hero-copy">
@@ -433,12 +540,95 @@
       </div>
 
       <!-- ============ SETTINGS ============ -->
-      <div class="page-content" id="page-settings">
+      <div class="page-content" id="page-earn">
         <div class="settings-page">
           <div class="settings-header">
-            <h1 class="settings-title" data-i18n="settings">Settings</h1>
-            <p class="settings-subtitle" data-i18n="customizeExperience">Customize your experience</p>
+            <h1 class="settings-title" data-i18n="earn">Earn</h1>
           </div>
+
+          <div class="ref-card" id="refCard">
+            <div class="ref-head">
+              <span class="ref-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6"/><path d="M19 8v6M16 11h6"/></svg></span>
+              <div class="ref-headtx">
+                <h2 class="ref-title" data-i18n="refTitle">Invite friends</h2>
+                <p class="ref-sub" id="refSub"></p>
+              </div>
+            </div>
+            <div class="ref-linkrow">
+              <input class="ref-link" id="refLink" type="text" readonly aria-label="Invite link" onclick="this.select()">
+              <button type="button" class="ref-copy" onclick="Referral.copy()" data-i18n="refCopy">Copy</button>
+            </div>
+            <button type="button" class="ref-share" onclick="Referral.share()">
+              <svg viewBox="0 0 26 26" aria-hidden="true"><path d="M22.6 3.2 2.5 10.9c-1.4.5-1.3 1.3-.2 1.7l5 1.6 1.9 6c.2.7.4.9 1 .9s.7-.2 1.1-.5l2.5-2.4 5.1 3.8c.9.5 1.6.2 1.9-.9L24.2 5c.4-1.4-.5-2.1-1.6-1.8Z" fill="currentColor"/></svg>
+              <span data-i18n="refShare">Share invite link</span>
+            </button>
+            <div class="ref-stats">
+              <div class="ref-stat"><b id="refInvited">–</b><span data-i18n="refInvited">Invited</span></div>
+              <div class="ref-stat"><b id="refRewarded">–</b><span data-i18n="refRewarded">Rewarded</span></div>
+              <div class="ref-stat ref-stat--gold"><b id="refEarned">–</b><span data-i18n="refEarned">Stars earned</span></div>
+            </div>
+          </div>
+
+          <div class="ref-how">
+            <div class="ref-how-h" data-i18n="refHow">How it works</div>
+            <div class="ref-step"><i>1</i><span data-i18n="refStep1">Share your link with a friend</span></div>
+            <div class="ref-step"><i>2</i><span data-i18n="refStep2">They join VoidGifts through it</span></div>
+            <div class="ref-step"><i>3</i><span id="refStep3"></span></div>
+          </div>
+
+          <div class="ref-list" id="refList"></div>
+        </div>
+      </div>
+
+      <div class="page-content" id="page-voidcoin">
+        <div class="settings-page">
+          <div class="settings-header">
+            <h1 class="settings-title" data-i18n="voidCoin">Void Coin</h1>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-content" id="page-settings">
+        <div class="settings-page">
+          <div class="pf-card" id="pfCard" data-frame="casino">
+            <img class="pf-frame" id="pfFrameImg" src="assets/ProfileFrame.svg" alt="">
+            <div class="pf-in">
+              <div class="pf-ava" id="pfAvatar"></div>
+              <div class="pf-who">
+                <div class="pf-name" id="pfName">…</div>
+                <div class="pf-user" id="pfUser"></div>
+                <span class="pf-id" id="pfId"></span>
+              </div>
+            </div>
+          </div>
+          <div class="pf-big">
+            <button type="button" class="pf-bigbtn" onclick="TelegramGame.Navigation.navigateTo('earn')">
+              <span class="pf-bigic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span>
+              <span class="pf-biglb" data-i18n="earn">Earn</span>
+              <svg class="pf-bigarr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </button>
+            <button type="button" class="pf-bigbtn is-soon" disabled aria-disabled="true">
+              <span class="pf-bigic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z"/><path d="M8.5 9.5l3.5 6 3.5-6"/></svg></span>
+              <span class="pf-biglb" data-i18n="voidCoin">Void Coin</span>
+              <svg class="pf-bigarr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            <span class="pf-soon" data-i18n="comingSoon">Coming soon</span></button>
+          </div>
+          <div class="pf-stats">
+            <div class="pf-stat"><b id="pfCoins">0</b><span data-i18n="tabCoins">Coins</span></div>
+            <div class="pf-stat"><b id="pfStars">0</b><span data-i18n="pfStars">Stars</span></div>
+            <div class="pf-stat"><b id="pfGifts">0</b><span data-i18n="tabGifts">Gifts</span></div>
+            <div class="pf-stat"><b id="pfRank">—</b><span data-i18n="pfRank">Rank</span></div>
+          </div>
+
+          <div class="home-sec"><span data-i18n="pfShortcuts">Shortcuts</span></div>
+          <div class="pf-links">
+            <button type="button" class="pf-link" onclick="FullInventoryModal.open()">
+              <span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg></span>
+              <span class="pf-lb" data-i18n="inventory">Items</span><svg class="pf-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+
+          <div class="home-sec"><span data-i18n="settings">Settings</span></div>
 
           <div class="settings-section promocode-section">
             <div class="section-header">
@@ -535,7 +725,7 @@
             </div>
             <div class="setting-item">
               <div class="setting-info"><div class="setting-label" data-i18n="version">Version</div><div class="setting-description" data-i18n="versionDesc">App version information</div></div>
-              <div class="setting-value"><span class="version-number">v2.0.0</span></div>
+              <div class="setting-value"><span class="version-number">v2.1.00</span></div>
             </div>
           </div>
 
@@ -675,10 +865,98 @@
           <div class="rk-card-h"><span>Players this round</span><span id="rkPlayers" class="rk-dim"></span></div>
           <ul class="rk-list" id="rkList"></ul>
         </div>
+
+        <div class="rk-card fair" id="fair-rocket" data-kind="rocket">
+          <button type="button" class="fair-h" aria-expanded="false">
+            <svg class="fair-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.4 3.1 8.2 7.5 9.5 4.4-1.3 7.5-5.1 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.3 2.3 4.2-4.6"/></svg>
+            <span data-i18n="fairTitle">Provably fair</span>
+            <em class="fair-st" data-f="st"></em>
+            <svg class="fair-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="fair-b" hidden>
+            <p class="fair-p" data-i18n="fairHow">Before every round the server locks in a secret and shows its SHA-256 fingerprint. After the round the secret is revealed, so anyone can check that it matches the fingerprint and recompute the result.</p>
+            <div class="fair-row"><span data-i18n="fairCur">Current round</span><b data-f="cur-id">—</b></div>
+            <button type="button" class="fair-hash" data-copy="cur-hash" data-f="cur-hash">—</button>
+            <div class="fair-row"><span data-i18n="fairLast">Last round</span><b data-f="last-id">—</b></div>
+            <button type="button" class="fair-hash" data-copy="last-secret" data-f="last-secret">—</button>
+            <div class="fair-res" data-f="last-res"></div>
+          </div>
+        </div>
       </div>
 
       <div class="rk-toast" id="rkToast"></div>
       <div class="rk-pop" id="rkPop" hidden></div>
+
+      <!-- ============ MINES ============ -->
+      <div class="page-content" id="page-mines">
+        <button class="spin-back-btn" onclick="TelegramGame.Navigation.navigateTo('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span data-i18n="backToHome">Home</span>
+        </button>
+
+        <div class="rk-head">
+          <div>
+            <span class="eyebrow" data-i18n="mnEyebrow">Solo game</span>
+            <h1 class="rk-title">Mines</h1>
+          </div>
+          <span class="mn-chip" id="mnChip" hidden></span>
+        </div>
+
+        <div class="rk-history" id="mnHistory" aria-label="Previous games"></div>
+
+        <div class="mn-stats">
+          <div><small data-i18n="mnMult">Multiplier</small><b id="mnMult">1.00x</b></div>
+          <div><small data-i18n="mnNext">Next tile</small><b id="mnNext">—</b></div>
+          <div><small data-i18n="mnCash">Cash out</small><b id="mnPay"><img src="assets/TStars.svg" alt=""><span>0</span></b></div>
+        </div>
+
+        <div class="mn-board" id="mnBoard" role="grid" aria-label="Mines board"></div>
+        <div class="mn-note" id="mnNote"></div>
+
+        <div class="rk-card mn-ctl" id="mnCtl">
+          <div class="mn-lbl" data-i18n="mnBet">Bet</div>
+          <div class="rk-amount">
+            <button type="button" class="rk-step" data-mstep="-1" aria-label="Less">−</button>
+            <label><input id="mnAmount" type="number" inputmode="numeric" min="50" value="50"><img src="assets/TStars.svg" alt=""></label>
+            <button type="button" class="rk-step" data-mstep="1" aria-label="More">+</button>
+          </div>
+          <div class="rk-chips" id="mnChips">
+            <button type="button" data-v="50">50</button><button type="button" data-v="100">100</button>
+            <button type="button" data-v="250">250</button><button type="button" data-v="500">500</button>
+            <button type="button" data-v="half">½</button><button type="button" data-v="double">2×</button>
+          </div>
+
+          <div class="mn-lbl mn-lbl2"><span data-i18n="mnMines">Mines</span><em id="mnGems"></em></div>
+          <div class="mn-minesrow">
+            <button type="button" class="rk-step" data-mm="-1" aria-label="Fewer mines">−</button>
+            <div class="mn-mchips" id="mnMChips">
+              <button type="button" data-m="1">1</button><button type="button" data-m="3">3</button>
+              <button type="button" data-m="5">5</button><button type="button" data-m="10">10</button>
+              <button type="button" data-m="24">24</button>
+            </div>
+            <button type="button" class="rk-step" data-mm="1" aria-label="More mines">+</button>
+          </div>
+        </div>
+
+        <button type="button" class="rk-go mn-go" id="mnGo">Start game</button>
+
+        <div class="rk-card fair" id="fair-mines" data-kind="mines">
+          <button type="button" class="fair-h" aria-expanded="false">
+            <svg class="fair-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.4 3.1 8.2 7.5 9.5 4.4-1.3 7.5-5.1 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.3 2.3 4.2-4.6"/></svg>
+            <span data-i18n="fairTitle">Provably fair</span>
+            <em class="fair-st" data-f="st"></em>
+            <svg class="fair-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="fair-b" hidden>
+            <p class="fair-p" data-i18n="mnFairHow">When a game starts the server locks in a secret and shows its SHA-256 fingerprint. The bombs are already placed by it. When the game ends the secret is revealed, so anyone can check that it matches the fingerprint and recompute where the bombs were.</p>
+            <div class="fair-row"><span data-i18n="mnFairCur">Current game</span><b data-f="cur-id">—</b></div>
+            <button type="button" class="fair-hash" data-copy="cur-hash" data-f="cur-hash">—</button>
+            <div class="fair-row"><span data-i18n="mnFairLast">Last finished game</span><b data-f="last-id">—</b></div>
+            <button type="button" class="fair-hash" data-copy="last-secret" data-f="last-secret">—</button>
+            <div class="fair-res" data-f="last-res"></div>
+          </div>
+        </div>
+      </div>
 
       <!-- ============ GIFT BATTLE ============ -->
       <div class="page-content" id="page-battle">
@@ -719,6 +997,23 @@
         <div class="rk-card">
           <div class="rk-card-h"><span>In this battle</span><span id="btCount" class="rk-dim"></span></div>
           <ul class="rk-list bt-list" id="btList"></ul>
+        </div>
+
+        <div class="rk-card fair" id="fair-battle" data-kind="battle">
+          <button type="button" class="fair-h" aria-expanded="false">
+            <svg class="fair-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.4 3.1 8.2 7.5 9.5 4.4-1.3 7.5-5.1 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.3 2.3 4.2-4.6"/></svg>
+            <span data-i18n="fairTitle">Provably fair</span>
+            <em class="fair-st" data-f="st"></em>
+            <svg class="fair-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="fair-b" hidden>
+            <p class="fair-p" data-i18n="fairHow">Before every round the server locks in a secret and shows its SHA-256 fingerprint. After the round the secret is revealed, so anyone can check that it matches the fingerprint and recompute the result.</p>
+            <div class="fair-row"><span data-i18n="fairCur">Current round</span><b data-f="cur-id">—</b></div>
+            <button type="button" class="fair-hash" data-copy="cur-hash" data-f="cur-hash">—</button>
+            <div class="fair-row"><span data-i18n="fairLast">Last round</span><b data-f="last-id">—</b></div>
+            <button type="button" class="fair-hash" data-copy="last-secret" data-f="last-secret">—</button>
+            <div class="fair-res" data-f="last-res"></div>
+          </div>
         </div>
       </div>
 
@@ -1142,7 +1437,7 @@
     <nav class="bottom-nav" id="bottomNav" aria-label="Main">
       <button class="bottom-nav-item" data-page="leaderboard" type="button">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 6h2a2 2 0 0 1 2 2 3 3 0 0 1-3 3M7 6H5a2 2 0 0 0-2 2 3 3 0 0 0 3 3"/></svg>
-        <span class="bn-label" data-i18n="leaderboard">Ranks</span>
+        <span class="bn-label" data-i18n="navRanks">Ranks</span>
       </button>
       <button class="bottom-nav-item" data-action="inventory" type="button">
         <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
@@ -1157,8 +1452,8 @@
         <span class="bn-label" data-i18n="deposit">Deposit</span>
       </button>
       <button class="bottom-nav-item" data-page="settings" type="button">
-        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
-        <span class="bn-label" data-i18n="settings">Settings</span>
+        <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+        <span class="bn-label" data-i18n="profile">Profile</span>
       </button>
     </nav>
 
