@@ -1,5 +1,29 @@
 'use strict';
 
+// ---- BLACK FRIDAY THEME: one switch. true = black + gold look for the whole app, false = the normal look. ----
+const VOIDCOIN_COMING_SOON = true; // true = Void Coin page can't be opened (page itself stays); set false to enable
+const BLACK_FRIDAY_THEME = true;
+
+// ---- PROFILE CARD FRAME: 'default' (plain, follows the app theme), 'casino' (gold frame, green felt) or 'money' (banknote frame). ----
+const PROFILE_FRAME = 'default';
+const PROFILE_FRAME_FILES = { default: 'ProfileFrameDefault.svg', casino: 'ProfileFrame.svg', money: 'ProfileFrameMoney.svg' };
+(function () {
+  try {
+    const card = document.getElementById('pfCard'), img = document.getElementById('pfFrameImg');
+    if (card) card.dataset.frame = PROFILE_FRAME;
+    if (img) img.src = 'assets/' + (PROFILE_FRAME_FILES[PROFILE_FRAME] || PROFILE_FRAME_FILES.default);
+  } catch (e) {}
+})();
+(function () {
+  try {
+    document.documentElement.classList.toggle('bf-theme', BLACK_FRIDAY_THEME);
+    if (!BLACK_FRIDAY_THEME) return;
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', '#050403');
+    const tw = window.Telegram && window.Telegram.WebApp;
+    if (tw) for (const fn of ['setHeaderColor', 'setBackgroundColor', 'setBottomBarColor']) { try { tw[fn] && tw[fn]('#050403'); } catch (e) {} }
+  } catch (e) {}
+})();
+
 // ---- Version tag: shown at the top while loading, then fades a few seconds after the app opens. ----
 // APP_VERSION is edited by hand; the front-end commit is the newest commit of the front-end repo (GitHub);
 // the back-end commit comes from the game server's /api/config (Railway's RAILWAY_GIT_COMMIT_SHA).
@@ -8,13 +32,15 @@ const FRONT_REPO = 'sn0wydev/VGDevBranch', FRONT_BRANCH = 'main';
 const VersionTag = {
   front: '…', back: '…', el: null, timer: 0,
   init() {
-    this.el = document.getElementById('versionTag'); this.render();
+    this.el = document.getElementById('versionTag'); this.render(); this.shown();
     fetch(`https://api.github.com/repos/${FRONT_REPO}/commits/${FRONT_BRANCH}`, { headers: { Accept: 'application/vnd.github+json' } })
       .then(r => (r.ok ? r.json() : Promise.reject(new Error(r.status)))).then(j => this.set({ front: String(j.sha).slice(0, 7) })).catch(() => this.set({ front: 'n/a' }));
     return this;
   },
   set(p) { Object.assign(this, p); this.render(); },
   render() { if (this.el) this.el.textContent = `${APP_VERSION} · front ${this.front} · back ${this.back}`; },
+  // The Profile/Settings page shows the same number, so APP_VERSION is the only place to edit.
+  shown() { document.querySelectorAll('.version-number').forEach(e => { e.textContent = APP_VERSION.replace(/^V/i, 'v'); }); },
   fadeSoon(ms = 4000) { clearTimeout(this.timer); this.timer = setTimeout(() => this.el && this.el.classList.add('off'), ms); },
 };
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => VersionTag.init()); else VersionTag.init();
@@ -338,6 +364,62 @@ const TRANSLATIONS = {
     inventory: 'Items',
     deposit: 'Deposit',
     settings: 'Settings',
+    earn: 'Earn',
+    bfPill: 'Special event',
+    bfBadge: 'Black Friday',
+    bf1A: 'Black',
+    bf1B: 'Friday',
+    bf1Sub: 'The biggest event of the year',
+    bf2Title: 'Bigger prizes',
+    bf2Sub: 'Rare gifts, NFTs and Stars up for grabs',
+    bf3Title: 'Limited time',
+    bf3Sub: 'It won\'t last. Don\'t miss it.',
+    bf4Title: 'How to join',
+    profile: 'Profile',
+    pfRank: 'Rank',
+    pfStars: 'Stars',
+    pfShortcuts: 'Shortcuts',
+    pfNoName: 'Player',
+    bfTgLead: 'Know more about the event in:',
+    bfStep1: 'Spin',
+    bfStep2: 'Win',
+    bfStep3: 'Claim',
+    bfChipGifts: 'Gifts',
+    bfChipNft: 'NFT',
+    bfChipStars: 'Stars',
+    secPvp: 'PvP games',
+    secPvpHint: 'Play against others',
+    secSpins: 'Spin wheels',
+    secMore: 'Community',
+    navRanks: 'Ranks',
+    voidCoin: 'Void Coin',
+    banTitle: 'Your account is banned',
+    banWhyTitle: 'Why was I banned?',
+    banWhyText: 'Our systems and moderators found activity on your account that breaks the VoidGifts rules, such as using bots or scripts, exploiting bugs, abusing promo codes or running several accounts.',
+    banNoTolTitle: 'Why we don\'t tolerate cheaters',
+    banNoTolText: 'Every gift, Star and coin in VoidGifts is real value. Cheating takes it from honest players and makes the game unfair for everyone, so we act on it.',
+    banAppeal: 'Think this is a mistake? Contact support and we\'ll review your case.',
+    banContact: 'Contact support',
+    banYourId: 'Your ID',
+    comingSoon: 'Coming soon',
+    refTitle: 'Invite friends',
+    refSub: 'Earn {p}% of the first deposit of every new player who joins with your link. One time per friend.',
+    refCopy: 'Copy',
+    refCopied: 'Link copied',
+    refShare: 'Share invite link',
+    refShareText: 'Join me in VoidGifts and win gifts! 🎁',
+    refInvited: 'Invited',
+    refRewarded: 'Rewarded',
+    refEarned: 'Stars earned',
+    refFriends: 'Your friends',
+    refEmpty: 'No invites yet. Share your link to start earning!',
+    refPending: 'Waiting for first deposit',
+    refDone: '+{n} Stars',
+    refLoadErr: 'Couldn\'t load your invites. Try again later.',
+    refHow: 'How it works',
+    refStep1: 'Share your link with a friend',
+    refStep2: 'They join VoidGifts through it (new players only)',
+    refStep3: 'Their first deposit is made and you get {p}% of it, once',
     customizeExperience: 'Customize your experience',
     promocode: 'Promocode',
     language: 'Language',
@@ -389,6 +471,8 @@ const TRANSLATIONS = {
     eventBattleLg: 'Battle!',
     eventBattleSub: 'Bet a gift, win the whole pot',
     ecRocketPill: 'up to x500', ecRocketSub: 'Cash out before it flies away', ecBattlePill: 'no player limit', ecBattleSub: 'Winner takes the pot',
+    tgTitle: 'Scheduled testing', tgUntil: 'until {d}', tgText: 'You are not a tester',
+    secSolo: 'Solo games', secSoloHint: 'You vs the house', ecMinesPill: 'up to 24 mines', ecMinesSub: 'Find the gems, dodge the bombs', mnEyebrow: 'Solo game', mnMult: 'Multiplier', mnNext: 'Next tile', mnCash: 'Cash out', mnBet: 'Bet', mnMines: 'Mines', mnGems: '{n} gems', mnStart: 'Start game', mnPick: 'Pick a tile', mnCashBtn: 'Cash out', mnAgain: 'Play again', mnBoom: 'Boom! You lost {n} ★', mnWin: 'Cashed out {n} ★ at {x}', mnAllGems: 'Board cleared! {n} ★ paid out', mnMin: 'Minimum bet is {n} ★', mnNoStars: 'Not enough Stars', mnHint: 'Choose a bet and the number of mines, then open tiles. Every gem raises your multiplier.', mnChipMines: 'Mines: {n}', mnFairHow: 'When a game starts the server locks in a secret and shows its SHA-256 fingerprint. The bombs are already placed by it. When the game ends the secret is revealed, so anyone can check that it matches the fingerprint and recompute where the bombs were.', mnFairCur: 'Current game', mnFairLast: 'Last finished game', mnFairBombs: 'Bombs on tiles',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: 'Birthday!',
     eventBirthdaySub: 'Thank you for an amazing year',
@@ -401,6 +485,18 @@ const TRANSLATIONS = {
     freeDropsEyebrow: 'free drops every day',
     freeHighlight: 'Telegram',
     channelSuffix: 'Channel',
+    fairTitle: 'Provably fair',
+    fairHow: 'Before every round the server locks in a secret and shows its SHA-256 fingerprint. After the round the secret is revealed, so anyone can check that it matches the fingerprint and recompute the result.',
+    fairCur: 'Current round',
+    fairLast: 'Last round',
+    fairOk: 'Verified',
+    fairBad: 'Mismatch',
+    fairWait: 'The secret appears after the round',
+    fairCopied: 'Copied',
+    fairCrash: 'Crashed at',
+    fairWinner: 'Winner',
+    fairRecomputed: 'recomputed',
+    fairHashOnly: 'Hash matches the secret',
     channelSub: 'Join to never miss a giveaway or secret code.',
     joinChannel: 'Join Channel',
 
@@ -431,6 +527,10 @@ const TRANSLATIONS = {
     sellHowTo: 'Send a collectible to @{relayer} in Telegram. The Stars below are added to your balance automatically.',
     sellOpenRelayer: 'Open @{relayer}',
     sellSearch: 'Search gifts…',
+    sellMarket: 'Market',
+    sellAboveNote: 'Black Friday bonus: we pay up to {n}% above the Telegram market price',
+    sellEndsIn: 'Ends in {t}',
+    sellVsMarket: 'vs market',
     sellNoResults: 'No gift found',
     sellCount: 'gifts priced',
     sellWord: 'Sell',
@@ -598,6 +698,62 @@ const TRANSLATIONS = {
     inventory: 'Вещи',
     deposit: 'Депозит',
     settings: 'Настройки',
+    earn: 'Заработок',
+    bfPill: 'Особое событие',
+    bfBadge: 'Чёрная пятница',
+    bf1A: 'Чёрная',
+    bf1B: 'Пятница',
+    bf1Sub: 'Главное событие года',
+    bf2Title: 'Призы покрупнее',
+    bf2Sub: 'Редкие подарки, NFT и звёзды ждут тебя',
+    bf3Title: 'Только сейчас',
+    bf3Sub: 'Это ненадолго. Не упусти!',
+    bf4Title: 'Как участвовать',
+    profile: 'Профиль',
+    pfRank: 'Ранг',
+    pfStars: 'Звёзды',
+    pfShortcuts: 'Быстрый доступ',
+    pfNoName: 'Игрок',
+    bfTgLead: 'Подробнее о событии в:',
+    bfStep1: 'Крути',
+    bfStep2: 'Выигрывай',
+    bfStep3: 'Забирай',
+    bfChipGifts: 'Подарки',
+    bfChipNft: 'NFT',
+    bfChipStars: 'Звёзды',
+    secPvp: 'PvP игры',
+    secPvpHint: 'Играй с другими',
+    secSpins: 'Колёса удачи',
+    secMore: 'Сообщество',
+    navRanks: 'Рейтинг',
+    voidCoin: 'Void Coin',
+    banTitle: 'Ваш аккаунт заблокирован',
+    banWhyTitle: 'Почему меня забанили?',
+    banWhyText: 'Наши системы и модераторы обнаружили на вашем аккаунте действия, нарушающие правила VoidGifts: например, использование ботов или скриптов, эксплуатацию багов, злоупотребление промокодами или мультиаккаунты.',
+    banNoTolTitle: 'Почему мы не терпим читеров',
+    banNoTolText: 'Каждый подарок, звезда и монета в VoidGifts — это реальная ценность. Читеры забирают её у честных игроков и делают игру несправедливой для всех, поэтому мы жёстко на это реагируем.',
+    banAppeal: 'Считаете, что это ошибка? Напишите в поддержку, и мы пересмотрим ваш случай.',
+    banContact: 'Связаться с поддержкой',
+    banYourId: 'Ваш ID',
+    comingSoon: 'Скоро',
+    refTitle: 'Приглашайте друзей',
+    refSub: 'Получайте {p}% от первого пополнения каждого нового игрока, пришедшего по вашей ссылке. Один раз за друга.',
+    refCopy: 'Копировать',
+    refCopied: 'Ссылка скопирована',
+    refShare: 'Поделиться ссылкой',
+    refShareText: 'Заходи в VoidGifts и выигрывай подарки! 🎁',
+    refInvited: 'Приглашено',
+    refRewarded: 'С наградой',
+    refEarned: 'Звёзд заработано',
+    refFriends: 'Ваши друзья',
+    refEmpty: 'Пока нет приглашений. Поделитесь ссылкой, чтобы начать зарабатывать!',
+    refPending: 'Ждём первое пополнение',
+    refDone: '+{n} звёзд',
+    refLoadErr: 'Не удалось загрузить приглашения. Попробуйте позже.',
+    refHow: 'Как это работает',
+    refStep1: 'Отправьте ссылку другу',
+    refStep2: 'Он впервые заходит в VoidGifts по ней (только новые игроки)',
+    refStep3: 'Он делает первое пополнение, а вы получаете {p}% от него — один раз',
     customizeExperience: 'Настройте свой опыт',
     promocode: 'Промокод',
     language: 'Язык',
@@ -649,6 +805,8 @@ const TRANSLATIONS = {
     eventBattleLg: 'Баттл!',
     eventBattleSub: 'Ставь подарок — забирай банк',
     ecRocketPill: 'до x500', ecRocketSub: 'Забери выигрыш до взрыва', ecBattlePill: 'без лимита игроков', ecBattleSub: 'Победитель забирает банк',
+    tgTitle: 'Запланированное тестирование', tgUntil: 'до {d}', tgText: 'Вы не являетесь участником тестирования',
+    secSolo: 'Одиночные игры', secSoloHint: 'Ты против казино', ecMinesPill: 'до 24 мин', ecMinesSub: 'Находи кристаллы, обходи бомбы', mnEyebrow: 'Одиночная игра', mnMult: 'Коэфф.', mnNext: 'Далее', mnCash: 'Забрать', mnBet: 'Ставка', mnMines: 'Мины', mnGems: 'Кристаллов: {n}', mnStart: 'Начать игру', mnPick: 'Выбери клетку', mnCashBtn: 'Забрать', mnAgain: 'Играть снова', mnBoom: 'Бум! Потеряно {n} ★', mnWin: 'Забрано {n} ★ на {x}', mnAllGems: 'Поле очищено! Выплата {n} ★', mnMin: 'Минимальная ставка {n} ★', mnNoStars: 'Не хватает Stars', mnHint: 'Выбери ставку и число мин, затем открывай клетки. Каждый кристалл повышает множитель.', mnChipMines: 'Мин: {n}', mnFairHow: 'При старте игры сервер фиксирует секрет и показывает его отпечаток SHA-256. Бомбы уже расставлены по нему. Когда игра закончится, секрет раскрывается, и любой может проверить, что он совпадает с отпечатком, и пересчитать, где были бомбы.', mnFairCur: 'Текущая игра', mnFairLast: 'Последняя завершённая игра', mnFairBombs: 'Бомбы на клетках',
     eventBirthdayTitleSm: 'Прил.',
     eventBirthdayTitleLg: 'День рождения!',
     eventBirthdaySub: 'Спасибо за потрясающий год',
@@ -661,6 +819,18 @@ const TRANSLATIONS = {
     freeDropsEyebrow: 'бесплатные дропы каждый день',
     freeHighlight: 'FREE',
     channelSuffix: 'Канал',
+    fairTitle: 'Доказуемая честность',
+    fairHow: 'Перед каждым раундом сервер фиксирует секрет и показывает его отпечаток SHA-256. После раунда секрет раскрывается, поэтому любой может проверить, что он совпадает с отпечатком, и пересчитать результат.',
+    fairCur: 'Текущий раунд',
+    fairLast: 'Прошлый раунд',
+    fairOk: 'Проверено',
+    fairBad: 'Не совпало',
+    fairWait: 'Секрет появится после раунда',
+    fairCopied: 'Скопировано',
+    fairCrash: 'Взрыв на',
+    fairWinner: 'Победитель',
+    fairRecomputed: 'пересчитано',
+    fairHashOnly: 'Отпечаток совпадает с секретом',
     channelSub: 'Подпишитесь, чтобы не пропустить розыгрыш или секретный код.',
     joinChannel: 'Подписаться',
 
@@ -691,6 +861,10 @@ const TRANSLATIONS = {
     sellHowTo: 'Отправьте коллекционный подарок аккаунту @{relayer} в Telegram. Звёзды из списка автоматически зачислятся на баланс.',
     sellOpenRelayer: 'Открыть @{relayer}',
     sellSearch: 'Поиск подарков…',
+    sellMarket: 'Рынок',
+    sellAboveNote: 'Бонус Чёрной пятницы: платим до {n}% выше рыночной цены Telegram',
+    sellEndsIn: 'Закончится через {t}',
+    sellVsMarket: 'к рынку',
     sellNoResults: 'Подарок не найден',
     sellCount: 'подарков в списке',
     sellWord: 'Продать',
@@ -828,6 +1002,62 @@ const TRANSLATIONS = {
     inventory: 'Objetos',
     deposit: 'Depósito',
     settings: 'Configuración',
+    earn: 'Ganar',
+    bfPill: 'Evento especial',
+    bfBadge: 'Black Friday',
+    bf1A: 'Black',
+    bf1B: 'Friday',
+    bf1Sub: 'El mayor evento del año',
+    bf2Title: 'Premios más grandes',
+    bf2Sub: 'Regalos raros, NFT y Stars te esperan',
+    bf3Title: 'Tiempo limitado',
+    bf3Sub: 'No durará. No te lo pierdas.',
+    bf4Title: 'Cómo participar',
+    profile: 'Perfil',
+    pfRank: 'Rango',
+    pfStars: 'Estrellas',
+    pfShortcuts: 'Accesos',
+    pfNoName: 'Jugador',
+    bfTgLead: 'Más sobre el evento en:',
+    bfStep1: 'Gira',
+    bfStep2: 'Gana',
+    bfStep3: 'Reclama',
+    bfChipGifts: 'Regalos',
+    bfChipNft: 'NFT',
+    bfChipStars: 'Stars',
+    secPvp: 'Juegos PvP',
+    secPvpHint: 'Juega contra otros',
+    secSpins: 'Ruedas de premios',
+    secMore: 'Comunidad',
+    navRanks: 'Ranking',
+    voidCoin: 'Void Coin',
+    banTitle: 'Tu cuenta ha sido bloqueada',
+    banWhyTitle: '¿Por qué me banearon?',
+    banWhyText: 'Nuestros sistemas y moderadores detectaron en tu cuenta actividad que incumple las reglas de VoidGifts, como el uso de bots o scripts, el aprovechamiento de errores, el abuso de códigos promocionales o tener varias cuentas.',
+    banNoTolTitle: 'Por qué no toleramos a los tramposos',
+    banNoTolText: 'Cada regalo, estrella y moneda de VoidGifts tiene valor real. Las trampas se lo quitan a los jugadores honestos y hacen injusto el juego para todos, por eso actuamos.',
+    banAppeal: '¿Crees que es un error? Escribe a soporte y revisaremos tu caso.',
+    banContact: 'Contactar con soporte',
+    banYourId: 'Tu ID',
+    comingSoon: 'Próximamente',
+    refTitle: 'Invita a tus amigos',
+    refSub: 'Gana el {p}% del primer depósito de cada jugador nuevo que entre con tu enlace. Una sola vez por amigo.',
+    refCopy: 'Copiar',
+    refCopied: 'Enlace copiado',
+    refShare: 'Compartir enlace de invitación',
+    refShareText: '¡Únete a mí en VoidGifts y gana regalos! 🎁',
+    refInvited: 'Invitados',
+    refRewarded: 'Recompensados',
+    refEarned: 'Estrellas ganadas',
+    refFriends: 'Tus amigos',
+    refEmpty: 'Aún no hay invitaciones. ¡Comparte tu enlace para empezar a ganar!',
+    refPending: 'Esperando el primer depósito',
+    refDone: '+{n} estrellas',
+    refLoadErr: 'No se pudieron cargar tus invitaciones. Inténtalo más tarde.',
+    refHow: 'Cómo funciona',
+    refStep1: 'Comparte tu enlace con un amigo',
+    refStep2: 'Entra en VoidGifts con él (solo jugadores nuevos)',
+    refStep3: 'Hace su primer depósito y tú recibes el {p}% una sola vez',
     customizeExperience: 'Personaliza tu experiencia',
     promocode: 'Código promocional',
     language: 'Idioma',
@@ -879,6 +1109,8 @@ const TRANSLATIONS = {
     eventBattleLg: 'de regalos!',
     eventBattleSub: 'Apuesta un regalo y gana el bote',
     ecRocketPill: 'hasta x500', ecRocketSub: 'Retira antes de que se escape', ecBattlePill: 'sin límite de jugadores', ecBattleSub: 'El ganador se lleva el bote',
+    tgTitle: 'Prueba programada', tgUntil: 'hasta el {d}', tgText: 'No eres participante de la prueba',
+    secSolo: 'Juegos en solitario', secSoloHint: 'Tú contra la casa', ecMinesPill: 'hasta 24 minas', ecMinesSub: 'Encuentra las gemas, esquiva las bombas', mnEyebrow: 'Juego en solitario', mnMult: 'Mult.', mnNext: 'Siguiente', mnCash: 'Retirar', mnBet: 'Apuesta', mnMines: 'Minas', mnGems: '{n} gemas', mnStart: 'Empezar partida', mnPick: 'Elige una casilla', mnCashBtn: 'Retirar', mnAgain: 'Jugar otra vez', mnBoom: '¡Boom! Perdiste {n} ★', mnWin: 'Retiraste {n} ★ a {x}', mnAllGems: '¡Tablero completo! Pago de {n} ★', mnMin: 'La apuesta mínima es {n} ★', mnNoStars: 'No tienes suficientes Stars', mnHint: 'Elige tu apuesta y el número de minas y abre casillas. Cada gema sube tu multiplicador.', mnChipMines: 'Minas: {n}', mnFairHow: 'Al empezar la partida el servidor fija un secreto y muestra su huella SHA-256. Las bombas ya están colocadas con él. Al terminar se revela el secreto, así que cualquiera puede comprobar que coincide con la huella y recalcular dónde estaban las bombas.', mnFairCur: 'Partida actual', mnFairLast: 'Última partida terminada', mnFairBombs: 'Bombas en las casillas',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: '¡Cumpleaños!',
     eventBirthdaySub: 'Gracias por un año increíble',
@@ -891,6 +1123,18 @@ const TRANSLATIONS = {
     freeDropsEyebrow: 'drops gratis cada día',
     freeHighlight: 'GRATIS',
     channelSuffix: 'Canal',
+    fairTitle: 'Juego verificable',
+    fairHow: 'Antes de cada ronda el servidor fija un secreto y muestra su huella SHA-256. Al terminar la ronda se revela el secreto, así cualquiera puede comprobar que coincide con la huella y recalcular el resultado.',
+    fairCur: 'Ronda actual',
+    fairLast: 'Ronda anterior',
+    fairOk: 'Verificado',
+    fairBad: 'No coincide',
+    fairWait: 'El secreto aparece al terminar la ronda',
+    fairCopied: 'Copiado',
+    fairCrash: 'Explotó en',
+    fairWinner: 'Ganador',
+    fairRecomputed: 'recalculado',
+    fairHashOnly: 'La huella coincide con el secreto',
     channelSub: 'Únete para no perderte ningún sorteo o código secreto.',
     joinChannel: 'Unirse al canal',
 
@@ -921,6 +1165,10 @@ const TRANSLATIONS = {
     sellHowTo: 'Envía un coleccionable a @{relayer} en Telegram. Las Stars de abajo se añaden a tu saldo automáticamente.',
     sellOpenRelayer: 'Abrir @{relayer}',
     sellSearch: 'Buscar regalos…',
+    sellMarket: 'Mercado',
+    sellAboveNote: 'Bonus de Black Friday: pagamos hasta un {n}% más que el mercado de Telegram',
+    sellEndsIn: 'Termina en {t}',
+    sellVsMarket: 'sobre el mercado',
     sellNoResults: 'No se encontró ningún regalo',
     sellCount: 'regalos con precio',
     sellWord: 'Vender',
@@ -1058,6 +1306,62 @@ const TRANSLATIONS = {
     inventory: 'Objets',
     deposit: 'Dépôt',
     settings: 'Paramètres',
+    earn: 'Gagner',
+    bfPill: 'Événement spécial',
+    bfBadge: 'Black Friday',
+    bf1A: 'Black',
+    bf1B: 'Friday',
+    bf1Sub: 'Le plus grand événement de l\'année',
+    bf2Title: 'Plus gros lots',
+    bf2Sub: 'Cadeaux rares, NFT et Stars à gagner',
+    bf3Title: 'Durée limitée',
+    bf3Sub: 'Ça ne durera pas. Ne le manquez pas.',
+    bf4Title: 'Comment participer',
+    profile: 'Profil',
+    pfRank: 'Rang',
+    pfStars: 'Étoiles',
+    pfShortcuts: 'Raccourcis',
+    pfNoName: 'Joueur',
+    bfTgLead: 'Plus d\'infos sur l\'événement sur :',
+    bfStep1: 'Tournez',
+    bfStep2: 'Gagnez',
+    bfStep3: 'Récupérez',
+    bfChipGifts: 'Cadeaux',
+    bfChipNft: 'NFT',
+    bfChipStars: 'Stars',
+    secPvp: 'Jeux PvP',
+    secPvpHint: 'Jouez contre les autres',
+    secSpins: 'Roues à gagner',
+    secMore: 'Communauté',
+    navRanks: 'Top',
+    voidCoin: 'Void Coin',
+    banTitle: 'Votre compte est banni',
+    banWhyTitle: 'Pourquoi ai-je été banni ?',
+    banWhyText: 'Nos systèmes et nos modérateurs ont détecté sur votre compte une activité contraire aux règles de VoidGifts : utilisation de bots ou de scripts, exploitation de bugs, abus de codes promo ou comptes multiples.',
+    banNoTolTitle: 'Pourquoi nous ne tolérons pas les tricheurs',
+    banNoTolText: 'Chaque cadeau, étoile et pièce de VoidGifts a une vraie valeur. Tricher la prend aux joueurs honnêtes et rend le jeu injuste pour tous, c\'est pourquoi nous sévissons.',
+    banAppeal: 'Une erreur selon vous ? Contactez le support et nous réexaminerons votre cas.',
+    banContact: 'Contacter le support',
+    banYourId: 'Votre ID',
+    comingSoon: 'Bientôt',
+    refTitle: 'Invitez vos amis',
+    refSub: 'Gagnez {p} % du premier dépôt de chaque nouveau joueur qui rejoint via votre lien. Une seule fois par ami.',
+    refCopy: 'Copier',
+    refCopied: 'Lien copié',
+    refShare: 'Partager le lien d\'invitation',
+    refShareText: 'Rejoins-moi sur VoidGifts et gagne des cadeaux ! 🎁',
+    refInvited: 'Invités',
+    refRewarded: 'Récompensés',
+    refEarned: 'Étoiles gagnées',
+    refFriends: 'Vos amis',
+    refEmpty: 'Aucune invitation pour l\'instant. Partagez votre lien pour commencer à gagner !',
+    refPending: 'En attente du premier dépôt',
+    refDone: '+{n} étoiles',
+    refLoadErr: 'Impossible de charger vos invitations. Réessayez plus tard.',
+    refHow: 'Comment ça marche',
+    refStep1: 'Partagez votre lien avec un ami',
+    refStep2: 'Il rejoint VoidGifts grâce à lui (nouveaux joueurs uniquement)',
+    refStep3: 'Il fait son premier dépôt et vous recevez {p} % de ce montant, une seule fois',
     customizeExperience: 'Personnalisez votre expérience',
     promocode: 'Code promo',
     language: 'Langue',
@@ -1109,6 +1413,8 @@ const TRANSLATIONS = {
     eventBattleLg: 'de cadeaux!',
     eventBattleSub: 'Mise un cadeau, gagne la cagnotte',
     ecRocketPill: 'jusqu\'à x500', ecRocketSub: 'Encaisse avant qu\'elle ne s\'envole', ecBattlePill: 'sans limite de joueurs', ecBattleSub: 'Le gagnant remporte la cagnotte',
+    tgTitle: 'Test programmé', tgUntil: 'jusqu\'au {d}', tgText: 'Vous ne faites pas partie des testeurs',
+    secSolo: 'Jeux en solo', secSoloHint: 'Toi contre la maison', ecMinesPill: 'jusqu\'à 24 mines', ecMinesSub: 'Trouve les gemmes, évite les bombes', mnEyebrow: 'Jeu en solo', mnMult: 'Mult.', mnNext: 'Suivante', mnCash: 'Encaisser', mnBet: 'Mise', mnMines: 'Mines', mnGems: '{n} gemmes', mnStart: 'Lancer la partie', mnPick: 'Choisis une case', mnCashBtn: 'Encaisser', mnAgain: 'Rejouer', mnBoom: 'Boum ! Tu perds {n} ★', mnWin: 'Encaissé {n} ★ à {x}', mnAllGems: 'Plateau terminé ! {n} ★ versés', mnMin: 'La mise minimale est de {n} ★', mnNoStars: 'Pas assez de Stars', mnHint: 'Choisis ta mise et le nombre de mines, puis ouvre des cases. Chaque gemme augmente ton multiplicateur.', mnChipMines: 'Mines : {n}', mnFairHow: 'Au début de la partie, le serveur fixe un secret et affiche son empreinte SHA-256. Les bombes sont déjà placées avec lui. À la fin, le secret est révélé : chacun peut vérifier qu\'il correspond à l\'empreinte et recalculer où étaient les bombes.', mnFairCur: 'Partie en cours', mnFairLast: 'Dernière partie terminée', mnFairBombs: 'Bombes sur les cases',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: 'Anniversaire !',
     eventBirthdaySub: 'Merci pour une année incroyable',
@@ -1121,6 +1427,18 @@ const TRANSLATIONS = {
     freeDropsEyebrow: 'drops gratuits chaque jour',
     freeHighlight: 'GRATUIT',
     channelSuffix: 'Chaîne',
+    fairTitle: 'Équité prouvable',
+    fairHow: 'Avant chaque tour, le serveur fige un secret et affiche son empreinte SHA-256. Après le tour, le secret est révélé : chacun peut vérifier qu\'il correspond à l\'empreinte et recalculer le résultat.',
+    fairCur: 'Tour en cours',
+    fairLast: 'Dernier tour',
+    fairOk: 'Vérifié',
+    fairBad: 'Différent',
+    fairWait: 'Le secret apparaît après le tour',
+    fairCopied: 'Copié',
+    fairCrash: 'Crash à',
+    fairWinner: 'Gagnant',
+    fairRecomputed: 'recalculé',
+    fairHashOnly: 'L\'empreinte correspond au secret',
     channelSub: 'Rejoignez pour ne jamais manquer un tirage ou un code secret.',
     joinChannel: 'Rejoindre la chaîne',
 
@@ -1151,6 +1469,10 @@ const TRANSLATIONS = {
     sellHowTo: 'Envoyez un objet de collection à @{relayer} sur Telegram. Les Étoiles ci-dessous sont ajoutées automatiquement à votre solde.',
     sellOpenRelayer: 'Ouvrir @{relayer}',
     sellSearch: 'Rechercher un cadeau…',
+    sellMarket: 'Marché',
+    sellAboveNote: 'Bonus Black Friday : jusqu\'à {n}% de plus que le marché Telegram',
+    sellEndsIn: 'Se termine dans {t}',
+    sellVsMarket: 'vs marché',
     sellNoResults: 'Aucun cadeau trouvé',
     sellCount: 'cadeaux listés',
     sellWord: 'Vendre',
@@ -1288,6 +1610,62 @@ const TRANSLATIONS = {
     inventory: 'Gegenstände',
     deposit: 'Einzahlung',
     settings: 'Einstellungen',
+    earn: 'Verdienen',
+    bfPill: 'Spezial-Event',
+    bfBadge: 'Black Friday',
+    bf1A: 'Black',
+    bf1B: 'Friday',
+    bf1Sub: 'Das größte Event des Jahres',
+    bf2Title: 'Größere Preise',
+    bf2Sub: 'Seltene Geschenke, NFTs und Stars warten',
+    bf3Title: 'Nur kurze Zeit',
+    bf3Sub: 'Es dauert nicht ewig. Verpasse es nicht.',
+    bf4Title: 'So machst du mit',
+    profile: 'Profil',
+    pfRank: 'Rang',
+    pfStars: 'Sterne',
+    pfShortcuts: 'Schnellzugriff',
+    pfNoName: 'Spieler',
+    bfTgLead: 'Mehr zum Event im:',
+    bfStep1: 'Drehen',
+    bfStep2: 'Gewinnen',
+    bfStep3: 'Abholen',
+    bfChipGifts: 'Geschenke',
+    bfChipNft: 'NFT',
+    bfChipStars: 'Stars',
+    secPvp: 'PvP-Spiele',
+    secPvpHint: 'Spiele gegen andere',
+    secSpins: 'Glücksräder',
+    secMore: 'Community',
+    navRanks: 'Rang',
+    voidCoin: 'Void Coin',
+    banTitle: 'Dein Konto wurde gesperrt',
+    banWhyTitle: 'Warum wurde ich gesperrt?',
+    banWhyText: 'Unsere Systeme und Moderatoren haben auf deinem Konto Aktivitäten festgestellt, die gegen die VoidGifts-Regeln verstoßen, etwa die Nutzung von Bots oder Skripten, das Ausnutzen von Fehlern, Missbrauch von Promo-Codes oder mehrere Konten.',
+    banNoTolTitle: 'Warum wir Cheater nicht dulden',
+    banNoTolText: 'Jedes Geschenk, jeder Stern und jede Münze in VoidGifts hat echten Wert. Betrug nimmt ihn ehrlichen Spielern weg und macht das Spiel für alle unfair, deshalb greifen wir durch.',
+    banAppeal: 'Du glaubst, das ist ein Irrtum? Schreib dem Support, wir prüfen deinen Fall.',
+    banContact: 'Support kontaktieren',
+    banYourId: 'Deine ID',
+    comingSoon: 'Demnächst',
+    refTitle: 'Freunde einladen',
+    refSub: 'Erhalte {p}% der ersten Einzahlung jedes neuen Spielers, der über deinen Link beitritt. Einmalig pro Freund.',
+    refCopy: 'Kopieren',
+    refCopied: 'Link kopiert',
+    refShare: 'Einladungslink teilen',
+    refShareText: 'Komm zu VoidGifts und gewinne Geschenke! 🎁',
+    refInvited: 'Eingeladen',
+    refRewarded: 'Belohnt',
+    refEarned: 'Sterne verdient',
+    refFriends: 'Deine Freunde',
+    refEmpty: 'Noch keine Einladungen. Teile deinen Link und fang an zu verdienen!',
+    refPending: 'Warten auf erste Einzahlung',
+    refDone: '+{n} Sterne',
+    refLoadErr: 'Einladungen konnten nicht geladen werden. Versuche es später erneut.',
+    refHow: 'So funktioniert\'s',
+    refStep1: 'Teile deinen Link mit einem Freund',
+    refStep2: 'Er tritt VoidGifts darüber bei (nur neue Spieler)',
+    refStep3: 'Er macht seine erste Einzahlung und du erhältst einmalig {p}% davon',
     customizeExperience: 'Passe deine Erfahrung an',
     promocode: 'Gutscheincode',
     language: 'Sprache',
@@ -1339,6 +1717,8 @@ const TRANSLATIONS = {
     eventBattleLg: 'Battle!',
     eventBattleSub: 'Setze ein Geschenk, gewinne den Pot',
     ecRocketPill: 'bis zu x500', ecRocketSub: 'Auszahlen, bevor sie abhebt', ecBattlePill: 'unbegrenzt viele Spieler', ecBattleSub: 'Der Gewinner bekommt den Pot',
+    tgTitle: 'Geplanter Test', tgUntil: 'bis {d}', tgText: 'Du bist kein Teilnehmer des Tests',
+    secSolo: 'Solo-Spiele', secSoloHint: 'Du gegen das Haus', ecMinesPill: 'bis zu 24 Minen', ecMinesSub: 'Finde die Edelsteine, meide die Bomben', mnEyebrow: 'Solo-Spiel', mnMult: 'Faktor', mnNext: 'Nächstes', mnCash: 'Auszahlen', mnBet: 'Einsatz', mnMines: 'Minen', mnGems: '{n} Edelsteine', mnStart: 'Spiel starten', mnPick: 'Wähle ein Feld', mnCashBtn: 'Auszahlen', mnAgain: 'Nochmal spielen', mnBoom: 'Bumm! {n} ★ verloren', mnWin: '{n} ★ bei {x} ausgezahlt', mnAllGems: 'Brett geräumt! {n} ★ ausgezahlt', mnMin: 'Mindesteinsatz ist {n} ★', mnNoStars: 'Nicht genug Stars', mnHint: 'Wähle Einsatz und Anzahl der Minen und öffne dann Felder. Jeder Edelstein erhöht deinen Multiplikator.', mnChipMines: 'Minen: {n}', mnFairHow: 'Beim Start der Runde legt der Server ein Geheimnis fest und zeigt dessen SHA-256-Fingerabdruck. Die Bomben sind damit bereits platziert. Nach dem Spiel wird das Geheimnis offengelegt, sodass jeder prüfen kann, ob es zum Fingerabdruck passt, und nachrechnen kann, wo die Bomben lagen.', mnFairCur: 'Aktuelles Spiel', mnFairLast: 'Letztes beendetes Spiel', mnFairBombs: 'Bomben auf Feldern',
     eventBirthdayTitleSm: 'App',
     eventBirthdayTitleLg: 'Geburtstag!',
     eventBirthdaySub: 'Danke für ein tolles Jahr',
@@ -1351,6 +1731,18 @@ const TRANSLATIONS = {
     freeDropsEyebrow: 'kostenlose Drops jeden Tag',
     freeHighlight: 'GRATIS',
     channelSuffix: 'Kanal',
+    fairTitle: 'Nachweislich fair',
+    fairHow: 'Vor jeder Runde legt der Server ein Geheimnis fest und zeigt dessen SHA-256-Fingerabdruck. Nach der Runde wird das Geheimnis offengelegt, sodass jeder prüfen kann, ob es zum Fingerabdruck passt, und das Ergebnis nachrechnen kann.',
+    fairCur: 'Aktuelle Runde',
+    fairLast: 'Letzte Runde',
+    fairOk: 'Geprüft',
+    fairBad: 'Abweichung',
+    fairWait: 'Das Geheimnis erscheint nach der Runde',
+    fairCopied: 'Kopiert',
+    fairCrash: 'Crash bei',
+    fairWinner: 'Gewinner',
+    fairRecomputed: 'nachgerechnet',
+    fairHashOnly: 'Fingerabdruck passt zum Geheimnis',
     channelSub: 'Trete bei, um kein Gewinnspiel oder Geheimcode zu verpassen.',
     joinChannel: 'Kanal beitreten',
 
@@ -1381,6 +1773,10 @@ const TRANSLATIONS = {
     sellHowTo: 'Sende ein Sammlerstück an @{relayer} in Telegram. Die Stars unten werden automatisch deinem Guthaben gutgeschrieben.',
     sellOpenRelayer: '@{relayer} öffnen',
     sellSearch: 'Geschenke suchen…',
+    sellMarket: 'Markt',
+    sellAboveNote: 'Black-Friday-Bonus: bis zu {n}% mehr als der Telegram-Marktpreis',
+    sellEndsIn: 'Endet in {t}',
+    sellVsMarket: 'ggü. Markt',
     sellNoResults: 'Kein Geschenk gefunden',
     sellCount: 'Geschenke gelistet',
     sellWord: 'Verkaufen',
@@ -1518,6 +1914,62 @@ const TRANSLATIONS = {
     inventory: '物品',
     deposit: '充值',
     settings: '设置',
+    earn: '赚取',
+    bfPill: '特别活动',
+    bfBadge: '黑色星期五',
+    bf1A: '黑色',
+    bf1B: '星期五',
+    bf1Sub: '年度最大活动',
+    bf2Title: '更大奖品',
+    bf2Sub: '稀有礼物、NFT 和 Stars 等你来拿',
+    bf3Title: '限时开启',
+    bf3Sub: '机会不多，别错过。',
+    bf4Title: '如何参加',
+    profile: '个人资料',
+    pfRank: '排名',
+    pfStars: '星星',
+    pfShortcuts: '快捷入口',
+    pfNoName: '玩家',
+    bfTgLead: '了解活动详情请前往：',
+    bfStep1: '转动',
+    bfStep2: '获胜',
+    bfStep3: '领取',
+    bfChipGifts: '礼物',
+    bfChipNft: 'NFT',
+    bfChipStars: 'Stars',
+    secPvp: 'PvP 游戏',
+    secPvpHint: '与他人对战',
+    secSpins: '幸运转盘',
+    secMore: '社区',
+    navRanks: '排行',
+    voidCoin: 'Void Coin',
+    banTitle: '你的账号已被封禁',
+    banWhyTitle: '我为什么被封禁？',
+    banWhyText: '我们的系统和管理员发现你的账号存在违反 VoidGifts 规则的行为，例如使用机器人或脚本、利用漏洞、滥用优惠码或使用多个账号。',
+    banNoTolTitle: '为什么我们不容忍作弊者',
+    banNoTolText: 'VoidGifts 中的每一份礼物、每颗星星和每枚金币都具有真实价值。作弊会从诚实玩家手中夺走这些价值，让所有人的游戏都变得不公平，因此我们会严肃处理。',
+    banAppeal: '认为这是误判？请联系客服，我们会重新审核你的情况。',
+    banContact: '联系客服',
+    banYourId: '你的 ID',
+    comingSoon: '即将推出',
+    refTitle: '邀请好友',
+    refSub: '每位通过你的链接加入的新玩家，其首次充值的 {p}% 将作为奖励发给你，每位好友仅一次。',
+    refCopy: '复制',
+    refCopied: '链接已复制',
+    refShare: '分享邀请链接',
+    refShareText: '快来 VoidGifts 和我一起赢礼物吧！🎁',
+    refInvited: '已邀请',
+    refRewarded: '已奖励',
+    refEarned: '获得的星星',
+    refFriends: '你的好友',
+    refEmpty: '还没有邀请。分享你的链接开始赚取吧！',
+    refPending: '等待首次充值',
+    refDone: '+{n} 颗星星',
+    refLoadErr: '无法加载邀请记录，请稍后再试。',
+    refHow: '玩法说明',
+    refStep1: '把链接分享给好友',
+    refStep2: '好友通过链接加入 VoidGifts（仅限新玩家）',
+    refStep3: '好友完成首次充值，你一次性获得其中 {p}%',
     customizeExperience: '自定义您的体验',
     promocode: '兑换码',
     language: '语言',
@@ -1569,6 +2021,8 @@ const TRANSLATIONS = {
     eventBattleLg: '大战!',
     eventBattleSub: '下注一件礼物，赢取整个奖池',
     ecRocketPill: '最高 x500', ecRocketSub: '在火箭飞走前提现', ecBattlePill: '不限玩家人数', ecBattleSub: '赢家独得奖池',
+    tgTitle: '计划测试中', tgUntil: '至 {d}', tgText: '你不是测试参与者',
+    secSolo: '单人游戏', secSoloHint: '你对战庄家', ecMinesPill: '最多 24 颗雷', ecMinesSub: '找到宝石，避开炸弹', mnEyebrow: '单人游戏', mnMult: '倍数', mnNext: '下一格', mnCash: '提现', mnBet: '下注', mnMines: '雷数', mnGems: '{n} 颗宝石', mnStart: '开始游戏', mnPick: '选择一个格子', mnCashBtn: '提现', mnAgain: '再来一局', mnBoom: '爆炸！损失 {n} ★', mnWin: '已提现 {n} ★（{x}）', mnAllGems: '全部清空！派彩 {n} ★', mnMin: '最低下注 {n} ★', mnNoStars: 'Stars 不足', mnHint: '选择下注额和雷数，然后翻开格子。每颗宝石都会提高你的倍数。', mnChipMines: '雷数：{n}', mnFairHow: '游戏开始时，服务器锁定一个密钥并显示其 SHA-256 指纹，炸弹已按它布置好。游戏结束后密钥会公开，任何人都可以验证它与指纹一致，并重新计算炸弹的位置。', mnFairCur: '当前游戏', mnFairLast: '上一局已结束', mnFairBombs: '炸弹位置',
     eventBirthdayTitleSm: '应用',
     eventBirthdayTitleLg: '生日快乐！',
     eventBirthdaySub: '感谢这美好的一年',
@@ -1581,6 +2035,18 @@ const TRANSLATIONS = {
     freeDropsEyebrow: '每日免费掉落',
     freeHighlight: '免费',
     channelSuffix: '频道',
+    fairTitle: '可证明公平',
+    fairHow: '每回合开始前，服务器会锁定一个密钥并公布其 SHA-256 指纹。回合结束后密钥公开，任何人都可以核对它与指纹是否一致，并重新计算结果。',
+    fairCur: '当前回合',
+    fairLast: '上一回合',
+    fairOk: '已验证',
+    fairBad: '不匹配',
+    fairWait: '回合结束后显示密钥',
+    fairCopied: '已复制',
+    fairCrash: '爆炸于',
+    fairWinner: '获胜者',
+    fairRecomputed: '已重新计算',
+    fairHashOnly: '指纹与密钥一致',
     channelSub: '加入以不错过任何抽奖或秘密代码。',
     joinChannel: '加入频道',
 
@@ -1611,6 +2077,10 @@ const TRANSLATIONS = {
     sellHowTo: '在 Telegram 中将收藏品发送给 @{relayer}，下方列出的星星会自动充值到你的余额。',
     sellOpenRelayer: '打开 @{relayer}',
     sellSearch: '搜索礼物…',
+    sellMarket: '市场价',
+    sellAboveNote: '黑色星期五奖励：收购价最高比 Telegram 市场价高 {n}%',
+    sellEndsIn: '{t} 后结束',
+    sellVsMarket: '高于市场',
     sellNoResults: '未找到礼物',
     sellCount: '件礼物已定价',
     sellWord: '出售',
@@ -1882,6 +2352,114 @@ const StatusCheck = {
 // every request carries Telegram's signed initData and the server takes the
 // user id from that signature.
 // ============================================
+// ============================================
+// REFERRALS (Earn tab). Link + stats come from GET /api/referral; Stars are paid by the server when the friend's first deposit lands.
+// ============================================
+const Referral = {
+  data: null, failed: false,
+  esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
+  async open() {
+    this.render();
+    if (!STATE.tg?.initData) return;
+    try { this.data = await GameAPI.req('GET', '/api/referral'); this.failed = false; } catch (e) { if (!this.data) this.failed = true; }
+    this.render();
+  },
+  render() {
+    const d = this.data, root = document.getElementById('refCard');
+    if (!root) return;
+    const p = d ? d.percent : (GameAPI.cfg?.referral?.percent ?? 10), n = p;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('refSub', Utils.t('refSub', { p }));
+    set('refStep3', Utils.t('refStep3', { p }));
+    const input = document.getElementById('refLink');
+    if (input) input.value = d ? d.link : '';
+    root.classList.toggle('is-ready', !!d);
+    set('refInvited', d ? d.invited : '–'); set('refRewarded', d ? d.rewarded : '–'); set('refEarned', d ? d.earned : '–');
+    const list = document.getElementById('refList'); if (!list) return;
+    if (this.failed) { list.innerHTML = `<div class="ref-empty">${this.esc(Utils.t('refLoadErr'))}</div>`; return; }
+    if (!d) { list.innerHTML = ''; return; }
+    if (!d.list.length) { list.innerHTML = `<div class="ref-empty">${this.esc(Utils.t('refEmpty'))}</div>`; return; }
+    list.innerHTML = `<div class="ref-list-h">${this.esc(Utils.t('refFriends'))}</div>` + d.list.map(x => {
+      const nm = x.name || '—';
+      return `<div class="ref-row"><span class="ref-ava">${this.esc(nm.trim().charAt(0).toUpperCase() || '?')}</span><span class="ref-nm">${this.esc(nm)}</span>` +
+        `<span class="ref-st ${x.rewarded ? 'is-done' : ''}">${this.esc(x.rewarded ? Utils.t('refDone', { n: x.stars || n }) : Utils.t('refPending'))}</span></div>`;
+    }).join('');
+  },
+  async copy() {
+    const link = this.data?.link; if (!link) return;
+    let ok = false;
+    try { await navigator.clipboard.writeText(link); ok = true; } catch (e) {
+      try { const i = document.getElementById('refLink'); i.focus(); i.select(); ok = document.execCommand('copy'); } catch (e2) {}
+    }
+    if (ok) Utils.showToast(Utils.t('refCopied'), 'success');
+  },
+  share() {
+    const link = this.data?.link; if (!link) return;
+    const url = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(Utils.t('refShareText'));
+    if (STATE.tg?.openTelegramLink) STATE.tg.openTelegramLink(url); else window.open(url, '_blank', 'noopener');
+  }
+};
+
+// ============================================
+// BAN SCREEN. The server answers 403 { code: 'BANNED' } to every /api call of a banned account; GameAPI.req
+// calls Ban.show() and this full-screen page replaces the app. Nothing else can be reached from it.
+// ============================================
+const Ban = {
+  shown: false,
+  SUPPORT: 'https://t.me/voidgiftssupportbot',
+  show() {
+    if (this.shown) return;
+    const el = document.getElementById('banScreen');
+    if (!el) return;
+    this.shown = true;
+    try {
+      el.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = Utils.t(n.getAttribute('data-i18n')); });
+      const id = STATE.tg?.initDataUnsafe?.user?.id || STATE.userData?.id;
+      const idEl = document.getElementById('banId');
+      if (idEl && id) idEl.textContent = Utils.t('banYourId') + ': ' + id;
+      const btn = document.getElementById('banContact');
+      if (btn) btn.onclick = () => { if (STATE.tg?.openTelegramLink) STATE.tg.openTelegramLink(this.SUPPORT); else window.open(this.SUPPORT, '_blank', 'noopener'); };
+      const tw = window.Telegram && window.Telegram.WebApp;
+      if (tw) {
+        for (const fn of ['setHeaderColor', 'setBackgroundColor', 'setBottomBarColor']) { try { tw[fn] && tw[fn]('#050505'); } catch (e) {} }
+        try { tw.BackButton && tw.BackButton.hide(); } catch (e) {}
+        try { tw.expand && tw.expand(); } catch (e) {}
+      }
+    } catch (e) { /* the screen still shows, just untranslated */ }
+    el.hidden = false;
+    document.body.classList.add('is-banned');
+  }
+};
+
+// ============================================
+// TESTER GATE (DEV builds). With TESTERS_ONLY=on the server answers 403 { code: 'NOT_TESTER', until } to every /api call of an
+// account that is not on the tester list; GameAPI.req calls Tester.show() and this full-screen card replaces the app.
+// Production never answers this, so the card never appears there.
+// ============================================
+const Tester = {
+  shown: false,
+  show(until) {
+    if (this.shown) return;
+    const el = document.getElementById('testerScreen');
+    if (!el) return;
+    this.shown = true;
+    try {
+      el.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = Utils.t(n.getAttribute('data-i18n')); });
+      const u = document.getElementById('tsUntil'); if (u) u.textContent = until ? Utils.t('tgUntil', { d: until }) : '';
+      const id = STATE.tg?.initDataUnsafe?.user?.id || STATE.userData?.id;
+      const idEl = document.getElementById('tsId'); if (idEl && id) idEl.textContent = Utils.t('banYourId') + ': ' + id;
+      const tw = window.Telegram && window.Telegram.WebApp;
+      if (tw) {
+        for (const fn of ['setHeaderColor', 'setBackgroundColor', 'setBottomBarColor']) { try { tw[fn] && tw[fn]('#07060f'); } catch (e) {} }
+        try { tw.BackButton && tw.BackButton.hide(); } catch (e) {}
+        try { tw.expand && tw.expand(); } catch (e) {}
+      }
+    } catch (e) { /* the card still shows, just untranslated */ }
+    el.hidden = false;
+    document.body.classList.add('is-gated');
+  }
+};
+
 const GameAPI = {
   cfg: null,
   pending: null,          // last spin's final balance + results, applied when the reel stops
@@ -1898,6 +2476,8 @@ const GameAPI = {
       });
     } catch (err) { const e = new Error('Server is not reachable, try again in a moment'); e.code = 'OFFLINE'; throw e; }
     const data = await res.json().catch(() => ({}));
+    if (res.status === 403 && data.code === 'BANNED') Ban.show();
+    if (res.status === 403 && data.code === 'NOT_TESTER') Tester.show(data.until);
     if (!res.ok) {
       const e = new Error(data.error || `HTTP ${res.status}`);
       e.code = data.code; e.status = res.status; e.data = data;
@@ -1912,6 +2492,7 @@ const GameAPI = {
     if (!res.ok) throw new Error(`config HTTP ${res.status}`);
     const cfg = await res.json();
     this.cfg = cfg;
+    try { Mines.forcedOff = false; Mines.applyAvailability(); } catch (_) {}
     VersionTag.set({ back: (cfg.version && cfg.version.commit) || 'n/a' });
     Object.assign(PRIZE_COIN_VALUES, cfg.coinValues);
     Object.assign(PRIZE_STAR_VALUES, cfg.starValues || {});
@@ -2049,6 +2630,29 @@ const Reel = {
     const distance = Math.max(stride, mid(target) - centerX);        // px the strip has to travel
     // speed(p) = A·(1-p)^4 travels A·frames/5 px over the spin, so pick A to cover `distance` exactly
     return { target, distance, peakSpeed: (ms) => 5 * distance / (ms / (1000 / 60)) };
+  },
+
+  // The reel is driven by the CLOCK: total travel at time t is  distance x (1 - (1 - t/duration)^5)  (the same slow-down curve as before).
+  // Moving it frame by frame (speed x frame time) made the stopping point depend on the frame rate: on a phone that stutters the
+  // reel stopped one or more cubes away from the prize cube, and the prize then visibly changed when the wheel snapped to centre.
+  drive: {},
+  start(key, plan, ms) { this.drive[key] = { t0: performance.now(), ms, dist: plan.distance, done: 0, fin: false }; },
+  delta(key, now) {
+    const d = this.drive[key]; if (!d) return 0;
+    const p = Math.min(Math.max(((now || performance.now()) - d.t0) / d.ms, 0), 1);
+    const T = d.dist * (1 - Math.pow(1 - p, 5)), step = T - d.done;
+    d.done = T; if (p >= 1) d.fin = true;
+    return step;
+  },
+  // run cb once the last bit of travel has been applied to the strip (falls back after 1.5 s so a spin can never hang)
+  whenSettled(key, cb) {
+    const t0 = performance.now();
+    const wait = () => {
+      const d = this.drive[key];
+      if (!d || d.fin || performance.now() - t0 > 1500) { delete this.drive[key]; cb(); return; }
+      requestAnimationFrame(wait);
+    };
+    wait();
   }
 };
 
@@ -2149,6 +2753,7 @@ const TelegramApp = {
   },
 
   updateUserProfile(user) {
+    setTimeout(() => { try { Profile.header(); } catch (e) {} }, 0);
     const nameEl   = document.querySelector('.account-name');
     const userEl   = document.querySelector('.account-username');
     const avatarEl = document.querySelector('.account-avatar');
@@ -2679,6 +3284,8 @@ const Navigation = {
   },
 
   navigateTo(pageName, pushHistory = true) {
+    if (pageName === 'voidcoin' && VOIDCOIN_COMING_SOON) return;
+    if (pageName === 'mines' && !Mines.on()) pageName = 'home';          // Mines is switched off (or not announced by the server)
     document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${pageName}`)?.classList.add('active');
 
@@ -2699,11 +3306,134 @@ const Navigation = {
     STATE.currentPage = pageName;
     if (pushHistory) history.pushState(null, '', `#${pageName}`);
 
+    if (pageName === 'settings') Profile.open();
+    if (pageName === 'earn') Referral.open();
     if (pageName === 'leaderboard') Leaderboard.init();
     if (pageName === 'deposit')     Deposit.init();
     if (pageName === 'rocket') Rocket.enter(); else if (Rocket.active) Rocket.leave();
     if (pageName === 'battle') Battle.enter(); else if (Battle.active) Battle.leave();
+    if (pageName === 'mines') Mines.enter(); else if (Mines.active) Mines.leave();
 
+  }
+};
+
+// ============================================
+// PROFILE (top of the Profile/Settings page)
+// ============================================
+const Profile = {
+  header() {
+    const u = STATE.userData || STATE.tg?.initDataUnsafe?.user || null;
+    const nameEl = document.getElementById('pfName'); if (!nameEl) return;
+    const first = u?.first_name || '', last = u?.last_name || '';
+    nameEl.textContent = (first + ' ' + last).trim() || Utils.t('pfNoName');
+    const userEl = document.getElementById('pfUser'); if (userEl) userEl.textContent = u?.username ? '@' + u.username : '';
+    const idEl = document.getElementById('pfId'); if (idEl) idEl.textContent = u?.id ? 'ID ' + u.id : '';
+    const av = document.getElementById('pfAvatar');
+    if (av) {
+      if (u?.photo_url) { av.style.backgroundImage = `url(${u.photo_url})`; av.textContent = ''; }
+      else { av.style.backgroundImage = ''; av.textContent = ((first[0] || 'U') + (last[0] || '')).toUpperCase(); }
+    }
+  },
+  stats() {
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    set('pfCoins', (STATE.userCoins || 0).toLocaleString());
+    set('pfStars', (STATE.userStars || 0).toLocaleString());
+    set('pfGifts', (STATE.inventoryItems || []).length.toLocaleString());
+    const you = STATE.leaderboardYou && STATE.leaderboardYou.coins;
+    set('pfRank', you && !you.hidden && you.rank ? '#' + you.rank : '—');
+  },
+  async open() {
+    this.header(); this.stats();
+    try { if (STATE.tg?.initDataUnsafe?.user?.id) { await Leaderboard.fetchData(); this.stats(); } } catch (e) {}
+  }
+};
+
+// ============================================
+// PROVABLY FAIR (Rocket + Gift Battle): shows the round commitment, and re-checks the last finished round in the browser.
+// The server publishes sha256(secret) before the round and the secret after it. Rocket: crash = floor(100*edge/(1-r))/100 with
+// r = first 6 bytes of HMAC-SHA256(secret, 'voidgifts-rocket') / 2^48. Battle: r from HMAC(secret, 'voidgifts-battle'), winner = first player
+// whose cumulative stake share passes r (players in join order).
+// ============================================
+const Fair = {
+  S: { rocket: {}, battle: {}, mines: {} },
+  enc: (s) => new TextEncoder().encode(s),
+  hex: (buf) => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join(''),
+  async sha(s) { return this.hex(await crypto.subtle.digest('SHA-256', this.enc(s))); },
+  async rnd(secret, label) {
+    const key = await crypto.subtle.importKey('raw', this.enc(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, this.enc(label)));
+    let n = 0; for (let i = 0; i < 6; i++) n = n * 256 + sig[i];
+    return n / 2 ** 48;
+  },
+  render(kind, s) {
+    try {
+      const st = this.S[kind]; if (!s) return;
+      st.cur = { id: s.roundId, hash: s.hash };
+      if (s.secret && s.hash && (!st.last || st.last.id !== s.roundId)) {
+        st.last = { id: s.roundId, hash: s.hash, secret: s.secret, state: 'checking' };
+        if (kind === 'rocket') Object.assign(st.last, { crashAt: s.crashAt, edge: s.edge, maxMult: s.maxMult });
+        else if (kind === 'mines') Object.assign(st.last, { layout: s.layout });
+        else Object.assign(st.last, { values: (s.players || []).map(p => p.value), winner: s.spin ? s.spin.winner : null, winnerName: s.spin && s.players && s.players[s.spin.winner] ? s.players[s.spin.winner].name : '' });
+        this.verify(kind, st.last);
+      }
+      this.paint(kind);
+    } catch (e) { /* the panel is optional */ }
+  },
+  async verify(kind, L) {
+    try {
+      if (!(window.crypto && crypto.subtle)) { L.state = 'na'; return this.paint(kind); }
+      if ((await this.sha(L.secret)) !== L.hash) { L.state = 'bad'; return this.paint(kind); }
+      L.state = 'hash';
+      if (kind === 'rocket' && typeof L.edge === 'number' && L.crashAt != null) {
+        const r = await this.rnd(L.secret, 'voidgifts-rocket');
+        let c = Math.floor((100 * L.edge) / (1 - r)) / 100; c = Math.max(1, c); if (L.maxMult) c = Math.min(L.maxMult, c);
+        L.calc = c; L.state = Math.abs(c - Number(L.crashAt)) < 0.005 ? 'ok' : 'bad';
+      } else if (kind === 'mines' && L.layout && L.layout.length) {
+        const a = Array.from({ length: 25 }, (_, i) => i);
+        for (let i = 24; i > 0; i--) { const j = Math.floor((await this.rnd(L.secret, 'voidgifts-mines:' + i)) * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+        const calc = a.slice(0, L.layout.length).sort((x, y) => x - y);
+        L.calc = calc; L.state = calc.join() === [...L.layout].sort((x, y) => x - y).join() ? 'ok' : 'bad';
+      } else if (kind === 'battle' && L.values && L.values.length && L.winner != null) {
+        const r = await this.rnd(L.secret, 'voidgifts-battle'), total = L.values.reduce((a, b) => a + b, 0), target = r * total;
+        let cum = 0, w = L.values.length - 1; for (let i = 0; i < L.values.length; i++) { cum += L.values[i]; if (target < cum) { w = i; break; } }
+        L.calc = w; L.state = w === L.winner ? 'ok' : 'bad';
+      }
+    } catch (e) { L.state = 'na'; }
+    this.paint(kind);
+  },
+  paint(kind) {
+    const root = document.getElementById('fair-' + kind); if (!root) return;
+    const st = this.S[kind], q = (k) => root.querySelector(`[data-f="${k}"]`), t = (k) => Utils.t(k);
+    const set = (k, v) => { const e = q(k); if (e) e.textContent = v; };
+    set('cur-id', st.cur && st.cur.id ? '#' + st.cur.id : '—');
+    set('cur-hash', st.cur && st.cur.hash ? st.cur.hash : '—');
+    const L = st.last;
+    set('last-id', L ? '#' + L.id : '—');
+    set('last-secret', L ? L.secret : t('fairWait'));
+    const res = q('last-res'), stEl = q('st');
+    let line = '', cls = '';
+    if (L) {
+      if (L.state === 'ok') {
+        cls = 'ok';
+        line = kind === 'rocket' ? `✓ ${t('fairCrash')} ${Number(L.crashAt).toFixed(2)}× · ${t('fairRecomputed')} ${L.calc.toFixed(2)}×`
+             : kind === 'mines' ? `✓ ${t('mnFairBombs')}: ${L.layout.map(x => x + 1).join(', ')} · ${t('fairRecomputed')}`
+                                 : `✓ ${t('fairWinner')}: ${L.winnerName || '#' + (L.winner + 1)} · ${t('fairRecomputed')}`;
+      } else if (L.state === 'hash') { cls = 'ok'; line = '✓ ' + t('fairHashOnly'); }
+      else if (L.state === 'bad') { cls = 'bad'; line = '✗ ' + t('fairBad'); }
+    }
+    if (res) { res.textContent = line; res.className = 'fair-res ' + cls; }
+    if (stEl) { stEl.textContent = L && (L.state === 'ok' || L.state === 'hash') ? '✓ ' + t('fairOk') : (L && L.state === 'bad' ? '✗ ' + t('fairBad') : ''); stEl.classList.toggle('bad', !!(L && L.state === 'bad')); }
+  },
+  init() {
+    document.querySelectorAll('.fair').forEach(root => {
+      const head = root.querySelector('.fair-h'), body = root.querySelector('.fair-b');
+      head.addEventListener('click', () => { const open = head.getAttribute('aria-expanded') !== 'true'; head.setAttribute('aria-expanded', open); body.hidden = !open; });
+      root.querySelectorAll('.fair-hash').forEach(b => b.addEventListener('click', () => {
+        const txt = b.textContent.trim(); if (!/^[0-9a-f]{64}$/i.test(txt)) return;
+        try { navigator.clipboard.writeText(txt).then(() => Utils.showToast(Utils.t('fairCopied'), 'success')); } catch (e) { /* no clipboard */ }
+      }));
+      this.paint(root.dataset.kind);
+    });
   }
 };
 
@@ -3742,6 +4472,13 @@ const TonPurchaseFlow = {
 // (e.g. "Crystal Ball" -> assets/CrystalBall.svg); if the .svg is missing it
 // tries assets/<Name>.json (Lottie), then hides the icon.
 // ============================================
+// ---- SELL GIFTS: comparison with the Telegram market price (PREVIEW) ----
+// The relayer can send `market` (Telegram's floor, in Stars) with every item in /buyback/prices. Until it does, SELL_MARKET_PLACEHOLDER
+// fills in a made-up market price so the layout can be judged. Set it to false to hide the comparison unless real `market` data exists.
+const SELL_MARKET_PLACEHOLDER = true;
+const SELL_PLACEHOLDER_END = Date.parse('2026-11-30T00:00:00+05:00');   // preview only: the real end date comes from the relayer (event.ends_at)
+const sellPlaceholderBonus = (title) => { let h = 0; for (const c of String(title)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 3 + (h % 7); };   // 3..9 %, stable per gift
+
 const BUYBACK_FALLBACK = [
   ['Plush Pepe', 655799],
   ['Heart Locket', 132277],
@@ -3894,8 +4631,9 @@ const Buyback = {
       const res = await fetch(`${GIFT_RELAYER_URL}/buyback/prices`, { signal: AbortSignal.timeout(6000) });
       if (!res.ok) return;
       const data = await res.json();
-      if (Array.isArray(data.items) && data.items.length) this.items = data.items.map(i => ({ title: i.title, stars: Number(i.stars) || 0 }));
+      if (Array.isArray(data.items) && data.items.length) this.items = data.items.map(i => ({ title: i.title, stars: Number(i.stars) || 0, market: Number(i.market) || 0 }));
       if (data.relayer_username) this.relayer = data.relayer_username;
+      this.event = data.event || null;
       this.render();
     } catch { /* keep fallback */ }
   },
@@ -3924,6 +4662,25 @@ const Buyback = {
     return wrap;
   },
 
+  // The Black Friday price event. With a current relayer the data says whether it is on and when it ends (event.active / event.ends_at);
+  // without it (or before the relayer is updated) the preview placeholder stands in. After the end time everything switches itself off here.
+  _endsAt() { return this.event && this.event.ends_at ? Date.parse(this.event.ends_at) : (this.event ? 0 : (SELL_MARKET_PLACEHOLDER ? SELL_PLACEHOLDER_END : 0)); },
+  _eventOn() {
+    if (this.event) return !!this.event.active && (!this._endsAt() || Date.now() < this._endsAt());
+    return SELL_MARKET_PLACEHOLDER && Date.now() < SELL_PLACEHOLDER_END;
+  },
+  // Telegram's market price for a gift: the real one from the relayer if it sends it, otherwise a preview placeholder. Only during the event.
+  _market(item) {
+    if (!this._eventOn()) return 0;
+    if (item.market > 0) return item.market;
+    if (this.event || !SELL_MARKET_PLACEHOLDER) return 0;
+    return Math.max(1, Math.round(item.stars / (1 + sellPlaceholderBonus(item.title) / 100)));
+  },
+  _left() {
+    let ms = Math.max(0, this._endsAt() - Date.now()); const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+    return d > 0 ? `${d}d ${h}h` : `${h}h ${m}m`;
+  },
+
   render() {
     const list = document.getElementById('sellList');
     if (!list) return;
@@ -3934,6 +4691,16 @@ const Buyback = {
     list.innerHTML = '';
     const count = document.getElementById('sellCount');
     if (count) count.textContent = `${this.items.length} ${Utils.t('sellCount')}`;
+    let note = document.getElementById('sellNote'), best = 0;
+    this.items.forEach(i => { const m = this._market(i); if (m) best = Math.max(best, Math.round((i.stars / m - 1) * 100)); });
+    if (!note && list.parentNode) { note = document.createElement('div'); note.id = 'sellNote'; note.className = 'sell-note'; list.parentNode.insertBefore(note, list.parentNode.querySelector('.sell-tools')); }
+    if (note) {
+      note.hidden = !(this._eventOn() && best > 0);
+      note.innerHTML = '';
+      const t1 = document.createElement('span'); t1.textContent = Utils.t('sellAboveNote', { n: best }); note.appendChild(t1);
+      if (this._endsAt()) { const t2 = document.createElement('em'); t2.textContent = Utils.t('sellEndsIn', { t: this._left() }); note.appendChild(t2); }
+    }
+    if (!this._tick) this._tick = setInterval(() => { if (document.getElementById('sellList')) this.render(); }, 60000);
     if (!rows.length) {
       list.innerHTML = `<div class="leaderboard-empty">${Utils.t('sellNoResults')}</div>`;
       return;
@@ -3946,7 +4713,16 @@ const Buyback = {
       const pill = document.createElement('div');
       pill.className = 'sell-pill';
       pill.innerHTML = `<span>+${item.stars.toLocaleString()}</span><img src="assets/TStars.svg" alt="Stars">`;
-      row.append(this._icon(item.title), name, pill);
+      const market = this._market(item), nm = document.createElement('div'), end = document.createElement('div');
+      nm.className = 'sell-nm'; nm.appendChild(name); end.className = 'sell-end'; end.appendChild(pill);
+      if (market) {
+        const pct = Math.max(0, Math.round((item.stars / market - 1) * 100));
+        const mk = document.createElement('div'); mk.className = 'sell-mk';
+        mk.innerHTML = `${Utils.t('sellMarket')}: <s>${market.toLocaleString()}</s> <img src="assets/TStars.svg" alt="">`;
+        nm.appendChild(mk);
+        if (pct > 0) { const g = document.createElement('div'); g.className = 'sell-gain'; g.textContent = `+${pct}% ${Utils.t('sellVsMarket')}`; end.appendChild(g); }
+      }
+      row.append(this._icon(item.title), nm, end);
       frag.appendChild(row);
     });
     list.appendChild(frag);
@@ -4276,6 +5052,7 @@ const SpinWheel = {
       // Scale by real elapsed time so total distance traveled depends
       // only on wall-clock duration, never on how many frames fired.
       STATE.scrollPosition += STATE.scrollSpeed * (dt / (1000 / 60));
+      STATE.scrollPosition += Reel.delta('daily', now);   // spin travel follows the clock, not the frame rate
       const stride = CONFIG.CUBE_WIDTH + CONFIG.GAP_WIDTH;
 
       // while, not if — a lag spike can cross more than one cube-width
@@ -4325,15 +5102,16 @@ const SpinWheel = {
 
     const plan = Reel.plan(cubes, document.querySelector('.wheel-container:not(.void-wheel-container)'), CONFIG.CUBE_WIDTH + CONFIG.GAP_WIDTH);
     this.renderCube(plan.target, winning);
-    this._landing = { winning };
+    this._landing = { winning, target: plan.target };
+    Reel.start('daily', plan, CONFIG.SPIN_DURATION);
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.isSpinning) return;
       const progress  = Math.min((Date.now() - startTime) / CONFIG.SPIN_DURATION, 1);
-      STATE.scrollSpeed = plan.peakSpeed(CONFIG.SPIN_DURATION) * Math.pow(1 - progress, 4);
+      STATE.scrollSpeed = 0;   // the reel is moved by Reel.delta (wall-clock), see Reel
       if (progress < 1) { requestAnimationFrame(tick); }
-      else { STATE.scrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
+      else { STATE.scrollSpeed = 0; Reel.whenSettled('daily', () => setTimeout(() => this.snapToCenter(), 100)); }
     };
     tick();
   },
@@ -4353,6 +5131,8 @@ const SpinWheel = {
     });
 
     const L = this._landing || {}; this._landing = null;
+    // Always land on the cube that carries the server's prize, wherever the reel really stopped (never swap a prize under the pointer).
+    if (L.target && cubes.includes(L.target)) { const tr = L.target.getBoundingClientRect(); bestCube = L.target; snapDelta = (tr.left + tr.width / 2 - wRect.left) - center; }
 
     // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
 
@@ -4596,6 +5376,7 @@ const VoidSpinWheel = {
       const wheel = document.getElementById('voidWheel');
       if (wheel) {
         STATE.voidScrollPosition += STATE.voidScrollSpeed * (dt / (1000 / 60));
+        STATE.voidScrollPosition += Reel.delta('void', now);   // spin travel follows the clock, not the frame rate
         const stride = CONFIG.VOID_CUBE_WIDTH + CONFIG.VOID_GAP_WIDTH;
 
         while (STATE.voidScrollPosition >= stride) {
@@ -4658,15 +5439,16 @@ const VoidSpinWheel = {
 
     const plan = Reel.plan(cubes, document.querySelector('.void-wheel-container'), CONFIG.VOID_CUBE_WIDTH + CONFIG.VOID_GAP_WIDTH);
     this.renderCube(plan.target, winning);
-    this._landing = { winning };
+    this._landing = { winning, target: plan.target };
+    Reel.start('void', plan, CONFIG.VOID_SPIN_DURATION);
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.voidIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.VOID_SPIN_DURATION, 1);
-      STATE.voidScrollSpeed = plan.peakSpeed(CONFIG.VOID_SPIN_DURATION) * Math.pow(1 - progress, 4);
+      STATE.voidScrollSpeed = 0;   // the reel is moved by Reel.delta (wall-clock), see Reel
       if (progress < 1) { requestAnimationFrame(tick); }
-      else { STATE.voidScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
+      else { STATE.voidScrollSpeed = 0; Reel.whenSettled('void', () => setTimeout(() => this.snapToCenter(), 100)); }
     };
     tick();
   },
@@ -4686,6 +5468,8 @@ const VoidSpinWheel = {
     });
 
     const L = this._landing || {}; this._landing = null;
+    // Always land on the cube that carries the server's prize, wherever the reel really stopped (never swap a prize under the pointer).
+    if (L.target && cubes.includes(L.target)) { const tr = L.target.getBoundingClientRect(); bestCube = L.target; snapDelta = (tr.left + tr.width / 2 - wRect.left) - center; }
 
     // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
 
@@ -5172,6 +5956,7 @@ const FurrySpinWheel = {
       const wheel = document.getElementById('furryWheel');
       if (wheel) {
         STATE.furryScrollPosition += STATE.furryScrollSpeed * (dt / (1000 / 60));
+        STATE.furryScrollPosition += Reel.delta('furry', now);   // spin travel follows the clock, not the frame rate
         const stride = CONFIG.FURRY_CUBE_WIDTH + CONFIG.FURRY_GAP_WIDTH;
 
         while (STATE.furryScrollPosition >= stride) {
@@ -5234,15 +6019,16 @@ const FurrySpinWheel = {
 
     const plan = Reel.plan(cubes, document.querySelector('.furry-wheel-container'), CONFIG.FURRY_CUBE_WIDTH + CONFIG.FURRY_GAP_WIDTH);
     this.renderCube(plan.target, winning);
-    this._landing = { winning };
+    this._landing = { winning, target: plan.target };
+    Reel.start('furry', plan, CONFIG.FURRY_SPIN_DURATION);
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.furryIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.FURRY_SPIN_DURATION, 1);
-      STATE.furryScrollSpeed = plan.peakSpeed(CONFIG.FURRY_SPIN_DURATION) * Math.pow(1 - progress, 4);
+      STATE.furryScrollSpeed = 0;   // the reel is moved by Reel.delta (wall-clock), see Reel
       if (progress < 1) { requestAnimationFrame(tick); }
-      else { STATE.furryScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
+      else { STATE.furryScrollSpeed = 0; Reel.whenSettled('furry', () => setTimeout(() => this.snapToCenter(), 100)); }
     };
     tick();
   },
@@ -5262,6 +6048,8 @@ const FurrySpinWheel = {
     });
 
     const L = this._landing || {}; this._landing = null;
+    // Always land on the cube that carries the server's prize, wherever the reel really stopped (never swap a prize under the pointer).
+    if (L.target && cubes.includes(L.target)) { const tr = L.target.getBoundingClientRect(); bestCube = L.target; snapDelta = (tr.left + tr.width / 2 - wRect.left) - center; }
 
     // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
 
@@ -5505,6 +6293,7 @@ const HexSpinWheel = {
       const wheel = document.getElementById('hexWheel');
       if (wheel) {
         STATE.hexScrollPosition += STATE.hexScrollSpeed * (dt / (1000 / 60));
+        STATE.hexScrollPosition += Reel.delta('hex', now);   // spin travel follows the clock, not the frame rate
         const stride = CONFIG.HEX_CUBE_WIDTH + CONFIG.HEX_GAP_WIDTH;
 
         while (STATE.hexScrollPosition >= stride) {
@@ -5567,15 +6356,16 @@ const HexSpinWheel = {
 
     const plan = Reel.plan(cubes, document.querySelector('.hex-wheel-container'), CONFIG.HEX_CUBE_WIDTH + CONFIG.HEX_GAP_WIDTH);
     this.renderCube(plan.target, winning);
-    this._landing = { winning };
+    this._landing = { winning, target: plan.target };
+    Reel.start('hex', plan, CONFIG.HEX_SPIN_DURATION);
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.hexIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.HEX_SPIN_DURATION, 1);
-      STATE.hexScrollSpeed = plan.peakSpeed(CONFIG.HEX_SPIN_DURATION) * Math.pow(1 - progress, 4);
+      STATE.hexScrollSpeed = 0;   // the reel is moved by Reel.delta (wall-clock), see Reel
       if (progress < 1) { requestAnimationFrame(tick); }
-      else { STATE.hexScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
+      else { STATE.hexScrollSpeed = 0; Reel.whenSettled('hex', () => setTimeout(() => this.snapToCenter(), 100)); }
     };
     tick();
   },
@@ -5595,6 +6385,8 @@ const HexSpinWheel = {
     });
 
     const L = this._landing || {}; this._landing = null;
+    // Always land on the cube that carries the server's prize, wherever the reel really stopped (never swap a prize under the pointer).
+    if (L.target && cubes.includes(L.target)) { const tr = L.target.getBoundingClientRect(); bestCube = L.target; snapDelta = (tr.left + tr.width / 2 - wRect.left) - center; }
 
     // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
 
@@ -5842,6 +6634,7 @@ const AstralSpinWheel = {
       const wheel = document.getElementById('astralWheel');
       if (wheel) {
         STATE.astralScrollPosition += STATE.astralScrollSpeed * (dt / (1000 / 60));
+        STATE.astralScrollPosition += Reel.delta('astral', now);   // spin travel follows the clock, not the frame rate
         const stride = CONFIG.ASTRAL_CUBE_WIDTH + CONFIG.ASTRAL_GAP_WIDTH;
 
         while (STATE.astralScrollPosition >= stride) {
@@ -5904,15 +6697,16 @@ const AstralSpinWheel = {
 
     const plan = Reel.plan(cubes, document.querySelector('.astral-wheel-container'), CONFIG.ASTRAL_CUBE_WIDTH + CONFIG.ASTRAL_GAP_WIDTH);
     this.renderCube(plan.target, winning);
-    this._landing = { winning };
+    this._landing = { winning, target: plan.target };
+    Reel.start('astral', plan, CONFIG.ASTRAL_SPIN_DURATION);
 
     const startTime = Date.now();
     const tick = () => {
       if (!STATE.astralIsSpinning) return;
       const progress = Math.min((Date.now() - startTime) / CONFIG.ASTRAL_SPIN_DURATION, 1);
-      STATE.astralScrollSpeed = plan.peakSpeed(CONFIG.ASTRAL_SPIN_DURATION) * Math.pow(1 - progress, 4);
+      STATE.astralScrollSpeed = 0;   // the reel is moved by Reel.delta (wall-clock), see Reel
       if (progress < 1) { requestAnimationFrame(tick); }
-      else { STATE.astralScrollSpeed = 0; setTimeout(() => this.snapToCenter(), 100); }
+      else { STATE.astralScrollSpeed = 0; Reel.whenSettled('astral', () => setTimeout(() => this.snapToCenter(), 100)); }
     };
     tick();
   },
@@ -5932,6 +6726,8 @@ const AstralSpinWheel = {
     });
 
     const L = this._landing || {}; this._landing = null;
+    // Always land on the cube that carries the server's prize, wherever the reel really stopped (never swap a prize under the pointer).
+    if (L.target && cubes.includes(L.target)) { const tr = L.target.getBoundingClientRect(); bestCube = L.target; snapDelta = (tr.left + tr.width / 2 - wRect.left) - center; }
 
     // Safety net (e.g. the app was backgrounded mid-spin): whatever stops under the pointer IS the prize the server paid.
 
@@ -6426,8 +7222,205 @@ const LiveLink = {
   },
   guard() {
     if (!this.down) return false;
-    try { (Rocket.active ? Rocket : Battle).toast('Server is not reachable, wait a moment'); } catch (_) {}
+    try { (Rocket.active ? Rocket : Mines.active ? Mines : Battle).toast('Server is not reachable, wait a moment'); } catch (_) {}
     return true;
+  }
+};
+
+// ============================================
+// MINES (solo). The server owns the game and the bombs; this only draws the board and sends the clicks.
+// A game survives closing the app: opening this page asks the server for the active game and resumes it.
+// ============================================
+const Mines = {
+  active: false, g: null, over: null, busy: false, hist: [], m: 3, tiles: [],
+  $: (s) => document.querySelector(s),
+  fmt: (n) => Math.round(n).toLocaleString('en-US'),
+  t: (k, v) => Utils.t(k, v),
+  fx: (x) => (x >= 1000 ? Math.round(x).toLocaleString('en-US') : x.toFixed(2)) + 'x',
+  toast(msg) { Rocket.toast(msg); },
+  // Kill switch. The server's /api/config says `mines.enabled`; anything else (old server, no config yet, switched off) = hidden.
+  forcedOff: false,
+  on() { return !this.forcedOff && GameAPI.cfg?.mines?.enabled === true; },
+  applyAvailability() {
+    const on = this.on();
+    ['soloHead', 'soloStack'].forEach((id) => { const e = document.getElementById(id); if (e) e.style.display = on ? '' : 'none'; });
+    if (!on && STATE.currentPage === 'mines') Navigation.navigateTo('home');
+  },
+  cfg() { return GameAPI.cfg?.mines || { tiles: 25, minBet: 50, maxBet: 20000, edge: 0.9, minMines: 1, maxMines: 24 }; },
+  // Same formula as the server (mines.js). Only used for the preview before a game starts; the server's numbers win.
+  mult(m, k) {
+    if (k <= 0) return 1;
+    const N = this.cfg().tiles || 25; let f = 1;
+    for (let i = 0; i < k; i++) f *= (N - i) / (N - m - i);
+    return Math.floor(this.cfg().edge * f * 100 + 1e-7) / 100;
+  },
+  amount() { const c = this.cfg(); return Math.min(c.maxBet, Math.max(c.minBet, Math.floor(+this.$('#mnAmount').value || 0))); },
+
+  init() {
+    const card = document.getElementById('minesCard'); if (!card) return;
+    const open = () => Navigation.navigateTo('mines');
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') open(); });
+    const board = this.$('#mnBoard');
+    board.innerHTML = Array.from({ length: 25 }, (_, i) => `<button type="button" class="mn-tile" data-t="${i}" aria-label="Tile ${i + 1}"></button>`).join('');
+    board.addEventListener('click', (e) => { const el = e.target.closest('.mn-tile'); if (el) this.pick(+el.dataset.t); });
+    this.$('#mnGo').addEventListener('click', () => this.go());
+    this.$('#mnAmount').addEventListener('input', () => this.render());
+    this.$('#mnAmount').addEventListener('change', () => { this.$('#mnAmount').value = this.amount(); this.render(); });
+    document.querySelectorAll('[data-mstep]').forEach(b => b.addEventListener('click', () => {
+      const a = this.amount(), d = +b.dataset.mstep; this.$('#mnAmount').value = Math.min(this.cfg().maxBet, Math.max(this.cfg().minBet, a + d * (a >= 500 ? 100 : 50))); this.render();
+    }));
+    this.$('#mnChips').addEventListener('click', (e) => {
+      const v = e.target.dataset && e.target.dataset.v; if (!v) return; const a = this.amount();
+      this.$('#mnAmount').value = Math.min(this.cfg().maxBet, Math.max(this.cfg().minBet, v === 'half' ? Math.floor(a / 2) : v === 'double' ? a * 2 : +v)); this.render();
+    });
+    this.$('#mnMChips').addEventListener('click', (e) => { const v = e.target.dataset && e.target.dataset.m; if (v) this.setMines(+v); });
+    document.querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => this.setMines(this.m + +b.dataset.mm)));
+  },
+
+  async enter() {
+    if (!this.on()) return Navigation.navigateTo('home');
+    this.active = true; this.$('#mnAmount').min = this.cfg().minBet;
+    this.setMines(this.m); this.render();
+    await this.load();
+  },
+  leave() { this.active = false; },
+
+  async load() {
+    try {
+      const s = await GameAPI.req('GET', '/api/mines/state');
+      this.hist = s.history || [];
+      if (s.active) { this.g = s.active; this.over = null; Fair.render('mines', { roundId: s.active.id, hash: s.active.hash }); }
+      else this.g = null;
+    } catch (e) { /* offline: the page still shows, the first click will tell */ }
+    this.render();
+  },
+
+  setMines(n) {
+    const c = this.cfg(); this.m = Math.min(c.maxMines, Math.max(c.minMines, Math.round(n) || c.minMines));
+    this.render();
+  },
+
+  tileHtml(st) {
+    return st === 'o' ? '<img src="assets/MineGem.svg" alt="">' : (st === 'b' || st === 'B') ? '<img src="assets/MineBomb.svg" alt="">' : st === 'g' ? '<img src="assets/MineGem.svg" alt="">' : '';
+  },
+  tileState(i) {
+    if (this.g) return this.g.picks.includes(i) ? 'o' : 'p';
+    const o = this.over; if (!o) return 'p';
+    if (o.picks.includes(i)) return 'o';
+    if (o.boom === i) return 'b';
+    return o.layout.includes(i) ? 'B' : 'g';
+  },
+
+  render() {
+    if (!this.$('#mnBoard')) return;
+    const g = this.g, o = this.over, c = this.cfg(), playing = !!g;
+    const board = this.$('#mnBoard');
+    board.classList.toggle('idle', !playing); board.classList.toggle('busy', this.busy);
+    board.querySelectorAll('.mn-tile').forEach((el, i) => {
+      const st = this.tileState(i);
+      if (this.tiles[i] === st) return;
+      this.tiles[i] = st;
+      el.className = 'mn-tile' + (st === 'o' ? ' open' : st === 'b' ? ' bomb boom' : st === 'B' ? ' bomb ghost' : st === 'g' ? ' ghost' : '');
+      el.innerHTML = this.tileHtml(st);
+    });
+
+    // numbers
+    const bet = playing ? g.bet : this.amount();
+    let mult = 1, next = this.mult(this.m, 1), pay = 0;
+    if (playing) { mult = g.mult; next = g.next; pay = g.payout; }
+    else if (o) { mult = o.win ? o.mult : 0; next = null; pay = o.win ? o.pay : 0; }
+    this.$('#mnMult').textContent = this.fx(mult);
+    this.$('#mnMult').classList.toggle('hot', mult > 1);
+    this.$('#mnNext').textContent = next ? this.fx(next) : '—';
+    this.$('#mnPay span').textContent = this.fmt(pay);
+
+    // controls
+    this.$('#mnCtl').classList.toggle('locked', playing);
+    document.querySelectorAll('#mnMChips button').forEach(b => b.classList.toggle('on', +b.dataset.m === this.m));
+    const gems = (c.tiles || 25) - this.m;
+    this.$('#mnGems').textContent = this.t('mnGems', { n: gems });
+    const chip = this.$('#mnChip');
+    chip.hidden = !playing; if (playing) chip.textContent = this.t('mnChipMines', { n: g.mines });
+
+    const go = this.$('#mnGo');
+    go.classList.remove('cash', 'wait');
+    if (playing && g.picks.length) { go.classList.add('cash'); go.textContent = this.t('mnCashBtn') + ' · ' + this.fmt(g.payout) + ' ★'; go.disabled = this.busy; }
+    else if (playing) { go.classList.add('wait'); go.textContent = this.t('mnPick'); go.disabled = true; }
+    else { go.textContent = this.t(o ? 'mnAgain' : 'mnStart'); go.disabled = this.busy; }
+
+    // note under the board
+    const note = this.$('#mnNote'); note.className = 'mn-note';
+    if (!playing && o) {
+      if (o.win) { if (o.pay > o.bet) note.classList.add('win'); note.textContent = o.all ? this.t('mnAllGems', { n: this.fmt(o.pay) }) : this.t('mnWin', { n: this.fmt(o.pay), x: this.fx(o.mult) }); }
+      else { note.classList.add('lose'); note.textContent = this.t('mnBoom', { n: this.fmt(o.bet) }); }
+    } else note.textContent = playing ? '' : this.t('mnHint');
+
+    // recent games
+    const h = this.$('#mnHistory');
+    h.innerHTML = this.hist.map((r) => {
+      if (r.status !== 'cashed') return '<span class="lose">0x</span>';
+      const x = r.bet ? r.payout / r.bet : 0;
+      return `<span class="${x >= 20 ? 'mega' : x >= 5 ? 'hi' : x >= 2 ? 'mid' : ''}">${this.fx(x)}</span>`;
+    }).join('');
+  },
+
+  go() { return this.g ? this.cashout() : this.start(); },
+
+  fail(e) {
+    if (e.code === 'MINES_OFF') { this.forcedOff = true; this.g = null; this.applyAvailability(); }
+    else if (e.code === 'INSUFFICIENT_STARS') this.toast(this.t('mnNoStars'));
+    else if (e.code === 'ACTIVE_GAME' || e.code === 'NO_GAME') { this.toast(e.message); this.load(); }
+    else this.toast(e.message || 'Error');
+  },
+
+  async start() {
+    if (this.busy) return;
+    const c = this.cfg();
+    if ((+this.$('#mnAmount').value || 0) < c.minBet) { this.$('#mnAmount').value = c.minBet; this.render(); return this.toast(this.t('mnMin', { n: c.minBet })); }
+    this.busy = true; this.render();
+    try {
+      const r = await GameAPI.req('POST', '/api/mines/start', { bet: this.amount(), mines: this.m });
+      GameAPI.applyBalance(r.balance, false);
+      this.g = r.game; this.over = null; this.tiles = [];
+      Fair.render('mines', { roundId: r.game.id, hash: r.game.hash });
+    } catch (e) { this.fail(e); }
+    this.busy = false; this.render();
+  },
+
+  async pick(i) {
+    if (!this.g || this.busy || this.g.picks.includes(i)) return;
+    this.busy = true;
+    const el = this.$(`#mnBoard .mn-tile[data-t="${i}"]`); if (el) el.classList.add('pend');
+    try {
+      const r = await GameAPI.req('POST', '/api/mines/reveal', { tile: i });
+      if (r.hit) this.finish({ win: false, picks: r.picks, layout: r.mines, boom: r.tile, secret: r.secret, hash: r.hash, id: r.id, bet: r.bet, mult: 0, pay: 0 });
+      else if (r.done) { GameAPI.applyBalance(r.balance); this.finish({ win: true, all: true, picks: r.game.picks, layout: r.mines, secret: r.secret, hash: r.game.hash, id: r.game.id, bet: r.game.bet, mult: r.game.mult, pay: r.won }); }
+      else this.g = r.game;
+    } catch (e) { if (el) el.classList.remove('pend'); this.fail(e); }
+    this.busy = false; this.render();
+  },
+
+  async cashout() {
+    if (!this.g || this.busy || !this.g.picks.length) return;
+    this.busy = true; this.render();
+    const g = this.g;
+    try {
+      const r = await GameAPI.req('POST', '/api/mines/cashout', {});
+      GameAPI.applyBalance(r.balance);
+      this.finish({ win: true, picks: r.picks, layout: r.mines, secret: r.secret, hash: r.hash, id: r.id, bet: g.bet, mult: r.mult, pay: r.won });
+    } catch (e) { this.fail(e); }
+    this.busy = false; this.render();
+  },
+
+  // A game ended (cash-out, bomb, or board cleared): show every tile, remember it, let the player verify it.
+  finish(o) {
+    this.g = null; this.over = o; this.tiles = [];
+    this.hist.unshift({ status: o.win ? 'cashed' : 'lost', bet: o.bet, payout: o.pay, mines: o.layout.length });
+    this.hist = this.hist.slice(0, 12);
+    Fair.render('mines', { roundId: o.id, hash: o.hash, secret: o.secret, layout: o.layout });
+    if (!o.win) { const b = this.$('#mnBoard'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); try { Telegram.WebApp.HapticFeedback.notificationOccurred('error'); } catch (_) {} }
+    else { try { Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch (_) {} }
   }
 };
 
@@ -6440,7 +7433,11 @@ const Rocket = {
   cfg() { return GameAPI.cfg?.rocket || { minBet: 50, maxBet: 20000, growth: 0.11, giftTiers: [], nftTiers: [] }; },
   min() { return this.cfg().minBet || 50; },
   isNft: (n) => NFT_GIFTS.includes(n),
-  val(n) { return (this.isNft(n) ? PRIZE_STAR_VALUES[n] : PRIZE_COIN_VALUES[n]) || 0; },
+  val(n) {
+    if (this.isNft(n)) return PRIZE_STAR_VALUES[n] || 0;
+    const c = GameAPI.cfg || {}, v = (c.rocket && c.rocket.values) || (c.battle && c.battle.values);
+    return ((v && v[n] != null) ? v[n] : PRIZE_COIN_VALUES[n]) || 0;
+  },
 
   // ---------- icons ----------
   tile(n) {
@@ -6520,7 +7517,7 @@ const Rocket = {
   },
   startPolling() {
     if (this.poll) return;
-    const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/rocket/state')); LiveLink.set(false); } catch { LiveLink.set(true); } };
+    const tick = async () => { try { this.apply(await GameAPI.req('GET', '/api/rocket/state')); this.lastRx = Date.now(); LiveLink.set(false); } catch { LiveLink.set(true); } };
     tick(); this.poll = setInterval(tick, 1200);
   },
 
@@ -6534,7 +7531,7 @@ const Rocket = {
     const me = s.me;
     if (me && me.status !== 'active' && this.announced !== s.roundId) { this.announced = s.roundId; this.settled(me); }
     this.renderHistory(); this.renderList(); this.renderButton(); this.renderGifts(); this.renderLadder();
-    const _rf = this.$('#rkFair'); if (_rf) _rf.textContent = s.phase === 'crash' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
+    Fair.render('rocket', s);
   },
   tFly() {
     const s = this.snap; if (!s) return 0;
@@ -6542,7 +7539,16 @@ const Rocket = {
     this._frz = null;
     if (s.phase === 'crash') return Math.log(s.crashAt) / this.K;
     if (s.phase !== 'fly') return 0;
-    return Math.max(0, (Date.now() + this.off - s.flyStartedAt) / 1000);
+    // The crash point is secret until it happens, so the number is only ever extrapolated from the last news. If nothing has
+    // arrived for a moment (the server sends a beat every 400 ms) the connection is stalling: stop counting where the last
+    // news left us instead of racing past a crash we have not heard about yet.
+    const at = this.stalled() ? this.lastRx + this.gap() : Date.now();   // hold at the value shown when the beats stopped (never rewind)
+    return Math.max(0, (at + this.off - s.flyStartedAt) / 1000);
+  },
+  gap() { return this.poll ? 3500 : 700; },   // silence allowed before the number is held: ~1.75 beats of the 400 ms heartbeat (polling mode asks only every 1.2 s)
+  stalled() {
+    const s = this.snap;
+    return !!(s && s.phase === 'fly' && this.lastRx && Date.now() - this.lastRx > this.gap());
   },
   mult() {
     const s = this.snap; if (!s) return 1;
@@ -6825,7 +7831,7 @@ const Rocket = {
           const m = this.mult(); num.textContent = m.toFixed(2); unit.textContent = 'x';
           this.$('#rkMult').classList.toggle('gold', s.phase === 'fly' && m >= 5);
           if (s.phase === 'fly') {
-            sub.textContent = me && me.status === 'cashed' ? `You cashed out at ${me.cash_at.toFixed(2)}x` : me ? 'Cash out before it crashes' : 'Round in progress';
+            sub.textContent = this.stalled() ? 'Weak connection…' : me && me.status === 'cashed' ? `You cashed out at ${me.cash_at.toFixed(2)}x` : me ? 'Cash out before it crashes' : 'Round in progress';
             this.paintLadder(m, true); if (me && me.status === 'active') this.renderButton();
           } else sub.textContent = 'Rocket crashed';
         }
@@ -6998,7 +8004,7 @@ const Battle = {
     this.$('#btList').innerHTML = s.players.map((p, i) => `<li class="${p.me ? 'me' : ''} ${i === win ? 'win' : ''}"><span class="rk-av" style="background:${this.COLORS[i % this.COLORS.length]}">${this.av(p)}</span><span class="nm">${this.esc(p.name)}</span><span class="ic">${p.items.map(n => Rocket.img(n)).join('')}</span><span class="rs">${(p.chance * 100).toFixed(1)}%</span></li>`).join('')
       || '<li><span></span><span class="nm rk-dim">Nobody yet — be the first</span><span></span><span></span></li>';
     this.$('#btCount').textContent = s.maxPlayers > 0 ? `${s.players.length}/${s.maxPlayers}` : `${s.players.length}`;
-    const _bf = this.$('#btFair'); if (_bf) _bf.textContent = s.phase === 'result' && s.secret ? `Round #${s.roundId} secret: ${s.secret} · sha256 = ${s.hash}` : s.hash ? `Round #${s.roundId} commitment: ${s.hash}` : '';
+    Fair.render('battle', s);
   },
   renderButton() {
     const s = this.snap, b = this.$('#btGo'); if (!b) return;
@@ -7278,7 +8284,7 @@ async function initializeApp() {
   LoadingScreen.init();
   Navigation.init();
   Menu.init();
-  BottomNav.init();
+  BottomNav.init(); try { Fair.init(); } catch (e) {};
   Settings.init();
   LanguageModal.init();
   Subscription.init();
@@ -7288,6 +8294,7 @@ async function initializeApp() {
   ContentBoxes.init();
   Rocket.init();
   Battle.init();
+  Mines.init();
   EventListeners.init();
 
   GameAPI._firstRefresh = GameAPI.refresh();
